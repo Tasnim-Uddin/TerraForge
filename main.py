@@ -5,7 +5,6 @@ from current_events import CurrentEvents
 from screen import Screen
 
 
-
 class Game:
     def __init__(self):
         pg.init()
@@ -19,7 +18,8 @@ class Game:
 
     def run(self):
         while self.running:
-            for event in pg.event.get():
+            CurrentEvents.events = CurrentEvents.queue_events()
+            for event in CurrentEvents.events:
                 if event.type == pg.QUIT:
                     self.running = False
                     pg.quit()
