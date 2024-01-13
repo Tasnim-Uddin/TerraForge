@@ -13,14 +13,13 @@ class Screen:
         self.all_sprites = pg.sprite.Group()
         self.block_sprites = pg.sprite.Group()
 
-        self.world = []
+        self.player = Player(block_group=self.block_sprites, position=(10, 10))
+        self.camera_scroll = self.player.get_camera_scroll()
+        self.all_sprites.add(self.player)
+
 
         self.generate_world()
-
         self.all_sprites.add(self.block_sprites)
-        self.player = Player(block_group=self.block_sprites, position=(10, 10))
-
-        self.all_sprites.add(self.player)
 
     @staticmethod
     def load_block_sprites():
@@ -45,11 +44,19 @@ class Screen:
         for x in range(100):
             y = 300 + int((opensimplex.noise2(x=x * 0.1, y=0) + 1) * 50)
             y = self.lock_to_block_size(value=y)
-            while y < 500:
-                self.block_sprites.add(Entity(image=block_textures["grass"], position=(x * BLOCK_SIZE, y)))
+            # while y < 500:
+            self.block_sprites.add(Entity(image=block_textures["grass"], position=(x * BLOCK_SIZE, y)))
+            while y < WINDOW_HEIGHT:
+                self.block_sprites.add(Entity(image=block_textures["dirt"], position=(x * BLOCK_SIZE, y + BLOCK_SIZE)))
                 y += BLOCK_SIZE
+
+    def apply_camera_scroll(self):
+        for block in self.all_sprites:
+            block.rect.x -= self.camera_scroll.x
+            block.rect.y -= self.camera_scroll.y
 
     def render(self):
         self.game.window.fill("lightblue")  # getting the self.window variable from object self.game (in main.py)
+        self.apply_camera_scroll()
         self.all_sprites.update()
         self.all_sprites.draw(surface=self.game.window)
