@@ -1,7 +1,7 @@
 import pygame as pg
 import sys
 from global_constants import *
-from current_events import CurrentEvents
+from current_events import EventManager
 from screen import Screen
 
 
@@ -18,8 +18,8 @@ class Game:
 
     def run(self):
         while self.running:
-            CurrentEvents.events = CurrentEvents.queue_events()
-            for event in CurrentEvents.events:
+            EventManager.queue_events()
+            for event in EventManager.events:
                 if event.type == pg.QUIT:
                     self.running = False
                     pg.quit()
