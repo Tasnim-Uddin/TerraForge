@@ -1,4 +1,5 @@
 import pygame as pg
+import math
 from global_constants import *
 from entity import Entity
 from player import Player
@@ -17,6 +18,7 @@ class Screen:
         self.camera_scroll = self.player.get_camera_scroll()
         self.all_sprites.add(self.player)
 
+        self.world_data = {}
 
         self.generate_world()
         self.all_sprites.add(self.block_sprites)
@@ -39,16 +41,46 @@ class Screen:
     def lock_to_block_size(value):
         return BLOCK_SIZE * round(value / BLOCK_SIZE)
 
+
+    @staticmethod
+    def generate_chunk(chunk_x, chunk_y):
+        chunk_data = []
+        for x_in_chunk in range(CHUNK_SIZE):
+            for y_in_chunk in range(CHUNK_SIZE):
+                real_x = (chunk_x * CHUNK_SIZE + x_in_chunk) * BLOCK_SIZE
+                real_y = (chunk_y * CHUNK_SIZE + y_in_chunk) * BLOCK_SIZE
+                block = None
+                height = int((opensimplex.noise2(x=5 * 0.1, y=0) + 1) * 50)
+                if real_y == 300 - height:
+                    block = "grass"
+                elif real_y > 300 - height:
+                    block = "dirt"
+                if block is not None:
+                    chunk_data.append([[real_x, real_y], block])
+        return chunk_data
+
     def generate_world(self):
         block_textures = self.load_block_sprites()
         for x in range(100):
             y = 300 + int((opensimplex.noise2(x=x * 0.1, y=0) + 1) * 50)
             y = self.lock_to_block_size(value=y)
-            # while y < 500:
             self.block_sprites.add(Entity(image=block_textures["grass"], position=(x * BLOCK_SIZE, y)))
             while y < WINDOW_HEIGHT:
-                self.block_sprites.add(Entity(image=block_textures["dirt"], position=(x * BLOCK_SIZE, y + BLOCK_SIZE)))
+                self.block_sprites.add(
+                    Entity(image=block_textures["dirt"], position=(x * BLOCK_SIZE, y + BLOCK_SIZE)))
                 y += BLOCK_SIZE
+    # block_textures = self.load_block_sprites()
+    # number_of_chunks_x = math.ceil(WINDOW_WIDTH / (BLOCK_SIZE * CHUNK_SIZE))
+    # number_of_chunks_y = math.ceil(WINDOW_HEIGHT / (BLOCK_SIZE * CHUNK_SIZE))
+    # for x in range(number_of_chunks_x):
+    #     for y in range(number_of_chunks_y):
+    #         real_x = x
+    #         real_y = y
+    #         chunk = f"{real_x};{real_y}"
+    #         if chunk not in self.world_data:
+    #             self.world_data[chunk] = self.generate_chunk(chunk_x=real_x, chunk_y=real_y)
+    #         for block in self.world_data[chunk]:
+    #             self.block_sprites.add(Entity(image=block_textures[block[1]], position=(block[0][0], block[0][1])))
 
     def apply_camera_scroll(self):
         for block in self.all_sprites:
