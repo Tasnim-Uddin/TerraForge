@@ -34,7 +34,7 @@ class Player(pg.sprite.Sprite):
         if collided_block is not None:
             if self.velocity.x > 0:
                 self.rect.right = collided_block.rect.left
-            if self.velocity.x < 0:
+            elif self.velocity.x < 0:
                 self.rect.left = collided_block.rect.right
 
     def vertical_collision(self):
@@ -44,6 +44,8 @@ class Player(pg.sprite.Sprite):
                 self.velocity.y = 0
                 self.rect.bottom = collided_block.rect.top
                 self.on_ground = True
+            elif self.velocity.y < 0:
+                self.velocity.y = -self.velocity.y
 
     def movement(self):
         self.input()
