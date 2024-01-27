@@ -7,7 +7,7 @@ from current_events import EventManager
 class Player:
     def __init__(self):
         raw_image = pygame.image.load(file="assets/player.png").convert_alpha()
-        self.image = pygame.transform.scale(surface=raw_image, size=(100, 60))
+        self.image = pygame.transform.scale(surface=raw_image, size=(32, 60))
 
         self.position = [10, 0]
         self.rect = self.image.get_rect(topleft=self.position)
