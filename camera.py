@@ -1,12 +1,18 @@
-import pygame
+from global_constants import *
 
 
-class CameraGroup(pygame.sprite.Group):
-    def __init__(self, camera: pygame.Vector2):
-        super().__init__()
-        self.camera = camera
+class Camera:
+    def __init__(self):
+        self.scroll = [0, 0]
+        self.applied_scroll = [0, 0]
 
-    def draw(self, surface):
-        surface.fblits(
-            [(spr.image, spr.rect.topleft - self.camera) for spr in self.sprites()]
-        )
+    def update(self, player):
+        horizontal_shift = (player.rect.x - self.scroll[0] - WINDOW_WIDTH / 2) / 1
+        vertical_shift = player.rect.y - self.scroll[1] - WINDOW_HEIGHT / 2
+
+        self.scroll[0] += horizontal_shift
+        self.scroll[1] += vertical_shift
+
+        self.applied_scroll = self.scroll.copy()
+        self.applied_scroll[0] = int(self.applied_scroll[0])
+        self.applied_scroll[1] = int(self.applied_scroll[1])
