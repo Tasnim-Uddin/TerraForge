@@ -1,4 +1,4 @@
-import pygame as pg
+import pygame as pygame
 
 
 class EventManager:
@@ -8,9 +8,16 @@ class EventManager:
     """
 
     def __init__(self):
-        EventManager.events = pg.event.get()
+        EventManager.events = pygame.event.get()
 
     @staticmethod
     def queue_events():
-        EventManager.events = pg.event.get()
+        EventManager.events = pygame.event.get()
 
+    @staticmethod
+    def quit_game():
+        for event in EventManager.events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return True
+        return False

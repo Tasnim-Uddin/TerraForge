@@ -1,3 +1,5 @@
+import tracemalloc
+
 import pygame as pygame
 import sys
 import time
@@ -22,6 +24,8 @@ class Game:
 
         self.font = pygame.font.Font(None, 32)
 
+        tracemalloc.start()
+
     def run(self):
         while self.running:
 
@@ -33,12 +37,13 @@ class Game:
 
             EventManager.queue_events()
             for event in EventManager.events:
-                if event.type == pygame.QUIT:
+                if event.type == pygame.QUIT or EventManager.quit_game():
                     self.running = False
                     pygame.quit()
                     sys.exit()
 
             self.scene.render()
+            print(tracemalloc.get_traced_memory())
             self.screen.blit(self.font.render(f"FPS: {self.clock.get_fps():.1f}", True, 'white'), (10, 10))
             pygame.display.update()
             self.clock.tick(FRAMES_PER_SECOND)  # runs at the FPS put in
@@ -46,3 +51,4 @@ class Game:
 
 if __name__ == "__main__":
     Game().run()
+
