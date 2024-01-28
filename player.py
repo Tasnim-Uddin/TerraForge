@@ -7,7 +7,7 @@ from current_events import EventManager
 class Player:
     def __init__(self):
         raw_image = pygame.image.load(file="assets/player.png").convert_alpha()
-        self.image = pygame.transform.scale(surface=raw_image, size=(32, 60))
+        self.image = pygame.transform.scale(surface=raw_image, size=(100, 60))
 
         self.position = [10, 0]
         self.rect = self.image.get_rect(topleft=self.position)
@@ -34,6 +34,27 @@ class Player:
         if self.velocity[1] <= TERMINAL_VELOCITY:
             self.velocity[1] += GRAVITY
 
+    # def horizontal_collision(self, chunks):
+    #     for chunk in chunks:
+    #         for block in chunks[chunk]:
+    #             block.rect.x *= BLOCK_SIZE
+    #             if block.rect.colliderect(self.rect):
+    #                 if self.velocity[0] > 0:
+    #                     self.rect.right = block.rect.left
+    #                 if self.velocity[0] < 0:
+    #                     self.rect.left = block.rect.right
+    #
+    # def vertical_collision(self, chunks):
+    #     for chunk in chunks:
+    #         for block in chunks[chunk]:
+    #             block.rect.y *= BLOCK_SIZE
+    #             if block.rect.colliderect(self.rect):
+    #                 if self.velocity[1] > 0:
+    #                     self.on_ground = True
+    #                     self.rect.bottom = block.rect.top
+    #                 if self.velocity[1] < 0:
+    #                     self.velocity[1] = -self.velocity[1]
+
     def horizontal_collision(self, chunks):
         for chunk in chunks:
             for block in chunk:
@@ -52,7 +73,6 @@ class Player:
                         self.rect.bottom = block.rect.top
                     if self.velocity[1] < 0:
                         self.velocity[1] = -self.velocity[1]
-
     def movement(self, chunks):
         self.input()
 
