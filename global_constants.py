@@ -11,8 +11,8 @@ BLOCKS_IN_ATLAS_Y = 2
 BLOCK_SIZE = 32
 
 # num of blocks per chunk
-CHUNK_WIDTH = 10
-CHUNK_HEIGHT = 10
+CHUNK_WIDTH = 32
+CHUNK_HEIGHT = 32
 
 # num of blocks in world
 WORLD_WIDTH = 100000

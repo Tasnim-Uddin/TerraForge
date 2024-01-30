@@ -6,10 +6,10 @@ from current_events import EventManager
 
 class Player:
     def __init__(self):
-        raw_image = pygame.image.load(file="assets/player.png").convert_alpha()
+        raw_image = pygame.image.load("assets/player.png").convert_alpha()
         self.image = pygame.transform.scale(surface=raw_image, size=(BLOCK_SIZE, BLOCK_SIZE))
 
-        self.position = [10, 0]
+        self.position = [40, 0]
         self.rect = self.image.get_rect(topleft=self.position)
         self.velocity = [0, 0]
 
