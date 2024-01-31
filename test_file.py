@@ -1,5 +1,7 @@
+import random
+import time
+
 import pygame as py
-import time, random
 
 
 class Camera:

@@ -1,9 +1,8 @@
 import pygame
-import noise
 from opensimplex import *
 
 from global_constants import *
-from texture_data import block_texture_data
+from all_texture_data import block_texture_data
 from player import Player
 from block import Block
 
@@ -12,7 +11,7 @@ class Scene:
     def __init__(self, game):
         self.game = game
 
-        self.seed = OpenSimplex(seed=42)
+        self.seed = OpenSimplex(seed=4355435345434343521312321321)
 
         self.block_textures = self.load_block_sprites()
 
@@ -67,18 +66,43 @@ class Scene:
     # #             self.chunks[f"{str(x)};{str(y)}"] = set()
     # #         self.chunks[f"{str(x)};{str(y)}"].add(self.all_world_blocks[position])
 
+    # def generate_chunk(self, offset):
+    #     current_chunk_blocks = []
+    #     for x in range(CHUNK_WIDTH):
+    #         real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE
+    #         height = int(noise.pnoise1(real_x * 0.003) * 100)  # perlin noise
+    #         # height = int((self.seed.noise2(x=real_x * 0.003, y=0) * 100))  # TODO- figure out why opensimplex is so slow for some reason
+    #         for y in range(CHUNK_HEIGHT):
+    #             real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE
+    #             if real_y == height:
+    #                 current_chunk_blocks.append(Block(image=self.block_textures["grass"], position=(real_x, real_y)))
+    #             elif real_y > height:
+    #                 current_chunk_blocks.append(Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
+    #     return current_chunk_blocks
+
     def generate_chunk(self, offset):
         current_chunk_blocks = []
         for x in range(CHUNK_WIDTH):
             real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE
-            height = int(noise.pnoise1(real_x * 0.003) * 100)  # perlin noise
-            # height = int((self.seed.noise2(x=real_x * 0.003, y=0) * 100))  # TODO- figure out why opensimplex is so slow for some reason
+            height = int((self.seed.noise2(x=real_x * 0.003, y=0) * 100) // BLOCK_SIZE * BLOCK_SIZE)
+            horizontal_shift = 0
+            # horizontal_shift = int((self.seed.noise2(x=real_x * 0.003, y=0) * 100) // BLOCK_SIZE * BLOCK_SIZE)
+
             for y in range(CHUNK_HEIGHT):
                 real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE
-                if real_y == height:
-                    current_chunk_blocks.append(Block(image=self.block_textures["grass"], position=(real_x, real_y)))
-                elif real_y > height:
-                    current_chunk_blocks.append(Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
+
+                if real_y == 0:
+                    current_chunk_blocks.append(Block(image=self.block_textures["grass"], position=(real_x + horizontal_shift, real_y + height)))
+                    print(real_y)
+                elif 0 < real_y <= 5 * BLOCK_SIZE:
+                    current_chunk_blocks.append(
+                        Block(image=self.block_textures["dirt"], position=(real_x + horizontal_shift, real_y + height)))
+                    print(real_y)
+                elif 5 * BLOCK_SIZE < real_y < 20 * BLOCK_SIZE:
+                    current_chunk_blocks.append(
+                        Block(image=self.block_textures["stone"], position=(real_x + horizontal_shift, real_y + height)))
+                    print(real_y)
+
         return current_chunk_blocks
 
     def render(self):
