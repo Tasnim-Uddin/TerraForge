@@ -40,11 +40,13 @@ class Game:
                     sys.exit()
 
             self.scene.render()
-            self.screen.blit(self.font.render(f"FPS: {self.clock.get_fps():.1f}", True, 'white'), (10, 10))
+            self.screen.blit(
+                self.font.render(f"FPS: {self.clock.get_fps():.1f}", True, "white"),
+                (10, 10),
+            )
             pygame.display.update()
             self.clock.tick(FRAMES_PER_SECOND)  # runs at the FPS put in
 
 
 if __name__ == "__main__":
     Game().run()
-

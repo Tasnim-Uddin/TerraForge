@@ -1,5 +1,3 @@
-import random
-
 import pygame
 from opensimplex import *
 
@@ -41,68 +39,63 @@ class Scene:
                                                                          information["size"][1]))
         return textures
 
-    def generate_chunk(self, offset):
-        current_chunk_blocks = []
-        for x in range(CHUNK_WIDTH):
-            real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE
-            noise = int((self.seed.noise2(x=real_x * 0.003, y=0) * 200) // BLOCK_SIZE * BLOCK_SIZE)
-
-            for y in range(CHUNK_HEIGHT):
-                real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE
-                # block_type = self.get_block_type(real_y=real_y, noise=noise)
-
-                if real_y + noise == 0:
-                    current_chunk_blocks.append(
-                        Block(image=self.block_textures["grass"], position=(real_x, real_y)))
-                elif 0 < (real_y + noise) <= 5 * BLOCK_SIZE:
-                    current_chunk_blocks.append(
-                        Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
-                elif 5 * BLOCK_SIZE < (real_y + noise) <= 20 * BLOCK_SIZE:
-                    current_chunk_blocks.append(
-                        Block(image=self.block_textures["stone"], position=(real_x, real_y)))
-                # elif real_y > 60 * BLOCK_SIZE:
-                #     num = random.randint(20 * BLOCK_SIZE, 1000) // BLOCK_SIZE * BLOCK_SIZE
-                #     current_chunk_blocks.append(
-                #         Block(image=self.block_textures["dirt"], position=(real_x, num)))
-
-
-
-        return current_chunk_blocks
-
-    # def generate_chunk(self, offset):  # TODO- fix so that cliffs dont look weird
+    # def generate_chunk(self, offset):
     #     current_chunk_blocks = []
     #     for x in range(CHUNK_WIDTH):
     #         real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE
-    #
-    #         height = int((self.seed.noise2(x=real_x * 0.003, y=0) * 100) // BLOCK_SIZE * BLOCK_SIZE)
-    #         noise2 = int((self.seed.noise2(x=real_x * 0.003, y=2) * 10) // BLOCK_SIZE * BLOCK_SIZE)
+    #         height_noise = int((self.seed.noise2(x=real_x * 0.003, y=0) * 200) // BLOCK_SIZE * BLOCK_SIZE)
     #
     #         for y in range(CHUNK_HEIGHT):
     #             real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE
     #
-    #             if real_y == 0:
+    #             if real_y + height_noise == 0:
     #                 current_chunk_blocks.append(
-    #                     Block(image=self.block_textures["grass"], position=(real_x, real_y + height)))
-    #             elif 0 < real_y <= 5 * BLOCK_SIZE + noise2 * BLOCK_SIZE:
+    #                     Block(image=self.block_textures["grass"], position=(real_x, real_y)))
+    #             elif 0 < (real_y + height_noise) <= 5 * BLOCK_SIZE:
     #                 current_chunk_blocks.append(
-    #                     Block(image=self.block_textures["dirt"], position=(real_x, real_y + height)))
-    #             elif 5 * BLOCK_SIZE + noise2 * BLOCK_SIZE < real_y < 20 * BLOCK_SIZE:
+    #                     Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
+    #             if 5 * BLOCK_SIZE < (real_y + height_noise) <= 20 * BLOCK_SIZE:
     #                 current_chunk_blocks.append(
-    #                     Block(image=self.block_textures["stone"], position=(real_x, real_y + height)))
+    #                     Block(image=self.block_textures["stone"], position=(real_x, real_y)))
     #
     #     return current_chunk_blocks
 
-    @staticmethod
-    def get_block_type(real_y, noise):
-        block_type = "dirt"
-        if real_y + noise == 0:
-            block_type = "grass"
-        elif 0 < (real_y + noise) <= 5 * BLOCK_SIZE:
-            block_type = "dirt"
-        elif 5 * BLOCK_SIZE < (real_y + noise) <= 20 * BLOCK_SIZE:
-            block_type = "stone"
+    def generate_chunk(self, offset):
+        current_chunk_blocks = []
+        for x in range(CHUNK_WIDTH):
+            real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE
+            tile_x = real_x * 0.003
+            height_noise = int((self.seed.noise2(x=tile_x, y=0) * 200) // BLOCK_SIZE * BLOCK_SIZE)
 
-        return block_type
+            for y in range(CHUNK_HEIGHT):
+                real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE
+                tile_y = real_y * 0.003
+                cave_noise = self.seed.noise2(x=tile_x, y=tile_y) * 2 * 200
+                noise_val = pygame.math.clamp(cave_noise * height_noise - pygame.math.clamp(y * .05, 0, 1), -1, 1)
+
+                if noise_val > -.9 and real_y > 100:
+                    current_chunk_blocks.append(
+                                         Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
+                # create block and autotile it
+                else:
+                    pass
+            # void
+        return current_chunk_blocks
+
+    # @staticmethod
+    # def get_block_type(real_y, noise, cave_open):
+    #     block_type = "air"
+    #     if cave_open:
+    #         block_type = "air"
+    #     else:
+    #         if real_y + noise == 0:
+    #             block_type = "grass"
+    #         elif 0 < (real_y + noise) <= 5 * BLOCK_SIZE:
+    #             block_type = "dirt"
+    #         elif 5 * BLOCK_SIZE < (real_y + noise) <= 20 * BLOCK_SIZE:
+    #             block_type = "stone"
+    #
+    #     return block_type
 
     def render(self):
         self.precise_camera_scroll[0] = (self.player.rect.x - WINDOW_WIDTH / 2 + self.player.rect.width / 2)
