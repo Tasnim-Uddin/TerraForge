@@ -11,11 +11,11 @@ class Player:
             surface=raw_image, size=(BLOCK_SIZE, BLOCK_SIZE)
         )
 
-        self.position = [10, 0]
+        self.position = [0, 0]
         self.rect = self.image.get_rect(topleft=self.position)
         self.velocity = [0, 0]
 
-        self.on_ground = True
+        self.on_ground = False
 
     def input(self):
         for event in EventManager.events:  # noqa
@@ -28,7 +28,7 @@ class Player:
                     if (
                         self.on_ground
                     ):  # jumping allowed only when the player is on the ground
-                        self.on_ground = True
+                        self.on_ground = False
                         self.velocity[1] -= JUMP_HEIGHT
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_d or event.key == pygame.K_a:
@@ -39,26 +39,26 @@ class Player:
             self.velocity[1] += GRAVITY
 
     def horizontal_collision(self, chunks):
-        if self.rect.left <= 0:
-            self.rect.left = 0
-        for chunk in chunks:
-            for block in chunks[chunk]:
-                if block.rect.colliderect(self.rect):
-                    if self.velocity[0] > 0:
-                        self.rect.right = block.rect.left
-                    if self.velocity[0] < 0:
-                        self.rect.left = block.rect.right
+        # if self.rect.left <= 0:
+        #     self.rect.left = 0
+        # for chunk in chunks:
+        #     for block in chunks[chunk]:
+        #         if block.rect.colliderect(self.rect):
+        #             if self.velocity[0] > 0:
+        #                 self.rect.right = block.rect.left
+        #             if self.velocity[0] < 0:
+        #                 self.rect.left = block.rect.right
         pass
 
     def vertical_collision(self, chunks):
-        for chunk in chunks:
-            for block in chunks[chunk]:
-                if block.rect.colliderect(self.rect):
-                    if self.velocity[1] > 0:
-                        self.on_ground = True
-                        self.rect.bottom = block.rect.top
-                    if self.velocity[1] < 0:
-                        self.velocity[1] = -self.velocity[1]
+        # for chunk in chunks:
+        #     for block in chunks[chunk]:
+        #         if block.rect.colliderect(self.rect):
+        #             if self.velocity[1] > 0:
+        #                 self.on_ground = True
+        #                 self.rect.bottom = block.rect.top
+        #             if self.velocity[1] < 0:
+        #                 self.velocity[1] = -self.velocity[1]
         pass
 
     def movement(self, chunks):

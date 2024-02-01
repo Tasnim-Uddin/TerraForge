@@ -1,5 +1,6 @@
 import pygame
 from opensimplex import *
+from perlin_noise import *
 
 from global_constants import *
 from all_texture_data import block_texture_data
@@ -11,7 +12,8 @@ class Scene:
     def __init__(self, game):
         self.game = game
 
-        self.seed = OpenSimplex(4032159)
+        self.surface_seed = OpenSimplex(4032159)
+        self.cave_noise = OpenSimplex(23432432432)
 
         self.block_textures = self.load_block_sprites()
 
@@ -63,23 +65,28 @@ class Scene:
     def generate_chunk(self, offset):
         current_chunk_blocks = []
         for x in range(CHUNK_WIDTH):
-            real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE
-            tile_x = real_x * 0.003
-            height_noise = int((self.seed.noise2(x=tile_x, y=0) * 200) // BLOCK_SIZE * BLOCK_SIZE)
+            real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE  # exact x position of the block (in pixels)
+            height_noise = int((self.surface_seed.noise2(x=real_x * 0.003, y=0) * 200) // BLOCK_SIZE * BLOCK_SIZE)
 
             for y in range(CHUNK_HEIGHT):
-                real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE
-                tile_y = real_y * 0.003
-                cave_noise = self.seed.noise2(x=tile_x, y=tile_y) * 2 * 200
-                noise_val = pygame.math.clamp(cave_noise * height_noise - pygame.math.clamp(y * .05, 0, 1), -1, 1)
+                real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE  # exact y position of the block (in pixels)
 
-                if noise_val > -.9 and real_y > 100:
+                air_in_cave = False
+
+                if self.surface_seed.noise2(x=real_x * 0.003, y=real_y * 0.003) > CAVE_AIR_THRESHOLD:
+                    air_in_cave = True
+
+                if real_y + height_noise == 0:
                     current_chunk_blocks.append(
-                                         Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
-                # create block and autotile it
-                else:
-                    pass
-            # void
+                        Block(image=self.block_textures["grass"], position=(real_x, real_y)))
+                elif 0 < (real_y + height_noise) <= 5 * BLOCK_SIZE:
+                    current_chunk_blocks.append(
+                        Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
+                if 5 * BLOCK_SIZE < (real_y + height_noise):
+                    if not air_in_cave > CAVE_AIR_THRESHOLD:
+                        current_chunk_blocks.append(
+                            Block(image=self.block_textures["stone"], position=(real_x, real_y)))
+
         return current_chunk_blocks
 
     # @staticmethod
@@ -141,9 +148,9 @@ class Scene:
                  for block in self.chunks[f"{offset[0]};{offset[1]}"]])
             surrounding_chunks[f"{offset[0]};{offset[1]}"] = (self.chunks.get(f"{offset[0]};{offset[1]}", []))
 
-        for neighbour_keys in self.chunks.copy():
-            if neighbour_keys not in neighbour_chunk_offsets:
-                self.chunks.pop(neighbour_keys)
+        # for neighbour_keys in self.chunks.copy():  # TODO- find alternative for this as without this my memory usage goes up with every new chunk
+        #     if neighbour_keys not in neighbour_chunk_offsets:
+        #         self.chunks.pop(neighbour_keys)
 
         self.player.movement(chunks=surrounding_chunks)
         self.player.render(screen=self.game.screen, offset=self.camera_scroll)
