@@ -1,6 +1,12 @@
+import random
+
 import pygame
 from opensimplex import *
 from perlin_noise import *
+import noise
+import numpy as np
+from random import randint
+from scipy import ndimage
 
 from global_constants import *
 from all_texture_data import block_texture_data
@@ -11,9 +17,6 @@ from block import Block
 class Scene:
     def __init__(self, game):
         self.game = game
-
-        self.surface_seed = OpenSimplex(4032159)
-        self.cave_noise = OpenSimplex(23432432432)
 
         self.block_textures = self.load_block_sprites()
 
@@ -26,6 +29,12 @@ class Scene:
             # "x;y" : Block(), Block(), ...
             # "x;y" represents the chunk number as a row and column
         }
+
+        self.cave_threshold = 0.5
+        self.threshold_decrease_rate = 0.001
+
+        self.surface_seed = OpenSimplex(123)
+        self.cave_seed = OpenSimplex(23432432432)
 
     @staticmethod
     def load_block_sprites():
@@ -62,47 +71,70 @@ class Scene:
     #
     #     return current_chunk_blocks
 
-    def generate_chunk(self, offset):
+    # def generate_chunk(self, offset):
+    #     current_chunk_blocks = []
+    #     for x in range(CHUNK_WIDTH):
+    #         real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE  # exact x position of the block (in pixels)
+    #         height_noise = int((self.surface_seed.noise2(x=real_x * 0.003, y=0) * 200) // BLOCK_SIZE * BLOCK_SIZE)
+    #
+    #         for y in range(CHUNK_HEIGHT):
+    #             real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE  # exact y position of the block (in pixels)
+    #
+    #             air_in_cave = False
+    #
+    #             cave_value = self.surface_seed.noise2(x=real_x * 0.003, y=real_y * 0.003)
+    #
+    #             if cave_value > self.cave_threshold:
+    #                 air_in_cave = True
+    #
+    #             if real_y + height_noise == 0:
+    #                 current_chunk_blocks.append(
+    #                     Block(image=self.block_textures["grass"], position=(real_x, real_y)))
+    #             elif 0 < (real_y + height_noise) <= 10 * BLOCK_SIZE:
+    #                 current_chunk_blocks.append(
+    #                     Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
+    #             if 10 * BLOCK_SIZE < (real_y + height_noise):
+    #                 if not air_in_cave:
+    #                     current_chunk_blocks.append(
+    #                         Block(image=self.block_textures["stone"], position=(real_x, real_y)))
+    #
+    #     return current_chunk_blocks
+
+    def generate_chunk(self, offset):  # fix caves getting cut horizontally
         current_chunk_blocks = []
         for x in range(CHUNK_WIDTH):
-            real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE  # exact x position of the block (in pixels)
-            height_noise = int((self.surface_seed.noise2(x=real_x * 0.003, y=0) * 200) // BLOCK_SIZE * BLOCK_SIZE)
+            real_x = offset[0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE
+
+            surface_noise = int((self.surface_seed.noise2(x=real_x * 0.003, y=0.003) * 200) // BLOCK_SIZE * BLOCK_SIZE)
 
             for y in range(CHUNK_HEIGHT):
-                real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE  # exact y position of the block (in pixels)
+                real_y = offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE
+
+                threshold_decrease_rate = self.calculate_threshold_decrease_rate(y)
+                cave_threshold = self.cave_threshold - real_y / (CHUNK_HEIGHT * BLOCK_SIZE) * threshold_decrease_rate
 
                 air_in_cave = False
+                cave_value = self.cave_seed.noise2(x=real_x * 0.003, y=real_y * 0.003)
 
-                if self.surface_seed.noise2(x=real_x * 0.003, y=real_y * 0.003) > CAVE_AIR_THRESHOLD:
+                if cave_value > cave_threshold:
                     air_in_cave = True
 
-                if real_y + height_noise == 0:
+                if real_y + surface_noise == 0:
                     current_chunk_blocks.append(
                         Block(image=self.block_textures["grass"], position=(real_x, real_y)))
-                elif 0 < (real_y + height_noise) <= 5 * BLOCK_SIZE:
+                elif 0 < (real_y + surface_noise) <= 10 * BLOCK_SIZE:
                     current_chunk_blocks.append(
                         Block(image=self.block_textures["dirt"], position=(real_x, real_y)))
-                if 5 * BLOCK_SIZE < (real_y + height_noise):
-                    if not air_in_cave > CAVE_AIR_THRESHOLD:
+                elif 5 * BLOCK_SIZE <= (real_y + surface_noise):
+                    if not air_in_cave:
                         current_chunk_blocks.append(
                             Block(image=self.block_textures["stone"], position=(real_x, real_y)))
 
         return current_chunk_blocks
 
-    # @staticmethod
-    # def get_block_type(real_y, noise, cave_open):
-    #     block_type = "air"
-    #     if cave_open:
-    #         block_type = "air"
-    #     else:
-    #         if real_y + noise == 0:
-    #             block_type = "grass"
-    #         elif 0 < (real_y + noise) <= 5 * BLOCK_SIZE:
-    #             block_type = "dirt"
-    #         elif 5 * BLOCK_SIZE < (real_y + noise) <= 20 * BLOCK_SIZE:
-    #             block_type = "stone"
-    #
-    #     return block_type
+    @staticmethod
+    def calculate_threshold_decrease_rate(y):
+        return 0.0001 * (y ** 2)
 
     def render(self):
         self.precise_camera_scroll[0] = (self.player.rect.x - WINDOW_WIDTH / 2 + self.player.rect.width / 2)
