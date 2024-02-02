@@ -11,6 +11,10 @@ class Player:
             surface=raw_image, size=(BLOCK_SIZE, BLOCK_SIZE)
         )
 
+        self.left_click = False
+        self.right_click = False
+
+        # self.position = [(WORLD_WIDTH * BLOCK_SIZE) // 2, 100]
         self.position = [0, 0]
         self.rect = self.image.get_rect(topleft=self.position)
         self.velocity = [0, 0]
@@ -25,9 +29,7 @@ class Player:
                 if event.key == pygame.K_a:
                     self.velocity[0] = -HORIZONTAL_SPEED
                 if event.key == pygame.K_SPACE:
-                    if (
-                        self.on_ground
-                    ):  # jumping allowed only when the player is on the ground
+                    if self.on_ground:  # jumping allowed only when the player is on the ground
                         self.on_ground = False
                         self.velocity[1] -= JUMP_HEIGHT
             if event.type == pygame.KEYUP:
@@ -59,6 +61,18 @@ class Player:
                     if self.velocity[1] < 0:
                         self.velocity[1] = -self.velocity[1]
 
+    # @staticmethod
+    # def block_placing_breaking(chunks, mouse_offset):
+    #     mouse_position = pygame.mouse.get_pos()
+    #     if EventManager.mouse_clicked():
+    #         for chunk in chunks:
+    #             for block in chunks[chunk]:
+    #                 if block.rect.collidepoint((mouse_position[0] + mouse_offset[0], mouse_position[1] + mouse_offset[1])):
+    #                     if EventManager.mouse_button_clicked(mouse_button=1):  # left
+    #                         chunks[chunk].remove(block)
+    #                     if EventManager.mouse_button_clicked(mouse_button=3):  # right
+    #                         chunks[chunk] = Block(image=)
+
     def movement(self, chunks):
         self.input()
 
@@ -71,6 +85,9 @@ class Player:
         self.vertical_collision(chunks=chunks)
 
         self.position = self.rect
+
+    def update(self, chunks):
+        self.movement(chunks=chunks)
 
     def render(self, screen, offset):
         screen.blit(
