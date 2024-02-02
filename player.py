@@ -8,14 +8,13 @@ class Player:
     def __init__(self):
         raw_image = pygame.image.load(file="assets/player.png").convert_alpha()
         self.image = pygame.transform.scale(
-            surface=raw_image, size=(BLOCK_SIZE, BLOCK_SIZE)
+            surface=raw_image, size=(BLOCK_SIZE, BLOCK_SIZE * 2)
         )
 
         self.left_click = False
         self.right_click = False
 
-        # self.position = [(WORLD_WIDTH * BLOCK_SIZE) // 2, 100]
-        self.position = [0, 0]
+        self.position = [(WORLD_WIDTH * BLOCK_SIZE) // 2, 500]
         self.rect = self.image.get_rect(topleft=self.position)
         self.velocity = [0, 0]
 
@@ -60,18 +59,6 @@ class Player:
                         self.rect.bottom = block.rect.top
                     if self.velocity[1] < 0:
                         self.velocity[1] = -self.velocity[1]
-
-    # @staticmethod
-    # def block_placing_breaking(chunks, mouse_offset):
-    #     mouse_position = pygame.mouse.get_pos()
-    #     if EventManager.mouse_clicked():
-    #         for chunk in chunks:
-    #             for block in chunks[chunk]:
-    #                 if block.rect.collidepoint((mouse_position[0] + mouse_offset[0], mouse_position[1] + mouse_offset[1])):
-    #                     if EventManager.mouse_button_clicked(mouse_button=1):  # left
-    #                         chunks[chunk].remove(block)
-    #                     if EventManager.mouse_button_clicked(mouse_button=3):  # right
-    #                         chunks[chunk] = Block(image=)
 
     def movement(self, chunks):
         self.input()

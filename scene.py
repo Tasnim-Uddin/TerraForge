@@ -49,13 +49,13 @@ class Scene:
     def generate_chunk(self, chunk_offset):
         current_chunk_blocks = []
         for x in range(CHUNK_WIDTH):
-            real_x = chunk_offset[
-                         0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE  # exact x position of the block (in pixels)
+            real_x = int(chunk_offset[
+                             0] * CHUNK_WIDTH * BLOCK_SIZE + x * BLOCK_SIZE)  # exact x position of the block (in pixels)
             height_noise = int((self.surface_seed.noise2(x=real_x * 0.003, y=0) * 200) // BLOCK_SIZE * BLOCK_SIZE)
 
             for y in range(CHUNK_HEIGHT):
-                real_y = chunk_offset[
-                             1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE  # exact y position of the block (in pixels)
+                real_y = int(chunk_offset[
+                                 1] * CHUNK_HEIGHT * BLOCK_SIZE + y * BLOCK_SIZE)  # exact y position of the block (in pixels)
 
                 air_in_cave = False
 
@@ -116,18 +116,26 @@ class Scene:
     def break_block(self, surrounding_chunks):
         mouse_position = pygame.mouse.get_pos()
 
+        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
+                    mouse_position[1] + self.camera_offset[
+                1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+
         for chunk_position in surrounding_chunks:
             for block in surrounding_chunks[chunk_position]:
                 if block.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
-                                           mouse_position[1] + self.camera_offset[1]):
+                                           mouse_position[1] + self.camera_offset[1]) and within_reach:
                     surrounding_chunks[chunk_position].remove(block)
                     print(f"block broken at: {block.position}")
 
     def place_block(self, surrounding_chunks):
         mouse_position = pygame.mouse.get_pos()
 
-        place_chunk_position = (f"{int((mouse_position[0] + self.camera_offset[0]) / BLOCK_SIZE / CHUNK_WIDTH)};"
-                                f"{int((mouse_position[1] + self.camera_offset[1]) / BLOCK_SIZE / CHUNK_HEIGHT)}")
+        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
+                mouse_position[1] + self.camera_offset[
+            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+
+        place_chunk_position = (f"{int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE))};"
+                                f"{int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE))}")
 
         block_exists = False
         for chunk_position in surrounding_chunks:
@@ -139,11 +147,13 @@ class Scene:
             if block_exists:
                 break
 
-        if not block_exists:
+        if not block_exists and not self.player.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
+                                                                  mouse_position[1] + self.camera_offset[
+                                                                      1]) and within_reach:
             new_block = Block(image=self.block_textures["grass"],
                               position=(
-                                  (mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE * BLOCK_SIZE,
-                                  (mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE * BLOCK_SIZE)
+                                  int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE * BLOCK_SIZE,
+                                  int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE * BLOCK_SIZE)
                               )
             self.chunks[place_chunk_position].append(new_block)
             print(f"block placed at: {new_block.position}")
