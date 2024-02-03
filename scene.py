@@ -125,7 +125,7 @@ class Scene:
                 if block.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                            mouse_position[1] + self.camera_offset[1]) and within_reach:
                     surrounding_chunks[chunk_position].remove(block)
-                    print(f"block broken at: {block.position}")
+                    # print(f"block broken at: {block.position}")
 
     def place_block(self, surrounding_chunks):
         mouse_position = pygame.mouse.get_pos()
@@ -156,7 +156,7 @@ class Scene:
                                   int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE * BLOCK_SIZE)
                               )
             self.chunks[place_chunk_position].append(new_block)
-            print(f"block placed at: {new_block.position}")
+            # print(f"block placed at: {new_block.position}")
 
     def render(self, dt):
         self.precise_camera_offset[0] = self.player.rect.centerx - WINDOW_WIDTH / 2

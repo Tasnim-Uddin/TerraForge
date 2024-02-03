@@ -40,7 +40,7 @@ class Player:
                 if block.rect.colliderect(self.rect):
                     if self.velocity[0] > 0:
                         self.rect.right = block.rect.left
-                    if self.velocity[0] < 0:
+                    elif self.velocity[0] < 0:
                         self.rect.left = block.rect.right
 
     def vertical_collision(self, chunks):
@@ -50,23 +50,23 @@ class Player:
                     if self.velocity[1] > 0:
                         self.on_ground = True
                         self.rect.bottom = block.rect.top
-                    if self.velocity[1] < 0:
+                    elif self.velocity[1] < 0:
                         self.rect.top = block.rect.bottom
-                        self.velocity[1] = 0
+                    self.velocity[1] = 0
 
     def movement(self, chunks, dt):
         self.input()
 
-        if not self.on_ground:
-            self.velocity[1] += GRAVITY
+        if self.velocity[1] <= TERMINAL_VELOCITY * dt:
+            self.velocity[1] += GRAVITY * dt
 
         self.rect.y += self.velocity[1] * dt
         self.vertical_collision(chunks=chunks)
+        self.position[1] = self.rect.y
 
         self.rect.x += self.velocity[0] * dt
         self.horizontal_collision(chunks=chunks)
-
-        self.position = self.rect
+        self.position[0] = self.rect.x
 
     def update(self, chunks, dt):
         self.movement(chunks=chunks, dt=dt)
