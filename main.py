@@ -13,8 +13,7 @@ class Game:
 
         self.clock = pygame.time.Clock()
 
-        self.last_time = time.perf_counter()
-        self.dt = 0
+        self.previous_time = time.perf_counter()
 
         self.running = True
 
@@ -26,7 +25,13 @@ class Game:
     def run(self):
         while self.running:
 
-            dt = self.clock.tick(FRAMES_PER_SECOND) / 1000  # ms to s
+            # dt = self.clock.tick(FRAMES_PER_SECOND) / 1000  # ms to s
+
+            dt = time.time() - self.previous_time
+            self.previous_time = time.time()
+
+            if dt > 1:
+                dt = 1
 
             EventManager.queue_events()
             for event in EventManager.events:

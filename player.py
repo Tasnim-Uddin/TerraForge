@@ -11,8 +11,9 @@ class Player:
             surface=raw_image, size=(BLOCK_SIZE, BLOCK_SIZE * 2)
         )
 
-        self.position = [(WORLD_WIDTH * BLOCK_SIZE) // 2, 0]
-        self.rect = self.image.get_rect(topleft=self.position)
+        self.x = 0
+        self.y = 0
+        self.rect = pygame.Rect(self.x, self.y, self.image.get_width(), self.image.get_height())
         self.velocity = [0, 0]
 
         self.on_ground = False
@@ -39,38 +40,39 @@ class Player:
             for block in chunks[chunk]:
                 if block.rect.colliderect(self.rect):
                     if self.velocity[0] > 0:
-                        self.rect.right = block.rect.left
+                        self.x = block.rect.left - self.rect.w
                     elif self.velocity[0] < 0:
-                        self.rect.left = block.rect.right
+                        self.x = block.rect.right
+                    self.velocity[0] = 0
 
     def vertical_collision(self, chunks):
         for chunk in chunks:
             for block in chunks[chunk]:
                 if block.rect.colliderect(self.rect):
                     if self.velocity[1] > 0:
+                        self.y = block.rect.top - self.rect.h
                         self.on_ground = True
-                        self.rect.bottom = block.rect.top
                     elif self.velocity[1] < 0:
-                        self.rect.top = block.rect.bottom
+                        self.y = block.rect.bottom
                     self.velocity[1] = 0
 
     def movement(self, chunks, dt):
         self.input()
 
-        if self.velocity[1] <= TERMINAL_VELOCITY * dt:
-            self.velocity[1] += GRAVITY * dt
+        self.velocity[1] += GRAVITY * dt
 
-        self.rect.y += self.velocity[1] * dt
+        self.y += self.velocity[1] * dt
+        self.rect.y = self.y
         self.vertical_collision(chunks=chunks)
-        self.position[1] = self.rect.y
+        self.rect.y = self.y
 
-        self.rect.x += self.velocity[0] * dt
+        self.x += self.velocity[0] * dt
+        self.rect.x = self.x
         self.horizontal_collision(chunks=chunks)
-        self.position[0] = self.rect.x
+        self.rect.x = self.x
 
     def update(self, chunks, dt):
         self.movement(chunks=chunks, dt=dt)
-        print(self.velocity)
 
     def render(self, screen, offset):
-        screen.blit(self.image, (self.position[0] - offset[0], self.position[1] - offset[1]))
+        screen.blit(self.image, (self.x - offset[0], self.y - offset[1]))

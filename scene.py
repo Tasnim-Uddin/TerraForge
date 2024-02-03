@@ -116,23 +116,19 @@ class Scene:
     def break_block(self, surrounding_chunks):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
-                    mouse_position[1] + self.camera_offset[
-                1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (mouse_position[1] + self.camera_offset[1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
         for chunk_position in surrounding_chunks:
             for block in surrounding_chunks[chunk_position]:
                 if block.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                            mouse_position[1] + self.camera_offset[1]) and within_reach:
                     surrounding_chunks[chunk_position].remove(block)
-                    # print(f"block broken at: {block.position}")
+                    print(f"block broken at: {block.position}")
 
     def place_block(self, surrounding_chunks):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
-                mouse_position[1] + self.camera_offset[
-            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (mouse_position[1] + self.camera_offset[1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
         place_chunk_position = (f"{int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE))};"
                                 f"{int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE))}")
@@ -156,41 +152,41 @@ class Scene:
                                   int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE * BLOCK_SIZE)
                               )
             self.chunks[place_chunk_position].append(new_block)
-            # print(f"block placed at: {new_block.position}")
+            print(f"block placed at: {new_block.position}")
 
     def render(self, dt):
-        self.precise_camera_offset[0] = self.player.rect.centerx - WINDOW_WIDTH / 2
-        self.precise_camera_offset[1] = self.player.rect.centery - WINDOW_HEIGHT / 2
+        self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[0] - WINDOW_WIDTH / 2) / HORIZONTAL_SCROLL_DELAY_FACTOR
+        self.precise_camera_offset[1] += (self.player.rect.centery - self.precise_camera_offset[1] - WINDOW_HEIGHT / 2) / VERTICAL_SCROLL_DELAY_FACTOR
 
         if self.player.rect.centerx <= WINDOW_WIDTH / 2:  # checking for border on left side - TODO: check for right side
             self.precise_camera_offset[0] = 0
 
-        self.camera_offset[0] = self.precise_camera_offset[0]
-        self.camera_offset[1] = self.precise_camera_offset[1]
+        self.camera_offset[0] = int(self.precise_camera_offset[0])
+        self.camera_offset[1] = int(self.precise_camera_offset[1])
 
         self.game.screen.fill("lightblue")
 
         neighbour_chunk_offsets = [
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top left
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top right
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top left
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top right
 
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE)),  # left
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE)),  # mid
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE)),  # right
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # left
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # mid
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # right
 
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom left
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom
-            (self.player.position[0] // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.position[1] // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom right
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom left
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom
+            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom right
         ]
 
         surrounding_chunks = {}
