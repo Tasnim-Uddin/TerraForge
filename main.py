@@ -1,6 +1,5 @@
 import pygame as pygame
 import sys
-import time
 
 from global_constants import *
 from event_manager import EventManager
@@ -13,8 +12,6 @@ class Game:
 
         self.clock = pygame.time.Clock()
 
-        self.previous_time = time.perf_counter()
-
         self.running = True
 
         self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -25,13 +22,7 @@ class Game:
     def run(self):
         while self.running:
 
-            # dt = self.clock.tick(FRAMES_PER_SECOND) / 1000  # ms to s
-
-            dt = time.time() - self.previous_time
-            self.previous_time = time.time()
-
-            if dt > 1:
-                dt = 1
+            dt = self.clock.tick(FRAMES_PER_SECOND) / 1000  # ms to s
 
             EventManager.queue_events()
             for event in EventManager.events:
@@ -41,11 +32,9 @@ class Game:
                     sys.exit()
 
             self.scene.render(dt=dt)
-            self.screen.blit(
-                self.font.render(f"FPS: {self.clock.get_fps():.1f}", True, "white"),
-                (10, 10),
-            )
+            self.screen.blit(self.font.render(f"FPS: {self.clock.get_fps()}", True, "white"), (1000, 10),)
             pygame.display.update()
+            self.clock.tick(FRAMES_PER_SECOND)
 
 
 if __name__ == "__main__":

@@ -12,8 +12,8 @@ class Player:
         )
 
         self.x = 0
-        self.y = 0
-        self.rect = pygame.Rect(self.x, self.y, self.image.get_width(), self.image.get_height())
+        self.y = -100
+        self.rect = pygame.Rect(round(self.x), round(self.y), self.image.get_width(), self.image.get_height())
         self.velocity = [0, 0]
 
         self.on_ground = False
@@ -62,14 +62,14 @@ class Player:
         self.velocity[1] += GRAVITY * dt
 
         self.y += self.velocity[1] * dt
-        self.rect.y = self.y
+        self.rect.y = round(self.y)
         self.vertical_collision(chunks=chunks)
-        self.rect.y = self.y
+        self.rect.y = round(self.y)
 
         self.x += self.velocity[0] * dt
-        self.rect.x = self.x
+        self.rect.x = round(self.x)
         self.horizontal_collision(chunks=chunks)
-        self.rect.x = self.x
+        self.rect.x = round(self.x)
 
     def update(self, chunks, dt):
         self.movement(chunks=chunks, dt=dt)
