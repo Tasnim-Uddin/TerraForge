@@ -158,7 +158,7 @@ class Scene:
             self.chunks[place_chunk_position].append(new_block)
             print(f"block placed at: {new_block.position}")
 
-    def render(self):
+    def render(self, dt):
         self.precise_camera_offset[0] = self.player.rect.centerx - WINDOW_WIDTH / 2
         self.precise_camera_offset[1] = self.player.rect.centery - WINDOW_HEIGHT / 2
 
@@ -214,5 +214,5 @@ class Scene:
         if EventManager.mouse_button_clicked(mouse_button=3):  # right mouse click
             self.place_block(surrounding_chunks=surrounding_chunks)
 
-        self.player.update(chunks=surrounding_chunks)
+        self.player.update(chunks=surrounding_chunks, dt=dt)
         self.player.render(screen=self.game.screen, offset=self.camera_offset)

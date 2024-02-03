@@ -26,11 +26,7 @@ class Game:
     def run(self):
         while self.running:
 
-            self.dt = time.perf_counter() - self.last_time
-            self.dt *= 1000
-            self.last_time = time.perf_counter()
-            if self.dt > 1:
-                self.dt = 1
+            dt = self.clock.tick(FRAMES_PER_SECOND) / 1000  # ms to s
 
             EventManager.queue_events()
             for event in EventManager.events:
@@ -39,13 +35,12 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-            self.scene.render()
+            self.scene.render(dt=dt)
             self.screen.blit(
                 self.font.render(f"FPS: {self.clock.get_fps():.1f}", True, "white"),
                 (10, 10),
             )
             pygame.display.update()
-            self.clock.tick(FRAMES_PER_SECOND)  # runs at the FPS put in
 
 
 if __name__ == "__main__":
