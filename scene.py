@@ -5,10 +5,10 @@ from opensimplex import *
 
 from global_constants import *
 from event_manager import EventManager
-from all_texture_data import block_texture_data
+from all_texture_data import all_texture_data
 from player import Player
-from block import Block
-from inventory import Inventory
+from entity import Entity
+from inventory import *
 
 
 class Scene:
@@ -23,7 +23,7 @@ class Scene:
         self.camera_offset = [0, 0]
 
         self.chunks = {
-            # "x;y" : Block(), Block(), ...
+            # "x;y" : Entity(), Entity(), ...
             # "x;y" represents the chunk number as a row and column
         }
 
@@ -39,10 +39,10 @@ class Scene:
         atlas = pygame.transform.scale(pygame.image.load(file="assets/blocks_atlas.png").convert_alpha(),
                                        size=(BLOCK_SIZE * BLOCKS_IN_ATLAS_X, BLOCK_SIZE * BLOCKS_IN_ATLAS_Y))
 
-        for block_type, information in block_texture_data.items():
+        for block_type, information in all_texture_data.items():
             textures[block_type] = pygame.Surface.subsurface(atlas,
-                                                             pygame.Rect(information["position"][0] * BLOCK_SIZE,
-                                                                         information["position"][1] * BLOCK_SIZE,
+                                                             pygame.Rect(information["position"][0] * information["size"][0],
+                                                                         information["position"][1] * information["size"][1],
                                                                          information["size"][0],
                                                                          information["size"][1]))
         return textures
@@ -67,34 +67,38 @@ class Scene:
 
                 if real_y + height_noise == 0:
                     current_chunk_blocks.append(
-                        Block(block_type="grass", image=self.block_textures["grass"], position=(real_x, real_y)))
+                        Entity(block_type="grass", image=self.block_textures["grass"], position=(real_x, real_y)))
                 elif 0 < (real_y + height_noise) <= 10 * BLOCK_SIZE:
                     current_chunk_blocks.append(
-                        Block(block_type="dirt", image=self.block_textures["dirt"], position=(real_x, real_y)))
+                        Entity(block_type="dirt", image=self.block_textures["dirt"], position=(real_x, real_y)))
                 if 10 * BLOCK_SIZE < (real_y + height_noise):
                     if not air_in_cave:
                         current_chunk_blocks.append(
-                            Block(block_type="stone", image=self.block_textures["stone"], position=(real_x, real_y)))
+                            Entity(block_type="stone", image=self.block_textures["stone"], position=(real_x, real_y)))
 
         return current_chunk_blocks
 
     def break_block(self, surrounding_chunks):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (mouse_position[1] + self.camera_offset[1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
+                    mouse_position[1] + self.camera_offset[
+                1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
         for chunk_position in surrounding_chunks:
             for block in surrounding_chunks[chunk_position]:
                 if block.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                            mouse_position[1] + self.camera_offset[1]) and within_reach:
-                    block_type = block.block_type
-                    self.inventory.add_block(block_type=block_type)
+                    item_type = block.block_type
+                    self.inventory.add_item(item_type)
                     surrounding_chunks[chunk_position].remove(block)
 
     def place_block(self, surrounding_chunks):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (mouse_position[1] + self.camera_offset[1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
+                    mouse_position[1] + self.camera_offset[
+                1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
         place_chunk_position = (f"{int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE))};"
                                 f"{int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE))}")
@@ -112,16 +116,16 @@ class Scene:
         if not block_exists and not self.player.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                                                   mouse_position[1] + self.camera_offset[
                                                                       1]) and within_reach:
-            block_type = self.inventory.get_selected_block_type()
-            if block_type is not None:
-                new_block = Block(block_type=block_type, image=self.block_textures[block_type],
-                                  position=(
-                                      int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE * BLOCK_SIZE,
-                                      int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE * BLOCK_SIZE)
-                                  )
+            item = self.inventory.get_selected_item_type()
+            if item is not None:
+                new_block = Entity(block_type=item, image=self.block_textures[item],
+                                   position=(
+                                       int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE * BLOCK_SIZE,
+                                       int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE * BLOCK_SIZE)
+                                   )
                 self.chunks[place_chunk_position].append(new_block)
-                self.inventory.remove_block(block_type=block_type)
-                self.inventory.clear_block(block_type=block_type)
+                self.inventory.remove_item(item)
+                self.inventory.clear_item(item)
 
     def render(self, dt):
         self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[0] - WINDOW_WIDTH / 2) / HORIZONTAL_SCROLL_DELAY_FACTOR

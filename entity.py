@@ -2,7 +2,7 @@ import pygame
 from global_constants import *
 
 
-class Block:
+class Entity:
     def __init__(self, block_type, image, position):
         self.block_type = block_type
         self.image = pygame.transform.scale(
