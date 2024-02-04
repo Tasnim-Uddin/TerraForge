@@ -1,11 +1,7 @@
 import random
-
-import pygame
 from opensimplex import *
 
 from global_constants import *
-from event_manager import EventManager
-from all_texture_data import all_texture_data
 from player import Player
 from entity import Entity
 from inventory import *
@@ -16,6 +12,8 @@ class Scene:
         self.game = game
 
         self.block_textures = self.load_block_sprites()
+
+        self.inventory = Inventory()
 
         self.player = Player()
 
@@ -29,9 +27,8 @@ class Scene:
 
         self.surface_seed = OpenSimplex(random.randint(0, 999999999999999999999))
 
-        self.cave_threshold = 0.3
-
-        self.inventory = Inventory()
+        self.lower_cave_threshold = 0.015
+        self.upper_cave_threshold = 0.7
 
     @staticmethod
     def load_block_sprites():
@@ -41,10 +38,11 @@ class Scene:
 
         for block_type, information in all_texture_data.items():
             textures[block_type] = pygame.Surface.subsurface(atlas,
-                                                             pygame.Rect(information["position"][0] * information["size"][0],
-                                                                         information["position"][1] * information["size"][1],
-                                                                         information["size"][0],
-                                                                         information["size"][1]))
+                                                             pygame.Rect(
+                                                                 information["position"][0] * information["size"][0],
+                                                                 information["position"][1] * information["size"][1],
+                                                                 information["size"][0],
+                                                                 information["size"][1]))
         return textures
 
     def generate_chunk(self, chunk_offset):
@@ -62,7 +60,7 @@ class Scene:
 
                 cave_value = self.surface_seed.noise2(x=real_x * 0.003, y=real_y * 0.003)
 
-                if cave_value > self.cave_threshold:
+                if self.lower_cave_threshold < cave_value < self.upper_cave_threshold:
                     air_in_cave = True
 
                 if real_y + height_noise == 0:
@@ -78,27 +76,28 @@ class Scene:
 
         return current_chunk_blocks
 
-    def break_block(self, surrounding_chunks):
+    def break_block(self, surrounding_chunks, held_item):
         mouse_position = pygame.mouse.get_pos()
 
         within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
-                    mouse_position[1] + self.camera_offset[
-                1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+                mouse_position[1] + self.camera_offset[
+            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
         for chunk_position in surrounding_chunks:
             for block in surrounding_chunks[chunk_position]:
                 if block.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                            mouse_position[1] + self.camera_offset[1]) and within_reach:
-                    item_type = block.block_type
-                    self.inventory.add_item(item_type)
-                    surrounding_chunks[chunk_position].remove(block)
+                    breaking_item = block.block_type
+                    if held_item == "pickaxe" and self.inventory.is_block(breaking_item):
+                        self.inventory.add_item(breaking_item)
+                        surrounding_chunks[chunk_position].remove(block)
 
-    def place_block(self, surrounding_chunks):
+    def place_block(self, surrounding_chunks, held_item):
         mouse_position = pygame.mouse.get_pos()
 
         within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
-                    mouse_position[1] + self.camera_offset[
-                1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+                mouse_position[1] + self.camera_offset[
+            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
         place_chunk_position = (f"{int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE))};"
                                 f"{int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE))}")
@@ -116,20 +115,21 @@ class Scene:
         if not block_exists and not self.player.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                                                   mouse_position[1] + self.camera_offset[
                                                                       1]) and within_reach:
-            item = self.inventory.get_selected_item_type()
-            if item is not None:
-                new_block = Entity(block_type=item, image=self.block_textures[item],
+            if self.inventory.is_block(item=held_item):
+                new_block = Entity(block_type=held_item, image=self.block_textures[held_item],
                                    position=(
                                        int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE * BLOCK_SIZE,
                                        int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE * BLOCK_SIZE)
                                    )
                 self.chunks[place_chunk_position].append(new_block)
-                self.inventory.remove_item(item)
-                self.inventory.clear_item(item)
+                self.inventory.remove_item(held_item)
+                self.inventory.clear_item(held_item)
 
     def render(self, dt):
-        self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[0] - WINDOW_WIDTH / 2) / HORIZONTAL_SCROLL_DELAY_FACTOR
-        self.precise_camera_offset[1] += (self.player.rect.centery - self.precise_camera_offset[1] - WINDOW_HEIGHT / 2) / VERTICAL_SCROLL_DELAY_FACTOR
+        self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[
+            0] - WINDOW_WIDTH / 2) / HORIZONTAL_SCROLL_DELAY_FACTOR
+        self.precise_camera_offset[1] += (self.player.rect.centery - self.precise_camera_offset[
+            1] - WINDOW_HEIGHT / 2) / VERTICAL_SCROLL_DELAY_FACTOR
 
         if self.player.rect.centerx <= WINDOW_WIDTH / 2:  # checking for border on left side - TODO: check for right side
             self.precise_camera_offset[0] = 0
@@ -173,13 +173,15 @@ class Scene:
                 [(block.image, (block.position[0] - self.camera_offset[0], block.position[1] - self.camera_offset[1]))
                  for block in self.chunks[f"{offset[0]};{offset[1]}"]])
 
+        held_item = self.inventory.get_selected_item()
         if EventManager.mouse_button_clicked(mouse_button=1):  # left mouse click
-            self.break_block(surrounding_chunks=surrounding_chunks)
+            self.break_block(surrounding_chunks=surrounding_chunks, held_item=held_item)
 
         if EventManager.mouse_button_clicked(mouse_button=3):  # right mouse click
-            self.place_block(surrounding_chunks=surrounding_chunks)
+            self.place_block(surrounding_chunks=surrounding_chunks, held_item=held_item)
 
+        self.inventory.update()
         self.player.update(chunks=surrounding_chunks, dt=dt)
         self.player.render(screen=self.game.screen, offset=self.camera_offset)
-        self.game.screen.blit(self.game.font.render(f"Inventory: {self.inventory.get_inventory()}", True, "white"), (10, 10),)
-
+        self.game.screen.blit(self.game.font.render(f"Inventory: {self.inventory.items}", True, "white"), (10, 10))
+        self.game.screen.blit(self.game.font.render(f"Item Selected: {held_item}", True, "white"), (10, 60))

@@ -10,18 +10,11 @@ class EventManager:
         EventManager.events = pygame.event.get()
 
     @staticmethod
-    def quit_game():
+    def keydown(key):
         for event in EventManager.events:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+                if event.key == key:
                     return True
-        return False
-
-    @staticmethod
-    def mouse_clicked():
-        for event in EventManager.events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                return True
         return False
 
     @staticmethod
@@ -29,5 +22,13 @@ class EventManager:
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == mouse_button:
+                    return True
+        return False
+
+    @staticmethod
+    def quit_game():
+        for event in EventManager.events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     return True
         return False

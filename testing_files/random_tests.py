@@ -15,5 +15,9 @@ class Inventory:
 # player_inventory.clear_block("grass")
 # print(player_inventory.get_all_blocks())
 
-hi = {}
-print(len(hi))
+hi = {"sword": 0,
+      "grass": 1,
+      "dirt": 1}
+
+for item in hi:
+    print(item)

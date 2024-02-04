@@ -1,8 +1,20 @@
+import pygame
+
 from all_texture_data import all_texture_data
+from event_manager import EventManager
+
 
 class Inventory:
     def __init__(self):
-        self.items = {"sword": 1}
+        self.items = {"sword": 1,
+                      "pickaxe": 1,
+                      "axe": 1}
+
+        self.selected_item = "sword"
+        self.active_slot = 0
+
+    def get_selected_item(self):
+        return self.selected_item
 
     def add_item(self, item_type):
         if item_type in self.items:
@@ -16,17 +28,9 @@ class Inventory:
             if self.items[item_type] <= 0:
                 del self.items[item_type]
 
-    def get_inventory(self):
-        return self.items
-
-    def get_selected_item_type(self):
-        for item in self.items:
-            if self.is_block(item=item):
-                return item
-
     def clear_item(self, item_type):
         if item_type in self.items and self.items[item_type] == 0:
-            del self.items[item_type]
+            self.items.pop(item_type)
 
     @staticmethod
     def is_block(item):
@@ -34,10 +38,15 @@ class Inventory:
             return True
         return False
 
-    def can_place(self, item_type):
-        # Customize this method based on your logic for placing items
-        return self.is_block(item_type)
-
-    def use_item(self, item_type):
-        # Customize this method based on your logic for using items
-        pass
+    def update(self):
+        items_list = list(self.items.keys())
+        if EventManager.keydown(key=pygame.K_RIGHT):
+            if self.active_slot < len(self.items) - 1:
+                self.active_slot += 1
+        if EventManager.keydown(key=pygame.K_LEFT):
+            if self.active_slot > 0:
+                self.active_slot -= 1
+        try:
+            self.selected_item = items_list[self.active_slot]
+        except IndexError:
+            self.selected_item = items_list[len(self.items) - 1]
