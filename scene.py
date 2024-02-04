@@ -123,7 +123,6 @@ class Scene:
                                    )
                 self.chunks[place_chunk_position].append(new_block)
                 self.inventory.remove_item(held_item)
-                self.inventory.clear_item(held_item)
 
     def render(self, dt):
         self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[

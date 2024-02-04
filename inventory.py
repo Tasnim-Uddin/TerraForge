@@ -26,11 +26,7 @@ class Inventory:
         if item_type in self.items:
             self.items[item_type] -= quantity
             if self.items[item_type] <= 0:
-                del self.items[item_type]
-
-    def clear_item(self, item_type):
-        if item_type in self.items and self.items[item_type] == 0:
-            self.items.pop(item_type)
+                self.items.pop(item_type)
 
     @staticmethod
     def is_block(item):
@@ -40,12 +36,9 @@ class Inventory:
 
     def update(self):
         items_list = list(self.items.keys())
-        if EventManager.keydown(key=pygame.K_RIGHT):
-            if self.active_slot < len(self.items) - 1:
-                self.active_slot += 1
-        if EventManager.keydown(key=pygame.K_LEFT):
-            if self.active_slot > 0:
-                self.active_slot -= 1
+        for i in range(1, 7):  # Check keys 1 to 6
+            if EventManager.keydown(key=pygame.K_0 + i):
+                self.active_slot = i - 1
         try:
             self.selected_item = items_list[self.active_slot]
         except IndexError:
