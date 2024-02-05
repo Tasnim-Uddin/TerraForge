@@ -172,10 +172,10 @@ class Scene:
                  for block in self.chunks[f"{offset[0]};{offset[1]}"]])
 
         held_item = self.inventory.get_selected_item()
-        if EventManager.mouse_button_clicked(mouse_button=1):  # left mouse click
+        if EventManager.left_mouse_click():
             self.break_block(surrounding_chunks=surrounding_chunks, held_item=held_item)
 
-        if EventManager.mouse_button_clicked(mouse_button=3):  # right mouse click
+        if EventManager.right_mouse_click():
             self.place_block(surrounding_chunks=surrounding_chunks, held_item=held_item)
 
         self.inventory.update()
