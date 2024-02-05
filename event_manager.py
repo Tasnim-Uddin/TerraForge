@@ -18,6 +18,22 @@ class EventManager:
         return False
 
     @staticmethod
+    def scroll_wheel_up():
+        for e in EventManager.events:
+            if e.type == pygame.MOUSEBUTTONDOWN:
+                if e.button == 4:
+                    return True
+        return False
+
+    @staticmethod
+    def scroll_wheel_down():
+        for e in EventManager.events:
+            if e.type == pygame.MOUSEBUTTONDOWN:
+                if e.button == 5:
+                    return True
+        return False
+
+    @staticmethod
     def mouse_button_clicked(mouse_button):
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:

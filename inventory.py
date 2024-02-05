@@ -70,6 +70,14 @@ class Inventory:
         for i in range(1, 10):  # Check keys 1 to 9
             if EventManager.keydown(key=pygame.K_0 + i):
                 self.active_slot = i - 1
+        if EventManager.scroll_wheel_up():
+            self.active_slot -= 1
+        if EventManager.scroll_wheel_down():
+            self.active_slot += 1
+        if self.active_slot > len(self.inventory_items) - 1:
+            self.active_slot = 0
+        if self.active_slot < 0:
+            self.active_slot = len(self.inventory_items) - 1
         try:
             slot_position = f"slot{self.active_slot}"
         except IndexError:
