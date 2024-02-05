@@ -6,40 +6,65 @@ from event_manager import EventManager
 
 class Inventory:
     def __init__(self):
-        self.items = {"sword": 1,
-                      "pickaxe": 1,
-                      "axe": 1}
+        self.inventory_items = {"slot1": {"item": "sword", "quantity": 1},
+                                "slot2": {"item": "pickaxe", "quantity": 1},
+                                "slot3": {"item": "axe", "quantity": 1},
+                                "slot4": {"item": None, "quantity": None},
+                                "slot5": {"item": None, "quantity": None},
+                                "slot6": {"item": None, "quantity": None},
+                                "slot7": {"item": None, "quantity": None},
+                                "slot8": {"item": None, "quantity": None},
+                                "slot9": {"item": None, "quantity": None},
+                                }
 
-        self.selected_item = "sword"
-        self.active_slot = 0
+        self.active_slot = 1
+        self.selected_item = self.inventory_items[f"slot{self.active_slot}"]["item"]
 
     def get_selected_item(self):
         return self.selected_item
 
-    def add_item(self, item_type):
-        if item_type in self.items:
-            self.items[item_type] += 1
-        else:
-            self.items[item_type] = 1
+    def add_item(self, item):
+        for item_data in self.inventory_items.values():
+            if item_data["item"] == item:
+                item_data["quantity"] += 1
+                return
+            elif item_data["item"] is None:
+                item_data["item"] = item
+                item_data["quantity"] = 1
+                return
+        # for item_data in self.inventory_items.items():
+        #     if item_data["item"] is None:
+        #         item_data["item"] = item
+        #         item_data["quantity"] = 1
+        #         return
 
-    def remove_item(self, item_type, quantity=1):
-        if item_type in self.items:
-            self.items[item_type] -= quantity
-            if self.items[item_type] <= 0:
-                self.items.pop(item_type)
+    def remove_item(self, item):
+        # if item in self.items:
+        #     self.items[item] -= 1
+        #     if self.items[item] <= 0:
+        #         self.items.pop(item)
+        for item_data in self.inventory_items.values():
+            if item_data["item"] == item:
+                item_data["quantity"] -= 1
+                if item_data["quantity"] <= 0:
+                    item_data["item"] = None
+                    item_data["quantity"] = None
+                    return
 
-    @staticmethod
-    def is_block(item):
-        if all_texture_data[item]["type"] == "block":
-            return True
-        return False
+    def is_block(self, item):
+        try:
+            if all_texture_data[item]["type"] == "block":
+                return True
+        except KeyError:
+            return False
 
     def update(self):
-        items_list = list(self.items.keys())
-        for i in range(1, 7):  # Check keys 1 to 6
+        for i in range(1, 9):  # Check keys 1 to 10
             if EventManager.keydown(key=pygame.K_0 + i):
-                self.active_slot = i - 1
+                self.active_slot = i
         try:
-            self.selected_item = items_list[self.active_slot]
+            slot_position = f"slot{self.active_slot}"
         except IndexError:
-            self.selected_item = items_list[len(self.items) - 1]
+            slot_position = f"slot{len(self.inventory_items) - 1}"
+        self.selected_item = self.inventory_items[slot_position]["item"]
+

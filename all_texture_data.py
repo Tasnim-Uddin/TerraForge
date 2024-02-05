@@ -6,4 +6,5 @@ all_texture_data = {
     "stone": {"type": "block", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 0)},
     "sword": {"type": "weapon", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 1)},
     "pickaxe": {"type": "weapon", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 1)},
-    "axe": {"type": "weapon", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 1)}}
+    "axe": {"type": "weapon", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 1)}
+}

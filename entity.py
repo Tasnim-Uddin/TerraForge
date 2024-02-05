@@ -3,8 +3,8 @@ from global_constants import *
 
 
 class Entity:
-    def __init__(self, block_type, image, position):
-        self.block_type = block_type
+    def __init__(self, block, image, position):
+        self.block = block
         self.image = pygame.transform.scale(
             surface=image, size=(BLOCK_SIZE, BLOCK_SIZE)
         )

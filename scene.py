@@ -36,13 +36,13 @@ class Scene:
         atlas = pygame.transform.scale(pygame.image.load(file="assets/blocks_atlas.png").convert_alpha(),
                                        size=(BLOCK_SIZE * BLOCKS_IN_ATLAS_X, BLOCK_SIZE * BLOCKS_IN_ATLAS_Y))
 
-        for block_type, information in all_texture_data.items():
-            textures[block_type] = pygame.Surface.subsurface(atlas,
-                                                             pygame.Rect(
-                                                                 information["position"][0] * information["size"][0],
-                                                                 information["position"][1] * information["size"][1],
-                                                                 information["size"][0],
-                                                                 information["size"][1]))
+        for item, information in all_texture_data.items():
+            textures[item] = pygame.Surface.subsurface(atlas,
+                                                       pygame.Rect(
+                                                           information["position"][0] * information["size"][0],
+                                                           information["position"][1] * information["size"][1],
+                                                           information["size"][0],
+                                                           information["size"][1]))
         return textures
 
     def generate_chunk(self, chunk_offset):
@@ -65,14 +65,14 @@ class Scene:
 
                 if real_y + height_noise == 0:
                     current_chunk_blocks.append(
-                        Entity(block_type="grass", image=self.block_textures["grass"], position=(real_x, real_y)))
+                        Entity(block="grass", image=self.block_textures["grass"], position=(real_x, real_y)))
                 elif 0 < (real_y + height_noise) <= 10 * BLOCK_SIZE:
                     current_chunk_blocks.append(
-                        Entity(block_type="dirt", image=self.block_textures["dirt"], position=(real_x, real_y)))
+                        Entity(block="dirt", image=self.block_textures["dirt"], position=(real_x, real_y)))
                 if 10 * BLOCK_SIZE < (real_y + height_noise):
                     if not air_in_cave:
                         current_chunk_blocks.append(
-                            Entity(block_type="stone", image=self.block_textures["stone"], position=(real_x, real_y)))
+                            Entity(block="stone", image=self.block_textures["stone"], position=(real_x, real_y)))
 
         return current_chunk_blocks
 
@@ -87,10 +87,12 @@ class Scene:
             for block in surrounding_chunks[chunk_position]:
                 if block.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                            mouse_position[1] + self.camera_offset[1]) and within_reach:
-                    breaking_item = block.block_type
-                    if held_item == "pickaxe" and self.inventory.is_block(breaking_item):
-                        self.inventory.add_item(breaking_item)
+                    breaking_item = block.block
+                    # if self.inventory.is_block(item=breaking_item):
+                    if held_item == "pickaxe":
+                        self.inventory.add_item(item=breaking_item)
                         surrounding_chunks[chunk_position].remove(block)
+                        print(self.inventory.inventory_items)
 
     def place_block(self, surrounding_chunks, held_item):
         mouse_position = pygame.mouse.get_pos()
@@ -116,13 +118,14 @@ class Scene:
                                                                   mouse_position[1] + self.camera_offset[
                                                                       1]) and within_reach:
             if self.inventory.is_block(item=held_item):
-                new_block = Entity(block_type=held_item, image=self.block_textures[held_item],
+                new_block = Entity(block=held_item, image=self.block_textures[held_item],
                                    position=(
                                        int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE * BLOCK_SIZE,
                                        int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE * BLOCK_SIZE)
                                    )
                 self.chunks[place_chunk_position].append(new_block)
-                self.inventory.remove_item(held_item)
+                self.inventory.remove_item(item=held_item)
+                print(self.inventory.inventory_items)
 
     def render(self, dt):
         self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[
@@ -182,5 +185,5 @@ class Scene:
         self.inventory.update()
         self.player.update(chunks=surrounding_chunks, dt=dt)
         self.player.render(screen=self.game.screen, offset=self.camera_offset)
-        self.game.screen.blit(self.game.font.render(f"Inventory: {self.inventory.items}", True, "white"), (10, 10))
+        # self.game.screen.blit(self.game.font.render(f"Inventory: {self.inventory.inventory_items}", True, "white"), (10, 10))
         self.game.screen.blit(self.game.font.render(f"Item Selected: {held_item}", True, "white"), (10, 60))
