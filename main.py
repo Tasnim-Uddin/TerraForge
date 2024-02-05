@@ -15,9 +15,9 @@ class Game:
         self.running = True
 
         self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT))
-        self.scene = Scene(game=self)
+        self.scene = Scene(screen=self.screen)
 
-        self.font = pygame.font.Font(None, 15)
+        self.font = pygame.font.Font(filename=None, size=30)
 
     def run(self):
         while self.running:
@@ -31,8 +31,8 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-            self.scene.render(dt=dt)
-            # self.screen.blit(self.font.render(f"FPS: {self.clock.get_fps()}", True, "white"), (1000, 10))
+            self.scene.draw(dt=dt)
+            # self.game.blit(self.font.render(f"FPS: {self.clock.get_fps()}", True, "white"), (1000, 10))
             pygame.display.update()
             self.clock.tick(FRAMES_PER_SECOND)
 

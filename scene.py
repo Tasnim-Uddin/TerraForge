@@ -8,12 +8,12 @@ from inventory import *
 
 
 class Scene:
-    def __init__(self, game):
-        self.game = game
+    def __init__(self, screen):
+        self.screen = screen
 
         self.block_textures = self.load_block_sprites()
 
-        self.inventory = Inventory()
+        self.inventory = Inventory(screen=self.screen, textures=self.block_textures)
 
         self.player = Player()
 
@@ -33,14 +33,13 @@ class Scene:
     @staticmethod
     def load_block_sprites():
         textures = {}
-        atlas = pygame.transform.scale(pygame.image.load(file="assets/blocks_atlas.png").convert_alpha(),
-                                       size=(BLOCK_SIZE * BLOCKS_IN_ATLAS_X, BLOCK_SIZE * BLOCKS_IN_ATLAS_Y))
+        atlas = pygame.image.load(file="assets/texture_sheet.png").convert_alpha()
 
         for item, information in all_texture_data.items():
             textures[item] = pygame.Surface.subsurface(atlas,
                                                        pygame.Rect(
-                                                           information["position"][0] * information["size"][0],
-                                                           information["position"][1] * information["size"][1],
+                                                           information["position"][0],
+                                                           information["position"][1],
                                                            information["size"][0],
                                                            information["size"][1]))
         return textures
@@ -88,11 +87,9 @@ class Scene:
                 if block.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                            mouse_position[1] + self.camera_offset[1]) and within_reach:
                     breaking_item = block.block
-                    # if self.inventory.is_block(item=breaking_item):
-                    if held_item == "pickaxe":
+                    if held_item == "pickaxe" and self.inventory.is_block(item=breaking_item):
                         self.inventory.add_item(item=breaking_item)
                         surrounding_chunks[chunk_position].remove(block)
-                        print(self.inventory.inventory_items)
 
     def place_block(self, surrounding_chunks, held_item):
         mouse_position = pygame.mouse.get_pos()
@@ -125,9 +122,8 @@ class Scene:
                                    )
                 self.chunks[place_chunk_position].append(new_block)
                 self.inventory.remove_item(item=held_item)
-                print(self.inventory.inventory_items)
 
-    def render(self, dt):
+    def draw(self, dt):
         self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[
             0] - WINDOW_WIDTH / 2) / HORIZONTAL_SCROLL_DELAY_FACTOR
         self.precise_camera_offset[1] += (self.player.rect.centery - self.precise_camera_offset[
@@ -139,7 +135,7 @@ class Scene:
         self.camera_offset[0] = int(self.precise_camera_offset[0])
         self.camera_offset[1] = int(self.precise_camera_offset[1])
 
-        self.game.screen.fill("lightblue")
+        self.screen.fill("#5c7cf4")
 
         neighbour_chunk_offsets = [
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
@@ -171,7 +167,7 @@ class Scene:
             surrounding_chunks[f"{offset[0]};{offset[1]}"] = (self.chunks.get(f"{offset[0]};{offset[1]}", []))
 
             # fblits is newer and faster (documentation not updated yet)
-            self.game.screen.fblits(
+            self.screen.fblits(
                 [(block.image, (block.position[0] - self.camera_offset[0], block.position[1] - self.camera_offset[1]))
                  for block in self.chunks[f"{offset[0]};{offset[1]}"]])
 
@@ -184,6 +180,5 @@ class Scene:
 
         self.inventory.update()
         self.player.update(chunks=surrounding_chunks, dt=dt)
-        self.player.render(screen=self.game.screen, offset=self.camera_offset)
-        # self.game.screen.blit(self.game.font.render(f"Inventory: {self.inventory.inventory_items}", True, "white"), (10, 10))
-        self.game.screen.blit(self.game.font.render(f"Item Selected: {held_item}", True, "white"), (10, 60))
+        self.player.render(screen=self.screen, offset=self.camera_offset)
+        self.inventory.draw()

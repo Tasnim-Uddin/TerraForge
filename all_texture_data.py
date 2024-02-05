@@ -1,10 +1,10 @@
 from global_constants import *
 
 all_texture_data = {
-    "grass": {"type": "block", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (0, 0)},
-    "dirt": {"type": "block", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (0, 1)},
-    "stone": {"type": "block", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 0)},
-    "sword": {"type": "weapon", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 1)},
-    "pickaxe": {"type": "weapon", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 1)},
-    "axe": {"type": "weapon", "size": (BLOCK_SIZE, BLOCK_SIZE), "position": (1, 1)}
+    "grass": {"type": "block", "size": (16, 16), "position": (48, 464)},
+    "dirt": {"type": "block", "size": (16, 16), "position": (48, 480)},
+    "stone": {"type": "block", "size": (16, 16), "position": (0, 16)},
+    "sword": {"type": "weapon", "size": (16, 16), "position": (1, 1)},
+    "pickaxe": {"type": "weapon", "size": (16, 16), "position": (1, 1)},
+    "axe": {"type": "weapon", "size": (16, 16), "position": (1, 1)}
 }
