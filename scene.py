@@ -172,7 +172,6 @@ class Scene:
                  for block in self.chunks[f"{offset[0]};{offset[1]}"]])
 
         held_item = self.inventory.get_selected_item()
-        print(held_item)
         if EventManager.left_mouse_click():
             self.break_block(surrounding_chunks=surrounding_chunks, held_item=held_item)
 
