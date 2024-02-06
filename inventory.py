@@ -39,7 +39,9 @@ class Inventory:
             if item_data["item"] == item:
                 item_data["quantity"] += 1
                 return
-            elif item_data["item"] is None:
+
+        for item_data in self.inventory_items.values():
+            if item_data["item"] is None:
                 item_data["item"] = item
                 item_data["quantity"] = 1
                 return
@@ -74,22 +76,24 @@ class Inventory:
             self.active_slot = len(self.inventory_items) - 1
 
         if EventManager.right_mouse_click():
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            slot_number = mouse_x // (BLOCK_SIZE * 2)
-            if 0 <= slot_number < len(self.inventory_items) and 0 <= mouse_y <= BLOCK_SIZE * 2:
+            mouse_position = pygame.mouse.get_pos()
+            slot_number = mouse_position[0] // (BLOCK_SIZE * 2)
+            if 0 <= slot_number < len(self.inventory_items) and 0 <= mouse_position[1] <= BLOCK_SIZE * 2:
                 if not self.clicked_once:
                     self.clicked_slot = slot_number
                     self.clicked_once = True
                 else:
-                    # If two slots are clicked, swap their items
                     if slot_number != self.clicked_slot:
                         slot1_key = f"slot{self.clicked_slot}"
                         slot2_key = f"slot{slot_number}"
-                        self.inventory_items[slot1_key], self.inventory_items[slot2_key] = (
-                            self.inventory_items[slot2_key], self.inventory_items[slot1_key]
-                        )
-                        self.clicked_slot = None
-                        self.clicked_once = False
+                        self.inventory_items[slot1_key]["item"], self.inventory_items[slot2_key]["item"] = self.inventory_items[slot2_key]["item"], self.inventory_items[slot1_key]["item"]
+
+                        self.inventory_items[slot1_key]["quantity"], self.inventory_items[slot2_key]["quantity"] = self.inventory_items[slot2_key]["quantity"], self.inventory_items[slot1_key]["quantity"]
+
+                    elif slot_number == self.clicked_slot:
+                        pass
+                    self.clicked_slot = None
+                    self.clicked_once = False
 
         try:
             slot_position = f"slot{self.active_slot}"
@@ -98,7 +102,9 @@ class Inventory:
         self.selected_item = self.inventory_items[slot_position]["item"]
 
     def draw(self):
-        pygame.draw.rect(self.screen, color="#4444a4", rect=(0, 0, BLOCK_SIZE * 2 * len(self.inventory_items), BLOCK_SIZE * 2))
+        pygame.draw.rect(surface=self.screen, color="#4444a4",
+                         rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * len(self.inventory_items),
+                                          BLOCK_SIZE * 2))  # Draw inventory background
 
         padding_x = BLOCK_SIZE // 2
         padding_y = BLOCK_SIZE // 2
@@ -106,17 +112,28 @@ class Inventory:
         for slot, item_data in self.inventory_items.items():
             slot_number = int(re.search(pattern=r"slot(.+)", string=slot).group(1))
 
-            if slot_number == self.active_slot:
-                pygame.draw.rect(self.screen, color=(255, 255, 0), rect=(slot_number * BLOCK_SIZE * 2, 0, BLOCK_SIZE * 2, BLOCK_SIZE * 2))
+            # highlight the slots that are about to be switched
+            if self.clicked_once:
+                if slot_number == self.clicked_slot or slot_number == self.active_slot:
+                    pygame.draw.rect(surface=self.screen, color="white",
+                                     rect=pygame.Rect(slot_number * BLOCK_SIZE * 2, 0, BLOCK_SIZE * 2, BLOCK_SIZE * 2))
 
-            pygame.draw.rect(self.screen, color=(0, 0, 0), rect=(slot_number * BLOCK_SIZE * 2, 0, BLOCK_SIZE * 2, BLOCK_SIZE * 2), width=1)
+            # highlight the selected slot
+            if slot_number == self.active_slot:
+                pygame.draw.rect(surface=self.screen, color="#fcec24",
+                                 rect=pygame.Rect(slot_number * BLOCK_SIZE * 2, 0, BLOCK_SIZE * 2, BLOCK_SIZE * 2))
+
+            pygame.draw.rect(surface=self.screen, color="black",
+                             rect=pygame.Rect(slot_number * BLOCK_SIZE * 2, 0, BLOCK_SIZE * 2, BLOCK_SIZE * 2),
+                             width=1)  # draw border
 
             if item_data["item"] is not None:
                 self.screen.blit(
-                    pygame.transform.scale(self.textures[item_data["item"]],
-                                           (BLOCK_SIZE, BLOCK_SIZE)),
+                    pygame.transform.scale(surface=self.textures[item_data["item"]], size=(BLOCK_SIZE, BLOCK_SIZE)),
                     (padding_x + (BLOCK_SIZE * 2) * slot_number, padding_y))
                 quantity_text = self.font.render(text=str(item_data["quantity"]), antialias=True, color="#fc0015")
                 self.screen.blit(quantity_text, ((BLOCK_SIZE * 2) * slot_number + 5, 5))
 
-        pygame.draw.rect(surface=self.screen, color="black", rect=(0, 0, BLOCK_SIZE * 2 * len(self.inventory_items), BLOCK_SIZE * 2), width=2)  # fix double border thickness from before around each slot
+        pygame.draw.rect(surface=self.screen, color="black",
+                         rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * len(self.inventory_items), BLOCK_SIZE * 2),
+                         width=2)  # fix weird double thickness in middle borders
