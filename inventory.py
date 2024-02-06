@@ -73,6 +73,10 @@ class Inventory:
         if EventManager.keydown(key=pygame.K_e):
             self.inventory_expanded = not self.inventory_expanded
 
+            if not self.inventory_expanded:
+                self.active_row = 0
+                self.active_column = 0
+
         for i in range(1, 10):  # Check keys 1 to 9
             if EventManager.keydown(pygame.K_0 + i):
                 self.active_row = 0
