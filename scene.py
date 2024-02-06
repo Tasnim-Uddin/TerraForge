@@ -77,9 +77,10 @@ class Scene:
     def break_block(self, surrounding_chunks, held_item):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
-                mouse_position[1] + self.camera_offset[
-            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+        within_reach = False
+
+        if int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (mouse_position[1] + self.camera_offset[1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH:
+            within_reach = True
 
         for chunk_position in surrounding_chunks:
             for block in surrounding_chunks[chunk_position]:
@@ -134,6 +135,7 @@ class Scene:
         self.camera_offset[0] = int(self.precise_camera_offset[0])
         self.camera_offset[1] = int(self.precise_camera_offset[1])
 
+        # Sky colour
         self.screen.fill("#5c7cf4")
 
         neighbour_chunk_offsets = [
@@ -165,7 +167,7 @@ class Scene:
                 self.chunks[f"{offset[0]};{offset[1]}"] = self.generate_chunk(offset)
             surrounding_chunks[f"{offset[0]};{offset[1]}"] = (self.chunks.get(f"{offset[0]};{offset[1]}", []))
 
-            # Fblits is newer and faster (documentation not updated yet)
+            # Fblits is newer and faster (documentation not updated yet as of coding)
             self.screen.fblits(
                 [(block.image, (block.position[0] - self.camera_offset[0], block.position[1] - self.camera_offset[1]))
                  for block in self.chunks[f"{offset[0]};{offset[1]}"]])
