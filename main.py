@@ -16,7 +16,8 @@ class Game:
         self.running = True
 
         # self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT))
-        self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), flags=pygame.FULLSCREEN, vsync=1)
+        # self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), flags=pygame.FULLSCREEN, vsync=1)
+        self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
 
         self.scene = Scene(screen=self.screen)
 
