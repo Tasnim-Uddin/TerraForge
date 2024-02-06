@@ -1,5 +1,3 @@
-from global_constants import *
-
 all_texture_data = {
     "grass": {"type": "block", "size": (16, 16), "position": (48, 464)},
     "dirt": {"type": "block", "size": (16, 16), "position": (48, 480)},

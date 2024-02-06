@@ -1,4 +1,5 @@
 import pygame as pygame
+import math
 import sys
 
 from global_constants import *
@@ -14,10 +15,12 @@ class Game:
 
         self.running = True
 
-        self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT))
+        # self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), flags=pygame.FULLSCREEN, vsync=1)
+
         self.scene = Scene(screen=self.screen)
 
-        self.font = pygame.font.Font(filename=None, size=30)
+        self.font = pygame.font.Font(filename=None, size=60)
 
     def run(self):
         while self.running:
@@ -32,7 +35,7 @@ class Game:
                     sys.exit()
 
             self.scene.draw(dt=dt)
-            # self.game.blit(self.font.render(f"FPS: {self.clock.get_fps()}", True, "white"), (1000, 10))
+            self.screen.blit(self.font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"), dest=(WINDOW_WIDTH-200, 10))
             pygame.display.update()
             self.clock.tick(FRAMES_PER_SECOND)
 

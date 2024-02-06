@@ -26,7 +26,7 @@ class Inventory:
         self.active_slot = 0
         self.selected_item = self.inventory_items[f"slot{self.active_slot}"]["item"]
 
-        self.font = pygame.font.Font(None, 30)
+        self.font = pygame.font.Font(filename=None, size=30)
 
         self.clicked_slot = None  # Store the index of the clicked slot
         self.clicked_once = False  # Flag to track the first click
@@ -54,8 +54,8 @@ class Inventory:
                     item_data["item"] = None
                     item_data["quantity"] = None
                     return
-
-    def is_block(self, item):
+    @staticmethod
+    def is_block(item):
         try:
             if all_texture_data[item]["type"] == "block":
                 return True
@@ -136,4 +136,4 @@ class Inventory:
 
         pygame.draw.rect(surface=self.screen, color="black",
                          rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * len(self.inventory_items), BLOCK_SIZE * 2),
-                         width=2)  # fix weird double thickness in middle borders
+                         width=2)  # adds extra border to left and right of hotbar so border thickness all the same across all slots
