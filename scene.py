@@ -1,7 +1,6 @@
 import random
 from opensimplex import *
 
-from global_constants import *
 from player import Player
 from entity import Entity
 from inventory import *
@@ -129,7 +128,7 @@ class Scene:
         self.precise_camera_offset[1] += (self.player.rect.centery - self.precise_camera_offset[
             1] - WINDOW_HEIGHT / 2) / VERTICAL_SCROLL_DELAY_FACTOR
 
-        if self.player.rect.centerx <= WINDOW_WIDTH / 2:  # checking for border on left side - TODO: check for right side
+        if self.player.rect.centerx <= WINDOW_WIDTH / 2:  # Checking for the border on the left side - TODO: Check for the right side
             self.precise_camera_offset[0] = 0
 
         self.camera_offset[0] = int(self.precise_camera_offset[0])
@@ -139,25 +138,25 @@ class Scene:
 
         neighbour_chunk_offsets = [
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top left
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # Top left
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # Top
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # top right
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # Top right
 
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # left
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # Left
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # mid
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # Middle
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # right
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # Right
 
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom left
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # Bottom left
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # Bottom
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # bottom right
+             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # Bottom right
         ]
 
         surrounding_chunks = {}
@@ -166,7 +165,7 @@ class Scene:
                 self.chunks[f"{offset[0]};{offset[1]}"] = self.generate_chunk(offset)
             surrounding_chunks[f"{offset[0]};{offset[1]}"] = (self.chunks.get(f"{offset[0]};{offset[1]}", []))
 
-            # fblits is newer and faster (documentation not updated yet)
+            # Fblits is newer and faster (documentation not updated yet)
             self.screen.fblits(
                 [(block.image, (block.position[0] - self.camera_offset[0], block.position[1] - self.camera_offset[1]))
                  for block in self.chunks[f"{offset[0]};{offset[1]}"]])

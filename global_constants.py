@@ -1,5 +1,5 @@
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+WINDOW_WIDTH = 1920
+WINDOW_HEIGHT = 1080
 FRAMES_PER_SECOND = 240
 
 HORIZONTAL_SCROLL_DELAY_FACTOR = 10
@@ -10,19 +10,16 @@ BLOCKS_IN_ATLAS_Y = 2
 
 BLOCK_SIZE = 32
 
-# num of blocks per chunk
+# Number of blocks per chunk
 CHUNK_WIDTH = 32
 CHUNK_HEIGHT = 32
 
-# num of blocks in world
+# Number of blocks in the world
 WORLD_WIDTH = 100000
 WORLD_HEIGHT = 1000
-
 
 HORIZONTAL_SPEED = 1500
 GRAVITY = 3000
 JUMP_HEIGHT = 800
 
-
 REACH = 5  # 5 blocks
-

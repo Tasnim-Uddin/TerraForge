@@ -73,9 +73,14 @@ class Inventory:
         if EventManager.keydown(key=pygame.K_e):
             self.inventory_expanded = not self.inventory_expanded
 
+            # Reset active row and column to 0 when closing the expandable inventory
             if not self.inventory_expanded:
                 self.active_row = 0
                 self.active_column = 0
+
+                # Reset clicked slot position and state when closing the expandable inventory
+                self.clicked_slot_position = None
+                self.clicked_once = False
 
         for i in range(1, 10):  # Check keys 1 to 9
             if EventManager.keydown(pygame.K_0 + i):
@@ -180,24 +185,22 @@ class Inventory:
 
             column_slot_number = int(re.split(r';', slot_position)[1])
 
-            # highlight the selected slot
+            # Highlight the selected slot
             if true_item_row_slot_number == 0 or (true_item_row_slot_number != 0 and self.inventory_expanded):
                 if slot_position == f"{self.active_row};{self.active_column}":
                     pygame.draw.rect(surface=self.screen, color="#fcec24",
                                      rect=pygame.Rect(column_slot_number * BLOCK_SIZE * 2, row_slot_number * BLOCK_SIZE * 2, BLOCK_SIZE * 2, BLOCK_SIZE * 2))
 
-
-            # highlight the slots that are about to be switched
+            # Highlight the slots that are about to be switched
             if true_item_row_slot_number == 0 or (true_item_row_slot_number != 0 and self.inventory_expanded):
                 if self.clicked_once:
                     if slot_position == self.clicked_slot_position:  # or slot_number == self.active_slot:
                         pygame.draw.rect(surface=self.screen, color="white",
                                          rect=pygame.Rect(column_slot_number * BLOCK_SIZE * 2, row_slot_number * BLOCK_SIZE * 2, BLOCK_SIZE * 2, BLOCK_SIZE * 2))
 
-
             pygame.draw.rect(surface=self.screen, color="black",
                              rect=pygame.Rect(column_slot_number * BLOCK_SIZE * 2, row_slot_number * BLOCK_SIZE * 2, BLOCK_SIZE * 2, BLOCK_SIZE * 2),
-                             width=1)  # draw border
+                             width=1)  # Draw border
 
             if item_data["item"] is not None:
                 if true_item_row_slot_number == 0 or (true_item_row_slot_number != 0 and self.inventory_expanded):
@@ -206,11 +209,8 @@ class Inventory:
                         (padding_x + (BLOCK_SIZE * 2) * column_slot_number, padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))
                     quantity_text = self.font.render(text=str(item_data["quantity"]), antialias=True, color="#fc0015")
                     self.screen.blit(quantity_text, ((BLOCK_SIZE * 2) * column_slot_number + 5, (BLOCK_SIZE * 2) * true_item_row_slot_number + 5))
-                # elif true_item_row_slot_number != 0 and not self.inventory_expanded:
-                #     pass
 
-
-        # adds extra border around inventory so thickness is same across all slots and edges
+        # Add extra border around inventory so thickness is the same across all slots and edges
         if not self.inventory_expanded:
             pygame.draw.rect(surface=self.screen, color="black",
                              rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * self.column_slots, BLOCK_SIZE * 2),

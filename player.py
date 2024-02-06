@@ -24,7 +24,7 @@ class Player:
         self.on_ground = False
 
     def get_input(self):
-        for event in EventManager.events:  # noqa
+        for event in EventManager.events:  # Handle events
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d:
                     self.directions['right'] = True
@@ -46,7 +46,7 @@ class Player:
             self.velocity[0] = HORIZONTAL_SPEED
         if self.directions['left']:
             self.velocity[0] = -HORIZONTAL_SPEED
-        if self.directions['up'] and self.on_ground:  # jumping allowed only when the player is on the ground
+        if self.directions['up'] and self.on_ground:  # Jumping allowed only when the player is on the ground
             self.on_ground = False
             self.velocity[1] = -JUMP_HEIGHT
 
