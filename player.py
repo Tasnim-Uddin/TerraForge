@@ -13,7 +13,7 @@ class Player:
 
         self.x = 0
         self.y = 0
-        self.rect = pygame.Rect(round(self.x), round(self.y), self.image.get_width(), self.image.get_height())
+        self.rect = pygame.Rect(self.x, self.y, self.image.get_width(), self.image.get_height())
         self.velocity = [0, 0]
 
         self.directions = {
@@ -54,26 +54,36 @@ class Player:
             self.velocity[0] = 0
 
     def horizontal_collision(self, chunks):
-        if self.rect.left <= 0:
-            self.rect.left = 0
         for chunk in chunks:
             for block in chunks[chunk]:
-                if block.rect.colliderect(self.rect):
+                block_rect = pygame.Rect(
+                    block.rect.x * BLOCK_SIZE,
+                    block.rect.y * BLOCK_SIZE,
+                    block.rect.width,
+                    block.rect.height
+                )
+                if block_rect.colliderect(self.rect):
                     if self.velocity[0] > 0:
-                        self.x = block.rect.left - self.rect.w
+                        self.x = block_rect.left - self.rect.width
                     elif self.velocity[0] < 0:
-                        self.x = block.rect.right
+                        self.x = block_rect.right
                     self.velocity[0] = 0
 
     def vertical_collision(self, chunks):
         for chunk in chunks:
             for block in chunks[chunk]:
-                if block.rect.colliderect(self.rect):
+                block_rect = pygame.Rect(
+                    block.rect.x * BLOCK_SIZE,
+                    block.rect.y * BLOCK_SIZE,
+                    block.rect.width,
+                    block.rect.height
+                )
+                if block_rect.colliderect(self.rect):
                     if self.velocity[1] > 0:
-                        self.y = block.rect.top - self.rect.h
+                        self.y = block_rect.top - self.rect.height
                         self.on_ground = True
                     elif self.velocity[1] < 0:
-                        self.y = block.rect.bottom
+                        self.y = block_rect.bottom
                     self.velocity[1] = 0
 
     def movement(self, chunks, dt):
