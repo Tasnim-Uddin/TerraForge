@@ -1,0 +1,3 @@
+this version of optimisation uses objects to store each block in self.chunks. these objects of type Entity only have the most basic variables which are the block (e.g. "grass") and the position which is relative to other blocks (e.g (5, 7)). surrounding_chunks would store the rects of these blocks and so inherited from Entity to create ComplexEntity where it would create a rect out of those variables in Entity. this would be stored in the surrounding_chunks dictionary and the rects were used for collision detection and block placement, breaking.
+
+however, there is no need to use 2 separate objects to do this, instead i can just use a method to generate the rect of that block, which is what i am doing in my code.

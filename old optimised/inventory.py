@@ -210,7 +210,7 @@ class Inventory:
                          padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))
                     quantity_text = self.font.render(text=str(item_data["quantity"]), antialias=True, color="#fc0015")
                     self.screen.blit(quantity_text, (
-                        (BLOCK_SIZE * 2) * column_slot_number + 5, (BLOCK_SIZE * 2) * true_item_row_slot_number + 5))
+                    (BLOCK_SIZE * 2) * column_slot_number + 5, (BLOCK_SIZE * 2) * true_item_row_slot_number + 5))
 
         # Add extra border around inventory so thickness is the same across all slots and edges
         if not self.inventory_expanded:

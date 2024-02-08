@@ -1,7 +1,6 @@
 import pygame
 
 from global_constants import *
-from block import Block
 from event_manager import EventManager
 
 
@@ -54,10 +53,15 @@ class Player:
         if not self.directions['right'] and not self.directions['left']:
             self.velocity[0] = 0
 
-    def horizontal_collision(self, chunks, block_textures):
+    def horizontal_collision(self, chunks):
         for chunk in chunks:
             for block in chunks[chunk]:
-                block_rect = block.create_rect(block=block, block_textures=block_textures)
+                block_rect = pygame.Rect(
+                    block.rect.x * BLOCK_SIZE,
+                    block.rect.y * BLOCK_SIZE,
+                    block.rect.width,
+                    block.rect.height
+                )
                 if block_rect.colliderect(self.rect):
                     if self.velocity[0] > 0:
                         self.x = block_rect.left - self.rect.width
@@ -65,10 +69,15 @@ class Player:
                         self.x = block_rect.right
                     self.velocity[0] = 0
 
-    def vertical_collision(self, chunks, block_textures):
+    def vertical_collision(self, chunks):
         for chunk in chunks:
             for block in chunks[chunk]:
-                block_rect = block.create_rect(block=block, block_textures=block_textures)
+                block_rect = pygame.Rect(
+                    block.rect.x * BLOCK_SIZE,
+                    block.rect.y * BLOCK_SIZE,
+                    block.rect.width,
+                    block.rect.height
+                )
                 if block_rect.colliderect(self.rect):
                     if self.velocity[1] > 0:
                         self.y = block_rect.top - self.rect.height
@@ -77,7 +86,7 @@ class Player:
                         self.y = block_rect.bottom
                     self.velocity[1] = 0
 
-    def movement(self, chunks, block_textures, dt):
+    def movement(self, chunks, dt):
         self.get_input()
         self.set_velocity()
 
@@ -85,16 +94,16 @@ class Player:
 
         self.y += self.velocity[1] * dt
         self.rect.y = self.y
-        self.vertical_collision(chunks=chunks, block_textures=block_textures)
+        self.vertical_collision(chunks=chunks)
         self.rect.y = self.y
 
         self.x += self.velocity[0] * dt
         self.rect.x = self.x
-        self.horizontal_collision(chunks=chunks, block_textures=block_textures)
+        self.horizontal_collision(chunks=chunks)
         self.rect.x = self.x
 
-    def update(self, chunks, block_textures, dt):
-        self.movement(chunks=chunks, block_textures=block_textures, dt=dt)
+    def update(self, chunks, dt):
+        self.movement(chunks=chunks, dt=dt)
 
     def render(self, screen, offset):
         screen.blit(self.image, (self.x - offset[0], self.y - offset[1]))

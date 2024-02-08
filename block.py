@@ -1,12 +1,17 @@
 import pygame
 from global_constants import *
 
-
-class Entity:
-    def __init__(self, block, image, position):
+class Block:
+    def __init__(self, block, position):
         self.block = block
-        self.image = pygame.transform.scale(
-            surface=image, size=(BLOCK_SIZE, BLOCK_SIZE)
-        )
         self.position = position
-        self.rect = self.image.get_rect(topleft=self.position)
+
+    @staticmethod
+    def create_rect(block, block_textures):
+        block_rect = pygame.Rect(
+            block_textures[block.block].get_rect(topleft=block.position).x * BLOCK_SIZE,
+            block_textures[block.block].get_rect(topleft=block.position).y * BLOCK_SIZE,
+            block_textures[block.block].get_rect(topleft=block.position).width,
+            block_textures[block.block].get_rect(topleft=block.position).height
+        )
+        return block_rect
