@@ -57,10 +57,10 @@ class Player:
         for chunk in chunks:
             for block in chunks[chunk]:
                 block_rect = pygame.Rect(
-                    block[2].x * BLOCK_SIZE,
-                    block[2].y * BLOCK_SIZE,
-                    block[2].width,
-                    block[2].height
+                    block.rect.x * BLOCK_SIZE,
+                    block.rect.y * BLOCK_SIZE,
+                    block.rect.width,
+                    block.rect.height
                 )
                 if block_rect.colliderect(self.rect):
                     if self.velocity[0] > 0:
@@ -73,10 +73,10 @@ class Player:
         for chunk in chunks:
             for block in chunks[chunk]:
                 block_rect = pygame.Rect(
-                    block[2].x * BLOCK_SIZE,
-                    block[2].y * BLOCK_SIZE,
-                    block[2].width,
-                    block[2].height
+                    block.rect.x * BLOCK_SIZE,
+                    block.rect.y * BLOCK_SIZE,
+                    block.rect.width,
+                    block.rect.height
                 )
                 if block_rect.colliderect(self.rect):
                     if self.velocity[1] > 0:

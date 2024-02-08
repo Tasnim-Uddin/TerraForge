@@ -4,7 +4,7 @@ import pygame
 from opensimplex import *
 
 from player import Player
-from entity import Entity
+from entity import *
 from inventory import *
 
 
@@ -79,23 +79,29 @@ class Scene:
     def break_block(self, surrounding_chunks, held_item):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = False
-
-        if int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
+        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
                 mouse_position[1] + self.camera_offset[
-            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH:
-            within_reach = True
+            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+
+        break_chunk_position = (f"{int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE))};"
+                                f"{int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE))}")
 
         for chunk_position in surrounding_chunks:
             for block in surrounding_chunks[chunk_position]:
-                if pygame.Rect(block[2].x * BLOCK_SIZE, block[2].y * BLOCK_SIZE, block[2].width,
-                               block[2].height).collidepoint(mouse_position[0] + self.camera_offset[0],
-                                                             mouse_position[1] + self.camera_offset[
-                                                                 1]) and within_reach:
-                    breaking_item = block[0]
+                if pygame.Rect(block.rect.x * BLOCK_SIZE, block.rect.y * BLOCK_SIZE, block.rect.width,
+                               block.rect.height).collidepoint(mouse_position[0] + self.camera_offset[0],
+                                                               mouse_position[1] + self.camera_offset[
+                                                                   1]) and within_reach:
+                    breaking_item = block.block
                     if held_item == "pickaxe" and self.inventory.is_block(item=breaking_item):
                         self.inventory.add_item(item=breaking_item)
-                        surrounding_chunks[chunk_position].remove(block)
+                        print("surrounding_chunks", block in surrounding_chunks[break_chunk_position])
+                        print("self.chunks", block in self.chunks[break_chunk_position])
+                        print(block.block, block.position)
+                        for current_block in self.chunks[break_chunk_position]:
+                            if current_block.block == block.block and current_block.position == block.position:
+                                self.chunks[break_chunk_position].remove(current_block)
+                                break
 
     def place_block(self, surrounding_chunks, held_item):
         mouse_position = pygame.mouse.get_pos()
@@ -110,8 +116,10 @@ class Scene:
         block_exists = False
         for chunk_position in surrounding_chunks:
             for block in surrounding_chunks[chunk_position]:
-                if block[2].collidepoint((mouse_position[0] + self.camera_offset[0] / BLOCK_SIZE),
-                                         (mouse_position[1] + self.camera_offset[1] / BLOCK_SIZE)):
+                if pygame.Rect(block.rect.x * BLOCK_SIZE, block.rect.y * BLOCK_SIZE, block.rect.width,
+                               block.rect.height).collidepoint(mouse_position[0] + self.camera_offset[0],
+                                                               mouse_position[1] + self.camera_offset[
+                                                                   1]):
                     block_exists = True
                     break
             if block_exists:
@@ -166,7 +174,6 @@ class Scene:
             (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
              self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # Bottom right
         ]
-
         surrounding_chunks = {}
         for offset in neighbour_chunk_offsets:
             if f"{offset[0]};{offset[1]}" not in self.chunks:
@@ -178,15 +185,19 @@ class Scene:
                 image = pygame.transform.scale(surface=self.block_textures[block_data.block],
                                                size=(BLOCK_SIZE, BLOCK_SIZE))
                 rect = image.get_rect(topleft=(block_data.position[0], block_data.position[1]))
-                surrounding_chunks[f"{offset[0]};{offset[1]}"].append([block, image, rect])  # [0]: block (e.g. "grass"), [1]: pygame image, [2]: rect
+                surrounding_chunks[f"{offset[0]};{offset[1]}"].append(
+                    ComplexEntity(block=block, position=block_data.position, image=image,
+                                  rect=rect))  # [0]: block (e.g. "grass"), [1]: pygame image, [2]: rect
 
-            # Fblits is newer and faster (documentation not updated yet as of coding)
+            # fblits is newer and faster (documentation not updated yet as of coding)
             self.screen.fblits(
-                [(block[1],
-                  (block[2].x * BLOCK_SIZE - self.camera_offset[0], block[2].y * BLOCK_SIZE - self.camera_offset[1]))
+                [(block.image,
+                  (
+                  block.rect.x * BLOCK_SIZE - self.camera_offset[0], block.rect.y * BLOCK_SIZE - self.camera_offset[1]))
                  for block in surrounding_chunks[f"{offset[0]};{offset[1]}"]])
 
         held_item = self.inventory.get_selected_item()
+
         if EventManager.left_mouse_click():
             self.break_block(surrounding_chunks=surrounding_chunks, held_item=held_item)
 
