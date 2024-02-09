@@ -1,5 +1,6 @@
 import pygame
-import re
+import json
+import os
 
 from global_constants import *
 from all_texture_data import all_texture_data
@@ -11,20 +12,11 @@ class Inventory:
         self.screen = screen
         self.textures = textures
 
-        self.inventory_items = {}
-
-        for row in range(ROW_SLOTS):
-            for column in range(COLUMN_SLOTS):
-                key = f"{row};{column}"
-                self.inventory_items[key] = {"item": None, "quantity": None}
-
-        self.inventory_items["0;0"]["item"], self.inventory_items["0;0"]["quantity"] = "sword", 1
-        self.inventory_items["0;1"]["item"], self.inventory_items["0;1"]["quantity"] = "pickaxe", 1
-        self.inventory_items["0;2"]["item"], self.inventory_items["0;2"]["quantity"] = "axe", 1
+        self.inventory_items = self.load_inventory_from_json()
 
         self.active_row = 0
         self.active_column = 0
-        self.selected_item = self.inventory_items[f"{self.active_row};{self.active_column}"]["item"]
+        self.selected_item = self.inventory_items[(self.active_row, self.active_column)]["item"]
 
         self.font = pygame.font.Font(filename=None, size=30)
 
@@ -112,7 +104,7 @@ class Inventory:
             row_slot_number = mouse_position[1] // (BLOCK_SIZE * 2)
             column_slot_number = mouse_position[0] // (BLOCK_SIZE * 2)
 
-            slot_position = f"{row_slot_number};{column_slot_number}"
+            slot_position = (row_slot_number, column_slot_number)
 
             if not self.inventory_expanded:
                 if 0 <= column_slot_number < COLUMN_SLOTS and row_slot_number == 0:
@@ -154,9 +146,9 @@ class Inventory:
                         self.clicked_once = False
 
         try:
-            slot_position = f"{self.active_row};{self.active_column}"
+            slot_position = (self.active_row, self.active_column)
         except IndexError:
-            slot_position = f"0;{COLUMN_SLOTS - 1}"
+            slot_position = (0, COLUMN_SLOTS - 1)
         self.selected_item = self.inventory_items[slot_position]["item"]
 
     def draw(self):
@@ -173,17 +165,17 @@ class Inventory:
         padding_y = BLOCK_SIZE // 2
 
         for slot_position, item_data in self.inventory_items.items():
-            true_item_row_slot_number = int(re.split(r';', slot_position)[0])
+            true_item_row_slot_number = slot_position[0]
 
             row_slot_number = 0
             if self.inventory_expanded:
-                row_slot_number = int(re.split(r';', slot_position)[0])
+                row_slot_number = slot_position[0]
 
-            column_slot_number = int(re.split(r';', slot_position)[1])
+            column_slot_number = slot_position[1]
 
             # Highlight the selected slot
             if true_item_row_slot_number == 0 or (true_item_row_slot_number != 0 and self.inventory_expanded):
-                if slot_position == f"{self.active_row};{self.active_column}":
+                if slot_position == (self.active_row, self.active_column):
                     pygame.draw.rect(surface=self.screen, color="#fcec24",
                                      rect=pygame.Rect(column_slot_number * BLOCK_SIZE * 2,
                                                       row_slot_number * BLOCK_SIZE * 2, BLOCK_SIZE * 2, BLOCK_SIZE * 2))
@@ -221,3 +213,48 @@ class Inventory:
             pygame.draw.rect(surface=self.screen, color="black",
                              rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * COLUMN_SLOTS, (BLOCK_SIZE * 2) * 3),
                              width=2)
+
+    def get_inventory_to_save(self):
+        # saved_inventory = {}
+        # for inventory_slot in self.inventory_items:
+        #     slot_key = ';'.join(map(str, inventory_slot))  # Convert tuple to string
+        #     saved_inventory[slot_key] = self.inventory_items.get(inventory_slot, [])
+        #
+        #     for block in self.inventory_items[inventory_slot]:
+        #         saved_block = {"item": block.block, "position": block.position}
+        #         saved_inventory[slot_key].append(saved_block)
+        saved_inventory = {}
+        for slot_position in self.inventory_items:
+            json_slot_position = ';'.join(map(str, slot_position))  # Convert tuple to string
+            saved_inventory[json_slot_position] = self.inventory_items[slot_position]
+        return saved_inventory
+
+    def save_inventory_to_json(self):
+        saved_inventory = self.get_inventory_to_save()
+        with open('inventory.json', 'w') as json_file:
+            json.dump(saved_inventory, json_file)
+
+    @staticmethod
+    def load_inventory_from_json():
+        if os.path.exists('inventory.json'):
+            with open('inventory.json', 'r') as json_file:
+                loaded_inventory = json.load(json_file)
+                inventory_items = {}
+                for json_slot_position, json_items in loaded_inventory.items():
+                    slot = tuple(map(int, json_slot_position.split(';')))
+                    inventory_items[slot] = json_items
+        else:
+            inventory_items = {}
+            for row in range(ROW_SLOTS):
+                for column in range(COLUMN_SLOTS):
+                    key = (row, column)
+                    inventory_items[key] = {"item": None, "quantity": None}
+
+            inventory_items[(0, 0)]["item"], inventory_items[(0, 0)]["quantity"] = "sword", 1
+            inventory_items[(0, 1)]["item"], inventory_items[(0, 1)]["quantity"] = "pickaxe", 1
+            inventory_items[(0, 2)]["item"], inventory_items[(0, 2)]["quantity"] = "axe", 1
+
+        return inventory_items
+
+
+

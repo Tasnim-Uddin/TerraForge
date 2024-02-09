@@ -1,7 +1,6 @@
 import pygame
 
 from global_constants import *
-from block import Block
 from event_manager import EventManager
 
 
@@ -64,6 +63,7 @@ class Player:
                     elif self.velocity[0] < 0:
                         self.x = block_rect.right
                     self.velocity[0] = 0
+                    return
 
     def vertical_collision(self, chunks, block_textures):
         for chunk in chunks:
@@ -76,6 +76,7 @@ class Player:
                     elif self.velocity[1] < 0:
                         self.y = block_rect.bottom
                     self.velocity[1] = 0
+                    return
 
     def movement(self, chunks, block_textures, dt):
         self.get_input()

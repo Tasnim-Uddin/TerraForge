@@ -1,3 +1,4 @@
+import json
 import pygame as pygame
 import math
 import sys
@@ -30,6 +31,8 @@ class Game:
             for event in EventManager.events:
                 if event.type == pygame.QUIT or EventManager.quit_game():
                     self.running = False
+                    self.scene.save_chunks_to_json()  # Save chunks before quitting
+                    self.scene.inventory.save_inventory_to_json()  # Save inventory before quitting
                     pygame.quit()
                     sys.exit()
 

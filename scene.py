@@ -1,6 +1,6 @@
+import json
+import os
 import random
-
-import pygame
 from opensimplex import *
 
 from player import Player
@@ -21,11 +21,9 @@ class Scene:
         self.precise_camera_offset = [0, 0]
         self.camera_offset = [0, 0]
 
-        self.chunks = {
-            #  "x;y" : [Block(), Block(), Block(), ...]
-        }
+        self.chunks = self.load_chunks_from_json()
 
-        self.surface_seed = OpenSimplex(random.randint(0, 0))
+        self.surface_seed = OpenSimplex(random.randint(0, 99999999))
 
         self.lower_cave_threshold = 0.015
         self.upper_cave_threshold = 0.7
@@ -64,18 +62,15 @@ class Scene:
                     air_in_cave = True
 
                 if real_y + height_noise == 0:
-                    # current_chunk_blocks.append(("grass", (real_x / BLOCK_SIZE, real_y / BLOCK_SIZE)))
                     current_chunk_blocks.append(
-                        Block(block="grass", position=(real_x / BLOCK_SIZE, real_y / BLOCK_SIZE)))
+                        Block(block="grass", position=(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))))
                 elif 0 < (real_y + height_noise) <= 10 * BLOCK_SIZE:
-                    # current_chunk_blocks.append(("dirt", (real_x / BLOCK_SIZE, real_y / BLOCK_SIZE)))
                     current_chunk_blocks.append(
-                        Block(block="dirt", position=(real_x / BLOCK_SIZE, real_y / BLOCK_SIZE)))
+                        Block(block="dirt", position=(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))))
                 if 10 * BLOCK_SIZE < (real_y + height_noise):
                     if not air_in_cave:
-                        # current_chunk_blocks.append(("stone", (real_x / BLOCK_SIZE, real_y / BLOCK_SIZE)))
                         current_chunk_blocks.append(
-                            Block(block="stone", position=(real_x / BLOCK_SIZE, real_y / BLOCK_SIZE)))
+                            Block(block="stone", position=(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))))
 
         return current_chunk_blocks
 
@@ -86,8 +81,8 @@ class Scene:
                 mouse_position[1] + self.camera_offset[
             1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
-        break_chunk_position = (f"{int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE))};"
-                                f"{int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE))}")
+        break_chunk_position = (int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE)),
+                                int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE)))
 
         for chunk_position in chunks:
             for block in chunks[chunk_position]:
@@ -106,8 +101,8 @@ class Scene:
                 mouse_position[1] + self.camera_offset[
             1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
-        place_chunk_position = (f"{int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE))};"
-                                f"{int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE))}")
+        place_chunk_position = (int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE)),
+                                int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE)))
 
         block_exists = False
         for chunk_position in chunks:
@@ -124,8 +119,6 @@ class Scene:
                                                                   mouse_position[1] + self.camera_offset[
                                                                       1]) and within_reach:
             if self.inventory.is_block(item=held_item):
-                # new_block = (held_item, (int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE,
-                #                          int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
                 new_block = Block(block=held_item, position=(int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE, int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
                 self.chunks[place_chunk_position].append(new_block)
                 self.inventory.remove_item(item=held_item)
@@ -146,34 +139,36 @@ class Scene:
         self.screen.fill("#5c7cf4")
 
         neighbour_chunk_offsets = [
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # Top left
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # Top
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1),  # Top right
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top left
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top right
 
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # Left
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # Middle
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE)),  # Right
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Left
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Middle
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Right
 
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # Bottom left
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE),
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # Bottom
-            (self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1,
-             self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1),  # Bottom right
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom left
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom
+            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom right
         ]
+
         surrounding_chunks = {}
         for offset in neighbour_chunk_offsets:
-            if f"{offset[0]};{offset[1]}" not in self.chunks:
-                self.chunks[f"{offset[0]};{offset[1]}"] = self.generate_chunk(offset)
-            if f"{offset[0]};{offset[1]}" not in surrounding_chunks:
-                surrounding_chunks[f"{offset[0]};{offset[1]}"] = []
-            surrounding_chunks[f"{offset[0]};{offset[1]}"] = self.chunks.get(f"{offset[0]};{offset[1]}", [])
+            if (offset[0], offset[1]) not in self.chunks:
+                print(offset[0], offset[1])
+                self.chunks[(offset[0], offset[1])] = self.generate_chunk(offset)
+            if (offset[0], offset[1]) not in surrounding_chunks:
+                surrounding_chunks[(offset[0], offset[1])] = []
+            surrounding_chunks[(offset[0], offset[1])] = self.chunks.get((offset[0], offset[1]), [])
 
             self.screen.fblits(
                 [(self.block_textures[block.block],
@@ -182,7 +177,7 @@ class Scene:
                       0],
                   self.block_textures[block.block].get_rect(topleft=block.position).y * BLOCK_SIZE - self.camera_offset[
                       1]))
-                 for block in surrounding_chunks[f"{offset[0]};{offset[1]}"]])
+                 for block in surrounding_chunks[(offset[0], offset[1])]])
 
         held_item = self.inventory.get_selected_item()
 
@@ -196,3 +191,34 @@ class Scene:
         self.player.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
         self.player.render(screen=self.screen, offset=self.camera_offset)
         self.inventory.draw()
+
+    def get_chunks_to_save(self):
+        saved_chunks = {}
+        for chunk_position in self.chunks:
+            json_chunk_position = ';'.join(map(str, chunk_position))  # Convert tuple to string
+            saved_chunks[json_chunk_position] = []  # Initialize as a list
+
+            for block in self.chunks[chunk_position]:
+                saved_block = {"block": block.block, "position": block.position}
+                saved_chunks[json_chunk_position].append(saved_block)
+        return saved_chunks
+
+    def save_chunks_to_json(self):
+        all_chunks = self.get_chunks_to_save()
+        with open('chunks.json', 'w') as json_file:
+            json.dump(all_chunks, json_file)
+
+    @staticmethod
+    def load_chunks_from_json():
+        if os.path.exists('chunks.json'):
+            with open('chunks.json', 'r') as json_file:
+                loaded_chunks = json.load(json_file)
+                chunks = {}
+                for json_chunk_position, json_blocks in loaded_chunks.items():
+                    position = tuple(map(int, json_chunk_position.split(';')))
+                    block_objects = [Block(block=item["block"], position=item["position"]) for item in json_blocks]
+                    chunks[position] = block_objects
+        else:
+            chunks = {}
+        return chunks
+
