@@ -90,7 +90,7 @@ class Game:
         world_files = os.listdir("world_save_files")
         world_files.append("Create New World")
 
-        self.menu_options = world_files
+        self.menu_options = [re.split(pattern=r'\.json', string=file)[0] for file in world_files]
         self.selected_option = 0
 
         while True:
@@ -116,7 +116,7 @@ class Game:
         for i, option in enumerate(self.menu_options):
             color = (255, 255, 255) if i == self.selected_option else (128, 128, 128)
             text = self.menu_font.render(option, True, color)
-            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + i * 50))
+            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + i * 50 - WINDOW_HEIGHT // 5))
             self.screen.blit(text, text_rect)
         pygame.display.flip()
 
@@ -124,7 +124,7 @@ class Game:
         inventory_files = os.listdir("player_save_files")
         inventory_files.append("Create New Player")
 
-        self.menu_options = inventory_files
+        self.menu_options = inventory_files = [re.split(pattern=r'\.json', string=file)[0] for file in inventory_files]
         self.selected_option = 0
 
         while True:
@@ -150,7 +150,7 @@ class Game:
         for i, option in enumerate(self.menu_options):
             color = (255, 255, 255) if i == self.selected_option else (128, 128, 128)
             text = self.menu_font.render(option, True, color)
-            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + i * 50))
+            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + i * 50 - WINDOW_HEIGHT // 5))
             self.screen.blit(text, text_rect)
         pygame.display.flip()
 
