@@ -9,15 +9,15 @@ from inventory import *
 
 
 class Scene:
-    def __init__(self, screen, world_file_path, inventory_file_path):
+    def __init__(self, screen, world_name, inventory_name):
         self.screen = screen
 
         self.block_textures = self.load_block_sprites()
 
-        self.inventory = Inventory(screen=self.screen, textures=self.block_textures,
-                                   inventory_file_path=inventory_file_path)
+        self.chunks = self.load_world_from_json(world_name=world_name)
 
-        self.chunks = self.load_world_from_json(world_file_path)
+        self.inventory = Inventory(screen=self.screen, textures=self.block_textures,
+                                   inventory_name=inventory_name)
 
         self.player = Player()
 
@@ -199,7 +199,7 @@ class Scene:
     def get_chunks_to_save(self):
         saved_chunks = {}
         for chunk_position in self.chunks:
-            json_chunk_position = ';'.join(map(str, chunk_position))  # Convert tuple to string
+            json_chunk_position = ";".join(map(str, chunk_position))  # Convert tuple to string
             saved_chunks[json_chunk_position] = []  # Initialize as a list
 
             for block in self.chunks[chunk_position]:
@@ -207,22 +207,24 @@ class Scene:
                 saved_chunks[json_chunk_position].append(saved_block)
         return saved_chunks
 
-    def save_world_to_json(self):
+    def save_world_to_json(self, world_name):
         all_chunks = self.get_chunks_to_save()
-        save_directory = 'world_save_files'
+        save_directory = "world_save_files"
         if not os.path.exists(path=save_directory):
             os.makedirs(name=save_directory)
-        with open(os.path.join(save_directory, 'chunks.json'), 'w') as json_file:
+        with open(os.path.join(save_directory, f"{world_name}.json"), "w") as json_file:
             json.dump(all_chunks, json_file)
 
     @staticmethod
-    def load_world_from_json(file_path=None):
-        if file_path is not None and os.path.exists(path=file_path):
-            with open(file_path, 'r') as json_file:
+    def load_world_from_json(world_name):
+        load_directory = "world_save_files"
+        world_path = os.path.join(load_directory, f"{world_name}.json")
+        if os.path.exists(world_path):
+            with open(world_path, "r") as json_file:
                 loaded_chunks = json.load(json_file)
                 chunks = {}
                 for json_chunk_position, json_blocks in loaded_chunks.items():
-                    position = tuple(map(int, json_chunk_position.split(';')))
+                    position = tuple(map(int, json_chunk_position.split(";")))
                     block_objects = [Block(block=item["block"], position=item["position"]) for item in json_blocks]
                     chunks[position] = block_objects
         else:

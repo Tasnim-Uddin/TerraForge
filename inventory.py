@@ -8,11 +8,11 @@ from event_manager import EventManager
 
 
 class Inventory:
-    def __init__(self, screen, textures, inventory_file_path):
+    def __init__(self, screen, textures, inventory_name):
         self.screen = screen
         self.textures = textures
 
-        self.inventory_items = self.load_inventory_from_json(inventory_file_path)
+        self.inventory_items = self.load_inventory_from_json(inventory_name=inventory_name)
 
         self.active_row = 0
         self.active_column = 0
@@ -217,26 +217,28 @@ class Inventory:
     def get_inventory_to_save(self):
         saved_inventory = {}
         for slot_position in self.inventory_items:
-            json_slot_position = ';'.join(map(str, slot_position))  # Convert tuple to string
+            json_slot_position = ";".join(map(str, slot_position))  # Convert tuple to string
             saved_inventory[json_slot_position] = self.inventory_items[slot_position]
         return saved_inventory
 
-    def save_inventory_to_json(self):
+    def save_inventory_to_json(self, inventory_name):
         saved_inventory = self.get_inventory_to_save()
-        save_directory = 'inventory_save_files'
+        save_directory = "player_save_files"
         if not os.path.exists(save_directory):
             os.makedirs(save_directory)
-        with open(os.path.join(save_directory, 'inventory.json'), 'w') as json_file:
+        with open(os.path.join(save_directory, f"{inventory_name}.json"), "w") as json_file:
             json.dump(saved_inventory, json_file)
 
     @staticmethod
-    def load_inventory_from_json(file_path=None):
-        if file_path is not None and os.path.exists(file_path):
-            with open(file_path, 'r') as json_file:
+    def load_inventory_from_json(inventory_name):
+        load_directory = "player_save_files"
+        inventory_path = os.path.join(load_directory, f"{inventory_name}.json")
+        if os.path.exists(inventory_path):
+            with open(inventory_path, "r") as json_file:
                 loaded_inventory = json.load(json_file)
                 inventory_items = {}
                 for json_slot_position, json_items in loaded_inventory.items():
-                    slot = tuple(map(int, json_slot_position.split(';')))
+                    slot = tuple(map(int, json_slot_position.split(";")))
                     inventory_items[slot] = json_items
         else:
             inventory_items = {}

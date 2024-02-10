@@ -2,6 +2,7 @@ import pygame as pygame
 import os
 import math
 import sys
+import re
 
 from global_constants import *
 from event_manager import EventManager
@@ -19,9 +20,10 @@ class Game:
 
         self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
 
-        world_file_path, inventory_file_path = self.choose_world_and_inventory_files()
+        self.world_name = self.world_choice()
+        self.inventory_name = self.inventory_choice()
 
-        self.scene = Scene(screen=self.screen, world_file_path=world_file_path, inventory_file_path=inventory_file_path)
+        self.scene = Scene(screen=self.screen, world_name=self.world_name, inventory_name=self.inventory_name)
 
         self.font = pygame.font.Font(filename=None, size=60)
 
@@ -49,13 +51,9 @@ class Game:
 
                     pygame.quit()
 
-                    save_world = input("Do you want to save the world? (yes/no): ")
-                    if save_world.lower() == "yes" or save_world.lower() == "y":
-                        self.scene.save_world_to_json()  # Save chunks before quitting
+                    self.scene.save_world_to_json(world_name=self.world_name)  # Save all chunks before quitting
 
-                    save_inventory = input("Do you want to save the inventory? (yes/no): ")
-                    if save_inventory.lower() == "yes" or save_inventory.lower() == "y":
-                        self.scene.inventory.save_inventory_to_json()  # Save inventory before quitting
+                    self.scene.inventory.save_inventory_to_json(inventory_name=self.inventory_name)  # Save inventory before quitting
 
                     sys.exit()
 
@@ -67,33 +65,45 @@ class Game:
             self.clock.tick(FRAMES_PER_SECOND)
 
     @staticmethod
-    def choose_world_and_inventory_files():
-        world_files = os.listdir('world_save_files')
-        inventory_files = os.listdir('inventory_save_files')
+    def world_choice():
+        world_files = os.listdir("world_save_files")
 
         print("Available world files:")
         for i, file in enumerate(world_files, start=1):
             print(f"{i}. {file}")
 
+        world_choice = input("\nChoose a world file (press Enter for new world): ")
+        if world_choice.strip() == "":
+            world_name = input("\nEnter new world name: ")
+            while world_name == "":
+                print("\nInvalid new world name")
+                world_name = input("\nEnter new world name: ")
+        else:
+            world_choice_index = int(world_choice) - 1
+            world_name = world_files[world_choice_index]
+            world_name = re.split(pattern=r'\.json', string=world_name)[0]
+
+        return world_name
+
+    @staticmethod
+    def inventory_choice():
+        inventory_files = os.listdir("player_save_files")
         print("\nAvailable inventory files:")
         for i, file in enumerate(inventory_files, start=1):
             print(f"{i}. {file}")
 
-        world_choice = input("\nChoose a world file (press Enter for new world): ")
-        if world_choice.strip() == "":
-            world_file_path = None
-        else:
-            world_choice_index = int(world_choice) - 1
-            world_file_path = os.path.join('world_save_files', world_files[world_choice_index])
-
-        inventory_choice = input("\nChoose an inventory file (press Enter for new inventory): ")
+        inventory_choice = input("\nChoose a player file (press Enter for new inventory): ")
         if inventory_choice.strip() == "":
-            inventory_file_path = None
+            inventory_name = input("\nEnter new player name: ")
+            while inventory_name == "":
+                print("\nInvalid new player name")
+                inventory_name = input("\nEnter new player name: ")
         else:
             inventory_choice_index = int(inventory_choice) - 1
-            inventory_file_path = os.path.join('inventory_save_files', inventory_files[inventory_choice_index])
+            inventory_name = inventory_files[inventory_choice_index]
+            inventory_name = re.split(pattern=r'\.json', string=inventory_name)[0]
 
-        return world_file_path, inventory_file_path
+        return inventory_name
 
 
 if __name__ == "__main__":
