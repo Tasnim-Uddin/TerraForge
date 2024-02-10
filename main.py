@@ -1,9 +1,8 @@
 import math
 import sys
 import re
-import os
-import pygame
 from scene import *
+from event_manager import EventManager
 
 
 class Game:
@@ -48,7 +47,7 @@ class Game:
 
                 EventManager.queue_events()
                 for event in EventManager.events:
-                    if event.type == pygame.QUIT or EventManager.quit_game():
+                    if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                         self.running = False
                         self.save_and_quit()  # Save world before quitting
 
@@ -60,7 +59,8 @@ class Game:
                 self.clock.tick(FRAMES_PER_SECOND)
 
     def handle_menu_events(self):
-        for event in pygame.event.get():
+        EventManager.queue_events()
+        for event in EventManager.events:
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
@@ -89,6 +89,9 @@ class Game:
         pygame.display.flip()
 
     def handle_world_choice(self):
+        if not os.path.exists("world_save_files"):
+            os.makedirs("world_save_files")
+
         world_files = os.listdir("world_save_files")
         world_files.append("Create New World")
 
@@ -97,8 +100,8 @@ class Game:
 
         while True:
             self.draw_world_menu()
-
-            for event in pygame.event.get():
+            EventManager.queue_events()
+            for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.selected_option = (self.selected_option - 1) % len(self.menu_options)
@@ -121,6 +124,9 @@ class Game:
         pygame.display.flip()
 
     def handle_inventory_choice(self):
+        if not os.path.exists("player_save_files"):
+            os.makedirs("player_save_files")
+
         inventory_files = os.listdir("player_save_files")
         inventory_files.append("Create New Player")
 
@@ -129,8 +135,8 @@ class Game:
 
         while True:
             self.draw_inventory_menu()
-
-            for event in pygame.event.get():
+            EventManager.queue_events()
+            for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.selected_option = (self.selected_option - 1) % len(self.menu_options)
@@ -158,16 +164,16 @@ class Game:
         while True:
             self.draw_new_world_menu()
 
-            EventManager.queue_events()  # Update event manager
+            EventManager.queue_events()
 
-            for event in EventManager.events:  # Iterate through events
+            for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         world_name = self.text_input.input_text.strip()
                         if world_name:
                             return world_name
 
-            self.text_input.update()  # No need to pass event since EventManager handles it
+            self.text_input.update()
 
     def draw_new_world_menu(self):
         self.screen.fill((0, 0, 0))
@@ -183,16 +189,16 @@ class Game:
         while True:
             self.draw_new_inventory_menu()
 
-            EventManager.queue_events()  # Update event manager
+            EventManager.queue_events()
 
-            for event in EventManager.events:  # Iterate through events
+            for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         inventory_name = self.text_input.input_text.strip()
                         if inventory_name:
                             return inventory_name
 
-            self.text_input.update()  # No need to pass event since EventManager handles it
+            self.text_input.update()
 
     def draw_new_inventory_menu(self):
         self.screen.fill((0, 0, 0))

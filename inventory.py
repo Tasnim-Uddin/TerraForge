@@ -59,91 +59,92 @@ class Inventory:
             return False
 
     def update(self):
-        if EventManager.specific_key_down(key=pygame.K_e):
-            self.inventory_expanded = not self.inventory_expanded
+        for event in EventManager.events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_e:
+                    self.inventory_expanded = not self.inventory_expanded
 
-            # Reset active row and column to 0 when closing the expandable inventory
-            if not self.inventory_expanded:
-                self.active_row = 0
-                self.active_column = 0
-
-                # Reset clicked slot position and state when closing the expandable inventory
-                self.clicked_slot_position = None
-                self.clicked_once = False
-
-        for key in range(1, COLUMN_SLOTS + 1):
-            if EventManager.specific_key_down(pygame.K_0 + key):
-                self.active_row = 0
-                self.active_column = key - 1
-
-        if EventManager.scroll_wheel_up():
-            self.active_column -= 1
-        if EventManager.scroll_wheel_down():
-            self.active_column += 1
-
-        if not self.inventory_expanded:
-            if self.active_column > COLUMN_SLOTS - 1:
-                self.active_column = 0
-            elif self.active_column < 0:
-                self.active_column = COLUMN_SLOTS - 1
-
-        if self.inventory_expanded:
-            if self.active_column > COLUMN_SLOTS - 1:
-                self.active_row += 1
-                if self.active_row > ROW_SLOTS - 1:
-                    self.active_row = 0
-                self.active_column = 0
-            elif self.active_column < 0:
-                self.active_row -= 1
-                if self.active_row < 0:
-                    self.active_row = ROW_SLOTS - 1
-                self.active_column = COLUMN_SLOTS - 1
-
-        if EventManager.left_mouse_click():
-            mouse_position = pygame.mouse.get_pos()
-            row_slot_number = mouse_position[1] // (BLOCK_SIZE * 2)
-            column_slot_number = mouse_position[0] // (BLOCK_SIZE * 2)
-
-            slot_position = (row_slot_number, column_slot_number)
-
-            if not self.inventory_expanded:
-                if 0 <= column_slot_number < COLUMN_SLOTS and row_slot_number == 0:
-                    if not self.clicked_once:
-                        self.clicked_slot_position = slot_position
-                        self.clicked_once = True
-                    else:
-                        if slot_position != self.clicked_slot_position:
-                            slot1_key = self.clicked_slot_position
-                            slot2_key = slot_position
-                            self.inventory_items[slot1_key]["item"], self.inventory_items[slot2_key]["item"] = \
-                                self.inventory_items[slot2_key]["item"], self.inventory_items[slot1_key]["item"]
-
-                            self.inventory_items[slot1_key]["quantity"], self.inventory_items[slot2_key]["quantity"] = \
-                                self.inventory_items[slot2_key]["quantity"], self.inventory_items[slot1_key]["quantity"]
+                    if not self.inventory_expanded:
+                        self.active_row = 0
+                        self.active_column = 0
 
                         self.clicked_slot_position = None
                         self.clicked_once = False
 
-            if self.inventory_expanded:
-                if 0 <= column_slot_number < COLUMN_SLOTS and 0 <= row_slot_number < 3:
-                    if not self.clicked_once:
-                        self.clicked_slot_position = slot_position
-                        self.clicked_once = True
-                    else:
-                        if slot_position != self.clicked_slot_position:
-                            slot1_key = self.clicked_slot_position
-                            slot2_key = slot_position
-                            self.inventory_items[slot1_key]["item"], self.inventory_items[slot2_key]["item"] = \
-                                self.inventory_items[slot2_key]["item"], self.inventory_items[slot1_key]["item"]
+            if event.type == pygame.KEYDOWN:
+                for key in range(1, COLUMN_SLOTS + 1):
+                    if event.key == getattr(pygame, f"K_{key}"):
+                        self.active_row = 0
+                        self.active_column = key - 1
 
-                            self.inventory_items[slot1_key]["quantity"], self.inventory_items[slot2_key]["quantity"] = \
-                                self.inventory_items[slot2_key]["quantity"], self.inventory_items[slot1_key]["quantity"]
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 4:  # Scroll wheel up
+                    self.active_column -= 1
+                elif event.button == 5:  # Scroll wheel down
+                    self.active_column += 1
 
-                        elif slot_position == self.clicked_slot_position:
-                            pass
+            if not self.inventory_expanded:
+                if self.active_column > COLUMN_SLOTS - 1:
+                    self.active_column = 0
+                elif self.active_column < 0:
+                    self.active_column = COLUMN_SLOTS - 1
+            else:
+                if self.active_column > COLUMN_SLOTS - 1:
+                    self.active_row += 1
+                    if self.active_row > ROW_SLOTS - 1:
+                        self.active_row = 0
+                    self.active_column = 0
+                elif self.active_column < 0:
+                    self.active_row -= 1
+                    if self.active_row < 0:
+                        self.active_row = ROW_SLOTS - 1
+                    self.active_column = COLUMN_SLOTS - 1
 
-                        self.clicked_slot_position = None
-                        self.clicked_once = False
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_position = pygame.mouse.get_pos()
+                row_slot_number = mouse_position[1] // (BLOCK_SIZE * 2)
+                column_slot_number = mouse_position[0] // (BLOCK_SIZE * 2)
+
+                slot_position = (row_slot_number, column_slot_number)
+
+                if not self.inventory_expanded:
+                    if 0 <= column_slot_number < COLUMN_SLOTS and row_slot_number == 0:
+                        if not self.clicked_once:
+                            self.clicked_slot_position = slot_position
+                            self.clicked_once = True
+                        else:
+                            if slot_position != self.clicked_slot_position:
+                                slot1_key = self.clicked_slot_position
+                                slot2_key = slot_position
+                                self.inventory_items[slot1_key]["item"], self.inventory_items[slot2_key]["item"] = \
+                                    self.inventory_items[slot2_key]["item"], self.inventory_items[slot1_key]["item"]
+
+                                self.inventory_items[slot1_key]["quantity"], self.inventory_items[slot2_key]["quantity"] = \
+                                    self.inventory_items[slot2_key]["quantity"], self.inventory_items[slot1_key]["quantity"]
+
+                            self.clicked_slot_position = None
+                            self.clicked_once = False
+
+                if self.inventory_expanded:
+                    if 0 <= column_slot_number < COLUMN_SLOTS and 0 <= row_slot_number < 3:
+                        if not self.clicked_once:
+                            self.clicked_slot_position = slot_position
+                            self.clicked_once = True
+                        else:
+                            if slot_position != self.clicked_slot_position:
+                                slot1_key = self.clicked_slot_position
+                                slot2_key = slot_position
+                                self.inventory_items[slot1_key]["item"], self.inventory_items[slot2_key]["item"] = \
+                                    self.inventory_items[slot2_key]["item"], self.inventory_items[slot1_key]["item"]
+
+                                self.inventory_items[slot1_key]["quantity"], self.inventory_items[slot2_key]["quantity"] = \
+                                    self.inventory_items[slot2_key]["quantity"], self.inventory_items[slot1_key]["quantity"]
+
+                            elif slot_position == self.clicked_slot_position:
+                                pass
+
+                            self.clicked_slot_position = None
+                            self.clicked_once = False
 
         try:
             slot_position = (self.active_row, self.active_column)
@@ -204,7 +205,6 @@ class Inventory:
                     self.screen.blit(quantity_text, (
                         (BLOCK_SIZE * 2) * column_slot_number + 5, (BLOCK_SIZE * 2) * true_item_row_slot_number + 5))
 
-        # Add extra border around inventory so thickness is the same across all slots and edges
         if not self.inventory_expanded:
             pygame.draw.rect(surface=self.screen, color="black",
                              rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * COLUMN_SLOTS, BLOCK_SIZE * 2),
@@ -252,5 +252,3 @@ class Inventory:
             inventory_items[(0, 2)]["item"], inventory_items[(0, 2)]["quantity"] = "axe", 1
 
         return inventory_items
-
-

@@ -4,6 +4,7 @@ from opensimplex import *
 from player import Player
 from block import Block
 from inventory import *
+from event_manager import EventManager
 
 
 class Scene:
@@ -183,11 +184,12 @@ class Scene:
 
         held_item = self.inventory.get_selected_item()
 
-        if EventManager.left_mouse_click():
-            self.break_block(chunks=surrounding_chunks, held_item=held_item)
-
-        if EventManager.right_mouse_click():
-            self.place_block(chunks=surrounding_chunks, held_item=held_item)
+        for event in EventManager.events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # left mouse click
+                    self.break_block(chunks=surrounding_chunks, held_item=held_item)
+                if event.button == 3:  # right mouse click
+                    self.place_block(chunks=surrounding_chunks, held_item=held_item)
 
         self.inventory.update()
         self.player.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
