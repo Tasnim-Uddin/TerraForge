@@ -10,13 +10,12 @@ class EventManager:
         EventManager.events = pygame.event.get()
 
     @staticmethod
-    def keydown(key):
+    def specific_key_down(key):
         for event in EventManager.events:
             if event.type == pygame.KEYDOWN:
                 if event.key == key:
                     return True
         return False
-
     @staticmethod
     def scroll_wheel_up():
         for event in EventManager.events:

@@ -59,7 +59,7 @@ class Inventory:
             return False
 
     def update(self):
-        if EventManager.keydown(key=pygame.K_e):
+        if EventManager.specific_key_down(key=pygame.K_e):
             self.inventory_expanded = not self.inventory_expanded
 
             # Reset active row and column to 0 when closing the expandable inventory
@@ -72,7 +72,7 @@ class Inventory:
                 self.clicked_once = False
 
         for key in range(1, COLUMN_SLOTS + 1):
-            if EventManager.keydown(pygame.K_0 + key):
+            if EventManager.specific_key_down(pygame.K_0 + key):
                 self.active_row = 0
                 self.active_column = key - 1
 

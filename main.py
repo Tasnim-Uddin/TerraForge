@@ -23,6 +23,8 @@ class Game:
         self.world_name = None
         self.inventory_name = None
 
+        self.text_input = TextInput()
+
     def run(self):
         dt = 0
         while self.running:
@@ -104,9 +106,7 @@ class Game:
                         self.selected_option = (self.selected_option + 1) % len(self.menu_options)
                     elif event.key == pygame.K_RETURN:
                         if self.selected_option == len(world_files) - 1:  # Create New World
-                            world_name = self.get_new_world_name()
-                            if world_name.strip() != "":
-                                return world_name
+                            return self.handle_new_world()
                         else:
                             world_name = re.split(pattern=r'\.json', string=world_files[self.selected_option])[0]
                             return world_name
@@ -124,7 +124,7 @@ class Game:
         inventory_files = os.listdir("player_save_files")
         inventory_files.append("Create New Player")
 
-        self.menu_options = inventory_files = [re.split(pattern=r'\.json', string=file)[0] for file in inventory_files]
+        self.menu_options = [re.split(pattern=r'\.json', string=file)[0] for file in inventory_files]
         self.selected_option = 0
 
         while True:
@@ -138,9 +138,7 @@ class Game:
                         self.selected_option = (self.selected_option + 1) % len(self.menu_options)
                     elif event.key == pygame.K_RETURN:
                         if self.selected_option == len(inventory_files) - 1:  # Create New Player
-                            inventory_name = self.get_new_inventory_name()
-                            if inventory_name.strip() != "":
-                                return inventory_name
+                            return self.handle_new_inventory()
                         else:
                             inventory_name = re.split(pattern=r'\.json', string=inventory_files[self.selected_option])[0]
                             return inventory_name
@@ -154,21 +152,55 @@ class Game:
             self.screen.blit(text, text_rect)
         pygame.display.flip()
 
-    @staticmethod
-    def get_new_world_name():
-        world_name = input("\nEnter new world name: ")
-        while world_name == "":
-            print("\nInvalid new world name")
-            world_name = input("\nEnter new world name: ")
-        return world_name
+    def handle_new_world(self):
+        self.text_input.input_text = ''
+        self.text_input.active = True
+        while True:
+            self.draw_new_world_menu()
 
-    @staticmethod
-    def get_new_inventory_name():
-        inventory_name = input("\nEnter new player name: ")
-        while inventory_name == "":
-            print("\nInvalid new player name")
-            inventory_name = input("\nEnter new player name: ")
-        return inventory_name
+            EventManager.queue_events()  # Update event manager
+
+            for event in EventManager.events:  # Iterate through events
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        world_name = self.text_input.input_text.strip()
+                        if world_name:
+                            return world_name
+
+            self.text_input.update()  # No need to pass event since EventManager handles it
+
+    def draw_new_world_menu(self):
+        self.screen.fill((0, 0, 0))
+        text = self.menu_font.render("Enter new world name:", True, (255, 255, 255))
+        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
+        self.screen.blit(text, text_rect)
+        self.text_input.draw(self.screen)
+        pygame.display.flip()
+
+    def handle_new_inventory(self):
+        self.text_input.input_text = ''
+        self.text_input.active = True
+        while True:
+            self.draw_new_inventory_menu()
+
+            EventManager.queue_events()  # Update event manager
+
+            for event in EventManager.events:  # Iterate through events
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        inventory_name = self.text_input.input_text.strip()
+                        if inventory_name:
+                            return inventory_name
+
+            self.text_input.update()  # No need to pass event since EventManager handles it
+
+    def draw_new_inventory_menu(self):
+        self.screen.fill((0, 0, 0))
+        text = self.menu_font.render("Enter new player name:", True, (255, 255, 255))
+        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
+        self.screen.blit(text, text_rect)
+        self.text_input.draw(self.screen)
+        pygame.display.flip()
 
     def save_and_quit(self):
         if not self.menu_active:
@@ -176,6 +208,40 @@ class Game:
             self.scene.inventory.save_inventory_to_json(self.inventory_name)
         pygame.quit()
         sys.exit()
+
+
+class TextInput:
+    def __init__(self):
+        self.input_rect = pygame.Rect(WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2, 200, 50)
+        self.input_text = ''
+        self.active = False
+        self.color_inactive = pygame.Color('lightskyblue3')
+        self.color_active = pygame.Color('dodgerblue2')
+        self.font = pygame.font.Font(None, 32)
+
+    def update(self):
+        for event in EventManager.events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.input_rect.collidepoint(event.pos):
+                    self.active = not self.active
+                else:
+                    self.active = False
+            if event.type == pygame.KEYDOWN:
+                if self.active:
+                    if event.key == pygame.K_RETURN:
+                        self.active = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.input_text = self.input_text[:-1]
+                    else:
+                        self.input_text += event.unicode
+
+    def draw(self, screen):
+        color = self.color_active if self.active else self.color_inactive
+        pygame.draw.rect(screen, color, self.input_rect, 2)
+        text_surface = self.font.render(self.input_text, True, (255, 255, 255))
+        screen.blit(text_surface, (self.input_rect.x + 5, self.input_rect.y + 5))
+
+
 
 
 if __name__ == "__main__":
