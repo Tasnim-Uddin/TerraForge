@@ -13,6 +13,7 @@ class Player:
 
         self.x = 0
         self.y = 0
+
         self.rect = pygame.Rect(self.x, self.y, self.image.get_width(), self.image.get_height())
         self.velocity = [0, 0]
 
@@ -54,6 +55,9 @@ class Player:
             self.velocity[0] = 0
 
     def horizontal_collision(self, chunks, block_textures):
+        if self.x <= 0:
+            self.x = 0
+
         for chunk in chunks:
             for block in chunks[chunk]:
                 block_rect = block.create_rect(block=block, block_textures=block_textures)
@@ -97,5 +101,5 @@ class Player:
     def update(self, chunks, block_textures, dt):
         self.movement(chunks=chunks, block_textures=block_textures, dt=dt)
 
-    def render(self, screen, offset):
+    def draw(self, screen, offset):
         screen.blit(self.image, (self.x - offset[0], self.y - offset[1]))

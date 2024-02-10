@@ -9,19 +9,20 @@ from inventory import *
 
 
 class Scene:
-    def __init__(self, screen):
+    def __init__(self, screen, world_file_path, inventory_file_path):
         self.screen = screen
 
         self.block_textures = self.load_block_sprites()
 
-        self.inventory = Inventory(screen=self.screen, textures=self.block_textures)
+        self.inventory = Inventory(screen=self.screen, textures=self.block_textures,
+                                   inventory_file_path=inventory_file_path)
+
+        self.chunks = self.load_world_from_json(world_file_path)
 
         self.player = Player()
 
         self.precise_camera_offset = [0, 0]
         self.camera_offset = [0, 0]
-
-        self.chunks = self.load_chunks_from_json()
 
         self.surface_seed = OpenSimplex(random.randint(0, 99999999))
 
@@ -119,7 +120,9 @@ class Scene:
                                                                   mouse_position[1] + self.camera_offset[
                                                                       1]) and within_reach:
             if self.inventory.is_block(item=held_item):
-                new_block = Block(block=held_item, position=(int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE, int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
+                new_block = Block(block=held_item, position=(
+                int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE,
+                int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
                 self.chunks[place_chunk_position].append(new_block)
                 self.inventory.remove_item(item=held_item)
 
@@ -164,7 +167,6 @@ class Scene:
         surrounding_chunks = {}
         for offset in neighbour_chunk_offsets:
             if (offset[0], offset[1]) not in self.chunks:
-                print(offset[0], offset[1])
                 self.chunks[(offset[0], offset[1])] = self.generate_chunk(offset)
             if (offset[0], offset[1]) not in surrounding_chunks:
                 surrounding_chunks[(offset[0], offset[1])] = []
@@ -173,10 +175,12 @@ class Scene:
             self.screen.fblits(
                 [(self.block_textures[block.block],
                   (
-                  self.block_textures[block.block].get_rect(topleft=block.position).x * BLOCK_SIZE - self.camera_offset[
-                      0],
-                  self.block_textures[block.block].get_rect(topleft=block.position).y * BLOCK_SIZE - self.camera_offset[
-                      1]))
+                      self.block_textures[block.block].get_rect(topleft=block.position).x * BLOCK_SIZE -
+                      self.camera_offset[
+                          0],
+                      self.block_textures[block.block].get_rect(topleft=block.position).y * BLOCK_SIZE -
+                      self.camera_offset[
+                          1]))
                  for block in surrounding_chunks[(offset[0], offset[1])]])
 
         held_item = self.inventory.get_selected_item()
@@ -189,7 +193,7 @@ class Scene:
 
         self.inventory.update()
         self.player.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
-        self.player.render(screen=self.screen, offset=self.camera_offset)
+        self.player.draw(screen=self.screen, offset=self.camera_offset)
         self.inventory.draw()
 
     def get_chunks_to_save(self):
@@ -203,15 +207,18 @@ class Scene:
                 saved_chunks[json_chunk_position].append(saved_block)
         return saved_chunks
 
-    def save_chunks_to_json(self):
+    def save_world_to_json(self):
         all_chunks = self.get_chunks_to_save()
-        with open('chunks.json', 'w') as json_file:
+        save_directory = 'world_save_files'
+        if not os.path.exists(path=save_directory):
+            os.makedirs(name=save_directory)
+        with open(os.path.join(save_directory, 'chunks.json'), 'w') as json_file:
             json.dump(all_chunks, json_file)
 
     @staticmethod
-    def load_chunks_from_json():
-        if os.path.exists('chunks.json'):
-            with open('chunks.json', 'r') as json_file:
+    def load_world_from_json(file_path=None):
+        if file_path is not None and os.path.exists(path=file_path):
+            with open(file_path, 'r') as json_file:
                 loaded_chunks = json.load(json_file)
                 chunks = {}
                 for json_chunk_position, json_blocks in loaded_chunks.items():
@@ -221,4 +228,3 @@ class Scene:
         else:
             chunks = {}
         return chunks
-

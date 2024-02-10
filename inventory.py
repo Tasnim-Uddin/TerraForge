@@ -8,11 +8,11 @@ from event_manager import EventManager
 
 
 class Inventory:
-    def __init__(self, screen, textures):
+    def __init__(self, screen, textures, inventory_file_path):
         self.screen = screen
         self.textures = textures
 
-        self.inventory_items = self.load_inventory_from_json()
+        self.inventory_items = self.load_inventory_from_json(inventory_file_path)
 
         self.active_row = 0
         self.active_column = 0
@@ -215,14 +215,6 @@ class Inventory:
                              width=2)
 
     def get_inventory_to_save(self):
-        # saved_inventory = {}
-        # for inventory_slot in self.inventory_items:
-        #     slot_key = ';'.join(map(str, inventory_slot))  # Convert tuple to string
-        #     saved_inventory[slot_key] = self.inventory_items.get(inventory_slot, [])
-        #
-        #     for block in self.inventory_items[inventory_slot]:
-        #         saved_block = {"item": block.block, "position": block.position}
-        #         saved_inventory[slot_key].append(saved_block)
         saved_inventory = {}
         for slot_position in self.inventory_items:
             json_slot_position = ';'.join(map(str, slot_position))  # Convert tuple to string
@@ -231,13 +223,16 @@ class Inventory:
 
     def save_inventory_to_json(self):
         saved_inventory = self.get_inventory_to_save()
-        with open('inventory.json', 'w') as json_file:
+        save_directory = 'inventory_save_files'
+        if not os.path.exists(save_directory):
+            os.makedirs(save_directory)
+        with open(os.path.join(save_directory, 'inventory.json'), 'w') as json_file:
             json.dump(saved_inventory, json_file)
 
     @staticmethod
-    def load_inventory_from_json():
-        if os.path.exists('inventory.json'):
-            with open('inventory.json', 'r') as json_file:
+    def load_inventory_from_json(file_path=None):
+        if file_path is not None and os.path.exists(file_path):
+            with open(file_path, 'r') as json_file:
                 loaded_inventory = json.load(json_file)
                 inventory_items = {}
                 for json_slot_position, json_items in loaded_inventory.items():
@@ -255,6 +250,5 @@ class Inventory:
             inventory_items[(0, 2)]["item"], inventory_items[(0, 2)]["quantity"] = "axe", 1
 
         return inventory_items
-
 
 
