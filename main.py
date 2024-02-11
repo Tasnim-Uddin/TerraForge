@@ -1,42 +1,11 @@
-import pygame
-import os
 import math
 import sys
 import re
-from scene import *
+
+from global_constants import *
 from event_manager import EventManager
-
-
-class TextInput:
-    def __init__(self):
-        self.input_rect = pygame.Rect(WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2, 200, 50)
-        self.input_text = ''
-        self.active = False
-        self.color_inactive = pygame.Color('lightskyblue3')
-        self.color_active = pygame.Color('dodgerblue2')
-        self.font = pygame.font.Font(None, 32)
-
-    def update(self):
-        for event in EventManager.events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.input_rect.collidepoint(event.pos):
-                    self.active = not self.active
-                else:
-                    self.active = False
-            if event.type == pygame.KEYDOWN:
-                if self.active:
-                    if event.key == pygame.K_RETURN:
-                        self.active = False
-                    elif event.key == pygame.K_BACKSPACE:
-                        self.input_text = self.input_text[:-1]
-                    else:
-                        self.input_text += event.unicode
-
-    def draw(self, screen):
-        color = self.color_active if self.active else self.color_inactive
-        pygame.draw.rect(screen, color, self.input_rect, 2)
-        text_surface = self.font.render(self.input_text, True, (255, 255, 255))
-        screen.blit(text_surface, (self.input_rect.x + 5, self.input_rect.y + 5))
+from text_input import TextInput
+from scene import *
 
 
 class Game:
@@ -60,6 +29,8 @@ class Game:
         self.world_name = None
         self.player_name = None
 
+        self.scene = None
+
     def run(self):
         dt = 0
         while self.running:
@@ -68,14 +39,13 @@ class Game:
                 self.scene = Scene(screen=self.screen, world_name=self.world_name,
                                    inventory_name=self.player_name)
             else:
-
                 if self.start_time == 0:
                     self.start_time = pygame.time.get_ticks()  # Start the timer when the player selects world and inventory
 
                 current_time = pygame.time.get_ticks()
                 elapsed_time = current_time - self.start_time
 
-                buffer_time = 1  # in ms
+                buffer_time = 0.00000000000000000000000000001  # in ms (should make this as small as possible but not 0)
 
                 if elapsed_time >= buffer_time:
                     dt = self.clock.tick(FRAMES_PER_SECOND) / 1000

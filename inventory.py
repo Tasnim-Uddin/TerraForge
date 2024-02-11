@@ -224,8 +224,6 @@ class Inventory:
     def save_inventory_to_json(self, inventory_name):
         saved_inventory = self.get_inventory_to_save()
         save_directory = "player_save_files"
-        if not os.path.exists(save_directory):
-            os.makedirs(save_directory)
         with open(os.path.join(save_directory, f"{inventory_name}.json"), "w") as json_file:
             json.dump(saved_inventory, json_file)
 

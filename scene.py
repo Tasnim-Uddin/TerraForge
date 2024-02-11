@@ -210,8 +210,6 @@ class Scene:
     def save_world_to_json(self, world_name):
         all_chunks = self.get_chunks_to_save()
         save_directory = "world_save_files"
-        if not os.path.exists(path=save_directory):
-            os.makedirs(name=save_directory)
         with open(os.path.join(save_directory, f"{world_name}.json"), "w") as json_file:
             json.dump(all_chunks, json_file)
 
