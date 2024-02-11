@@ -21,9 +21,10 @@ class UserDatabase:
         try:
             self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
             self.connection.commit()
+            print("Registration successful.")
             return True
         except sqlite3.IntegrityError:
-            print("Username already exists.")
+            print("Login failed. Username already exists.")
             return False
 
     def authenticate_user(self, username, password):
@@ -31,9 +32,10 @@ class UserDatabase:
         self.cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, hashed_password))
         user = self.cursor.fetchone()
         if user:
+            print("Login successful.")
             return True
         else:
-            print("Invalid username or password.")
+            print("Login failed. Invalid username or password.")
             return False
 
     def close_connection(self):

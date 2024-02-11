@@ -1,5 +1,4 @@
 import pygame
-
 from global_constants import *
 from event_manager import EventManager
 
