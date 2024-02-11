@@ -70,11 +70,20 @@ class Game:
         while self.menu_active:
             if self.menu_state_stack[-1] == "main menu":
                 self.main_menu_selection()
-            if self.menu_state_stack[-1] == "player selection":
+            elif self.menu_state_stack[-1] == "player selection":
                 self.player_menu_selection()
-            if self.menu_state_stack[-1] == "world selection":
+            elif self.menu_state_stack[-1] == "create new player":
+                self.new_player_menu_creation()
+            elif "create new player" in self.menu_state_stack:
+                self.menu_state_stack.remove("create new player")
+            elif self.menu_state_stack[-1] == "world selection":
                 self.world_menu_selection()
-            if self.menu_state_stack[-1] == "game":
+            elif self.menu_state_stack[-1] == "create new world":
+                self.new_world_menu_creation()
+            elif "create new world" in self.menu_state_stack:
+                self.menu_state_stack.remove("create new world")
+
+            elif self.menu_state_stack[-1] == "game":
                 self.menu_active = False
                 self.scene = Scene(screen=self.screen, world_name=self.world_name,
                                    inventory_name=self.player_name)
@@ -103,8 +112,7 @@ class Game:
                         selected_option = abs((selected_option + 1)) % len(menu_options)
                     elif event.key == pygame.K_RETURN:  # Enter key
                         if selected_option == 0:  # Play
-                            if "world selection" not in self.menu_state_stack:
-                                self.menu_state_stack.append("player selection")
+                            self.menu_state_stack.append("player selection")
                             return
                         elif selected_option == 1:
                             self.running = False
@@ -128,45 +136,63 @@ class Game:
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
-                        selected_option = abs((selected_option - 1)) % len(menu_options)
+                        selected_option = (selected_option - 1) % len(menu_options)
                     elif event.key == pygame.K_DOWN:
-                        selected_option = abs((selected_option + 1)) % len(menu_options)
+                        selected_option = (selected_option + 1) % len(menu_options)
                     elif event.key == pygame.K_RETURN:
                         if selected_option == len(inventory_files) - 1:  # Back
                             self.menu_state_stack.pop()  # Remove the last menu state from the stack
                             return
                         elif selected_option == len(inventory_files) - 2:  # Create New Player
-                            self.new_player_menu_creation()
-                            if "world selection" not in self.menu_state_stack:
-                                self.menu_state_stack.append("world selection")
+                            self.menu_state_stack.append("create new player")
                             return
                         else:
                             self.player_name = re.split(pattern=r'\.json', string=inventory_files[selected_option])[0]
-                            if "world selection" not in self.menu_state_stack:
-                                self.menu_state_stack.append("world selection")
+                            self.menu_state_stack.append("world selection")
                             return
 
     def new_player_menu_creation(self):
+        menu_options = ["Text Box", "Back"]
+        selected_option = 0
+
         self.text_input.input_text = ""
         self.text_input.active = True
 
         while True:
-            self.new_player_menu_draw()
+            self.new_player_menu_draw(menu_options=menu_options, selected_option=selected_option)
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
-                        self.player_name = self.text_input.input_text.strip()
-                        return
+                    if event.key == pygame.K_UP:
+                        selected_option = abs((selected_option - 1)) % len(menu_options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = abs((selected_option + 1)) % len(menu_options)
+                    elif event.key == pygame.K_RETURN:
+                        if selected_option == 1:  # Back
+                            self.menu_state_stack.pop()  # Remove the last menu state from the stack
+                            return
+                        elif selected_option == 0:  # Text Box
+                            self.player_name = self.text_input.input_text.strip()
+                            self.menu_state_stack.append("world selection")
+                            return
 
             self.text_input.update()
 
-    def new_player_menu_draw(self):
+    def new_player_menu_draw(self, menu_options, selected_option):
         self.screen.fill((0, 0, 0))
         text = self.menu_font.render(text="Enter new player name:", antialias=True, color=(255, 255, 255))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
         self.screen.blit(source=text, dest=text_rect)
-        self.text_input.draw(screen=self.screen)
+
+        for number, option in enumerate(menu_options):
+            if option == "Text Box":
+                self.text_input.draw(screen=self.screen)
+            elif option == "Back":
+                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
+                text = self.menu_font.render(text=option, antialias=True, color=colour)
+                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
+                self.screen.blit(source=text, dest=text_rect)
+
         pygame.display.flip()
 
     def world_menu_selection(self):
@@ -194,37 +220,55 @@ class Game:
                             self.menu_state_stack.pop()  # Remove the last menu state from the stack
                             return
                         elif selected_option == len(world_files) - 2:  # Create New World
-                            self.new_world_menu_creation()
-                            if "game" not in self.menu_state_stack:
-                                self.menu_state_stack.append("game")
+                            self.menu_state_stack.append("create new world")
                             return
                         else:
                             self.world_name = re.split(pattern=r'\.json', string=world_files[selected_option])[0]
-                            if "game" not in self.menu_state_stack:
-                                self.menu_state_stack.append("game")
+                            self.menu_state_stack.append("game")
                             return
 
     def new_world_menu_creation(self):
-        self.text_input.input_text = ''
+        menu_options = ["Text Box", "Back"]
+        selected_option = 0
+
+        self.text_input.input_text = ""
         self.text_input.active = True
 
         while True:
-            self.new_world_menu_draw()
+            self.new_world_menu_draw(menu_options=menu_options, selected_option=selected_option)
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
-                        self.world_name = self.text_input.input_text.strip()
-                        return
+                    if event.key == pygame.K_UP:
+                        selected_option = abs((selected_option - 1)) % len(menu_options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = abs((selected_option + 1)) % len(menu_options)
+                    elif event.key == pygame.K_RETURN:
+                        if selected_option == 1:  # Back
+                            self.menu_state_stack.pop()  # Remove the last menu state from the stack
+                            return
+                        elif selected_option == 0:  # Text Box
+                            self.world_name = self.text_input.input_text.strip()
+                            self.menu_state_stack.append("game")
+                            return
 
             self.text_input.update()
 
-    def new_world_menu_draw(self):
+    def new_world_menu_draw(self, menu_options, selected_option):
         self.screen.fill((0, 0, 0))
         text = self.menu_font.render(text="Enter new world name:", antialias=True, color=(255, 255, 255))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
         self.screen.blit(source=text, dest=text_rect)
-        self.text_input.draw(screen=self.screen)
+
+        for number, option in enumerate(menu_options):
+            if option == "Text Box":
+                self.text_input.draw(screen=self.screen)
+            elif option == "Back":
+                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
+                text = self.menu_font.render(text=option, antialias=True, color=colour)
+                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
+                self.screen.blit(source=text, dest=text_rect)
+
         pygame.display.flip()
 
 
