@@ -11,7 +11,7 @@ class TextInput:
         self.active = False
         self.color_inactive = pygame.Color('lightskyblue3')
         self.color_active = pygame.Color('dodgerblue2')
-        self.font = pygame.font.Font(None, 32)
+        self.font = pygame.font.Font(filename=None, size=32)
 
     def update(self):
         for event in EventManager.events:
@@ -30,7 +30,7 @@ class TextInput:
                         self.input_text += event.unicode
 
     def draw(self, screen):
-        color = self.color_active if self.active else self.color_inactive
-        pygame.draw.rect(screen, color, self.input_rect, 2)
-        text_surface = self.font.render(self.input_text, True, (255, 255, 255))
-        screen.blit(text_surface, (self.input_rect.x + 5, self.input_rect.y + 5))
+        colour = self.color_active if self.active else self.color_inactive
+        pygame.draw.rect(surface=screen, color=colour, rect=self.input_rect, width=2)
+        text_surface = self.font.render(text=self.input_text, antialias=True, color=(255, 255, 255))
+        screen.blit(source=text_surface, dest=(self.input_rect.x + 5, self.input_rect.y + 5))

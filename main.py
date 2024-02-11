@@ -54,17 +54,17 @@ class Game:
             for event in EventManager.events:
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self.running = False
-                    self.scene.save_world_to_json(self.world_name)
-                    self.scene.inventory.save_inventory_to_json(self.player_name)
+                    self.scene.save_world_to_json(world_name=self.world_name)
+                    self.scene.inventory.save_inventory_to_json(inventory_name=self.player_name)
                     pygame.quit()
                     sys.exit()
 
             self.scene.draw(dt=dt)
             self.screen.blit(
-                self.font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"),
+                source=self.font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"),
                 dest=(WINDOW_WIDTH - 200, 10))
             pygame.display.update()
-            self.clock.tick(FRAMES_PER_SECOND)
+            self.clock.tick()
 
     def menu_events(self):
         while self.menu_active:
@@ -82,10 +82,10 @@ class Game:
     def menu_draw(self, menu_options, selected_option):
         self.screen.fill((0, 0, 0))
         for number, option in enumerate(menu_options):
-            color = (255, 255, 255) if number == selected_option else (128, 128, 128)
-            text = self.menu_font.render(option, True, color)
-            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + number * 50))
-            self.screen.blit(text, text_rect)
+            colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
+            text = self.menu_font.render(text=option, antialias=True, color=colour)
+            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50)) if option == "Back" else text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + number * 50))
+            self.screen.blit(source=text, dest=text_rect)
         pygame.display.flip()
 
     def main_menu_selection(self):
@@ -112,10 +112,10 @@ class Game:
                             sys.exit()
 
     def player_menu_selection(self):
-        if not os.path.exists("player_save_files"):
-            os.makedirs("player_save_files")
+        if not os.path.exists(path="player_save_files"):
+            os.makedirs(name="player_save_files")
 
-        inventory_files = os.listdir("player_save_files")
+        inventory_files = os.listdir(path="player_save_files")
         inventory_files.append("Create New Player")
         inventory_files.append("Back")
 
@@ -147,13 +147,12 @@ class Game:
                             return
 
     def new_player_menu_creation(self):
-        self.text_input.input_text = ''
+        self.text_input.input_text = ""
         self.text_input.active = True
+
         while True:
             self.new_player_menu_draw()
-
             EventManager.queue_events()
-
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
@@ -164,17 +163,17 @@ class Game:
 
     def new_player_menu_draw(self):
         self.screen.fill((0, 0, 0))
-        text = self.menu_font.render("Enter new player name:", True, (255, 255, 255))
+        text = self.menu_font.render(text="Enter new player name:", antialias=True, color=(255, 255, 255))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(text, text_rect)
-        self.text_input.draw(self.screen)
+        self.screen.blit(source=text, dest=text_rect)
+        self.text_input.draw(screen=self.screen)
         pygame.display.flip()
 
     def world_menu_selection(self):
-        if not os.path.exists("world_save_files"):
-            os.makedirs("world_save_files")
+        if not os.path.exists(path="world_save_files"):
+            os.makedirs(name="world_save_files")
 
-        world_files = os.listdir("world_save_files")
+        world_files = os.listdir(path="world_save_files")
         world_files.append("Create New World")
         world_files.append("Back")
 
@@ -193,7 +192,6 @@ class Game:
                     elif event.key == pygame.K_RETURN:
                         if selected_option == len(world_files) - 1:  # Back
                             self.menu_state_stack.pop()  # Remove the last menu state from the stack
-                            print(self.menu_state_stack[-1])
                             return
                         elif selected_option == len(world_files) - 2:  # Create New World
                             self.new_world_menu_creation()
@@ -209,11 +207,10 @@ class Game:
     def new_world_menu_creation(self):
         self.text_input.input_text = ''
         self.text_input.active = True
+
         while True:
             self.new_world_menu_draw()
-
             EventManager.queue_events()
-
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
@@ -224,10 +221,10 @@ class Game:
 
     def new_world_menu_draw(self):
         self.screen.fill((0, 0, 0))
-        text = self.menu_font.render("Enter new world name:", True, (255, 255, 255))
+        text = self.menu_font.render(text="Enter new world name:", antialias=True, color=(255, 255, 255))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(text, text_rect)
-        self.text_input.draw(self.screen)
+        self.screen.blit(source=text, dest=text_rect)
+        self.text_input.draw(screen=self.screen)
         pygame.display.flip()
 
 

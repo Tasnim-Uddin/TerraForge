@@ -102,4 +102,4 @@ class Player:
         self.movement(chunks=chunks, block_textures=block_textures, dt=dt)
 
     def draw(self, screen, offset):
-        screen.blit(self.image, (self.x - offset[0], self.y - offset[1]))
+        screen.blit(source=self.image, dest=(self.x - offset[0], self.y - offset[1]))

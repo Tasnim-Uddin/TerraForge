@@ -198,11 +198,11 @@ class Inventory:
             if item_data["item"] is not None:
                 if true_item_row_slot_number == 0 or (true_item_row_slot_number != 0 and self.inventory_expanded):
                     self.screen.blit(
-                        pygame.transform.scale(surface=self.textures[item_data["item"]], size=(BLOCK_SIZE, BLOCK_SIZE)),
-                        (padding_x + (BLOCK_SIZE * 2) * column_slot_number,
+                        source=pygame.transform.scale(surface=self.textures[item_data["item"]], size=(BLOCK_SIZE, BLOCK_SIZE)),
+                        dest=(padding_x + (BLOCK_SIZE * 2) * column_slot_number,
                          padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))
                     quantity_text = self.font.render(text=str(item_data["quantity"]), antialias=True, color="#fc0015")
-                    self.screen.blit(quantity_text, (
+                    self.screen.blit(source=quantity_text, dest=(
                         (BLOCK_SIZE * 2) * column_slot_number + 5, (BLOCK_SIZE * 2) * true_item_row_slot_number + 5))
 
         if not self.inventory_expanded:
