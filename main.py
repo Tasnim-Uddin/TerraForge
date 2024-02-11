@@ -6,11 +6,14 @@ from global_constants import *
 from event_manager import EventManager
 from text_input import TextInput
 from scene import *
+from user_database import UserDatabase
 
 
 class Game:
     def __init__(self):
         pygame.init()
+
+        self.user_database = UserDatabase()
 
         self.clock = pygame.time.Clock()
         self.start_time = 0
@@ -24,10 +27,15 @@ class Game:
         self.text_input = TextInput()
 
         # Add a stack to keep track of the menu states
-        self.menu_state_stack = ["main menu"]
+        self.menu_state_stack = ["login or register"]
 
         self.world_name = None
         self.player_name = None
+
+        self.player_data = None
+        self.world_data = None
+
+        self.username = None
 
         self.scene = None
 
@@ -68,20 +76,26 @@ class Game:
 
     def menu_events(self):
         while self.menu_active:
-            if self.menu_state_stack[-1] == "main menu":
+            if self.menu_state_stack[-1] == "login or register":
+                self.login_register_selection()
+                if self.menu_state_stack[-1] == "login":
+                    self.login()
+                if self.menu_state_stack[-1] == "register":
+                    self.register()
+            elif self.menu_state_stack[-1] == "main menu":
                 self.main_menu_selection()
             elif self.menu_state_stack[-1] == "player selection":
                 self.player_menu_selection()
-            elif self.menu_state_stack[-1] == "create new player":
-                self.new_player_menu_creation()
-            elif "create new player" in self.menu_state_stack:
-                self.menu_state_stack.remove("create new player")
+                if self.menu_state_stack[-1] == "create new player":
+                    self.new_player_menu_creation()
+                    if "create new player" in self.menu_state_stack:
+                        self.menu_state_stack.remove("create new player")
             elif self.menu_state_stack[-1] == "world selection":
                 self.world_menu_selection()
-            elif self.menu_state_stack[-1] == "create new world":
-                self.new_world_menu_creation()
-            elif "create new world" in self.menu_state_stack:
-                self.menu_state_stack.remove("create new world")
+                if self.menu_state_stack[-1] == "create new world":
+                    self.new_world_menu_creation()
+                    if "create new world" in self.menu_state_stack:
+                        self.menu_state_stack.remove("create new world")
 
             elif self.menu_state_stack[-1] == "game":
                 self.menu_active = False
@@ -93,9 +107,106 @@ class Game:
         for number, option in enumerate(menu_options):
             colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
             text = self.menu_font.render(text=option, antialias=True, color=colour)
-            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50)) if option == "Back" else text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + number * 50))
+            text_rect = text.get_rect(
+                center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50)) if option == "Back" else text.get_rect(
+                center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + number * 50))
             self.screen.blit(source=text, dest=text_rect)
         pygame.display.flip()
+
+    def login_register_selection(self):
+        menu_options = ["Login", "Register", "Quit"]  # Update menu options
+        selected_option = 0
+
+        while True:
+            self.menu_draw(menu_options=menu_options, selected_option=selected_option)
+            EventManager.queue_events()
+            for event in EventManager.events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected_option = (selected_option - 1) % len(menu_options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = (selected_option + 1) % len(menu_options)
+                    elif event.key == pygame.K_RETURN:
+                        if selected_option == 0:  # Login
+                            self.menu_state_stack.append("login")
+                            return
+                        elif selected_option == 1:  # Register
+                            self.menu_state_stack.append("register")
+                            return
+                        elif selected_option == 2:  # Quit
+                            self.running = False
+                            pygame.quit()
+                            sys.exit()
+
+    def login(self):
+        username = input("Enter username: ")
+        password = input("Enter password: ")
+        if self.user_database.authenticate_user(username, password):
+            print("Login successful.")
+            self.username = username
+            self.menu_state_stack.append("main menu")
+            return
+        else:
+            print("Login failed. Invalid username or password.")
+
+    # def login_menu(self):
+    #     menu_options = ["Username Text Box", "Password Text Box", "Back"]
+    #     selected_option = 0
+    #
+    #     self.text_input.input_text = ""
+    #     self.text_input.active = True
+    #
+    #     while True:
+    #         self.login_menu_draw(menu_options=menu_options, selected_option=selected_option)
+    #         EventManager.queue_events()
+    #         for event in EventManager.events:
+    #             if event.type == pygame.KEYDOWN:
+    #                 if event.key == pygame.K_UP:
+    #                     selected_option = abs((selected_option - 1)) % len(menu_options)
+    #                 elif event.key == pygame.K_DOWN:
+    #                     selected_option = abs((selected_option + 1)) % len(menu_options)
+    #                 elif event.key == pygame.K_RETURN:
+    #                     if selected_option == 2:  # Back
+    #                         self.menu_state_stack.pop()  # Remove the last menu state from the stack
+    #                         return
+    #                     else:  # Text Box
+    #                         if selected_option == 0:
+    #                             print("1")
+    #                             username = self.text_input.input_text.strip()
+    #                         # if selected_option == 1:
+    #                         #     password = self.text_input.input_text.strip()
+    #                         # if self.user_database.authenticate_user(username, password):
+    #                         #     self.username = username
+    #                         #     self.menu_state_stack.append("main menu")
+    #                             return
+    #
+    #         self.text_input.update()
+    #
+    # def login_menu_draw(self, menu_options, selected_option):
+    #     self.screen.fill((0, 0, 0))
+    #     text = self.menu_font.render(text="Enter username and password:", antialias=True, color=(255, 255, 255))
+    #     text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
+    #     self.screen.blit(source=text, dest=text_rect)
+    #
+    #     for number, option in enumerate(menu_options):
+    #         if option == "Username Text Box":
+    #             self.text_input.draw(screen=self.screen)
+    #         elif option == "Back":
+    #             colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
+    #             text = self.menu_font.render(text=option, antialias=True, color=colour)
+    #             text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
+    #             self.screen.blit(source=text, dest=text_rect)
+    #
+    #     pygame.display.flip()
+
+    def register(self):
+        username = input("Enter username: ")
+        password = input("Enter password: ")
+        if self.user_database.register_user(username, password):
+            print("Registration successful. You can now login.")
+            # Proceed to login menu or any other part of the game
+        else:
+            print("Registration failed. Username already exists.")
 
     def main_menu_selection(self):
         menu_options = ["Play", "Quit"]
