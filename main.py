@@ -24,7 +24,7 @@ class Game:
         self.text_input = TextInput()
 
         # Add a stack to keep track of the menu states
-        self.menu_state_stack = []
+        self.menu_state_stack = ["main menu"]
 
         self.world_name = None
         self.player_name = None
@@ -34,49 +34,50 @@ class Game:
     def run(self):
         dt = 0
         while self.running:
-            if self.menu_active:
-                self.menu_events()
-                self.scene = Scene(screen=self.screen, world_name=self.world_name,
-                                   inventory_name=self.player_name)
-            else:
-                if self.start_time == 0:
-                    self.start_time = pygame.time.get_ticks()  # Start the timer when the player selects world and inventory
+            self.menu_events()
 
-                current_time = pygame.time.get_ticks()
-                elapsed_time = current_time - self.start_time
+            if self.start_time == 0:
+                self.start_time = pygame.time.get_ticks()  # Start the timer when the player selects world and inventory
 
-                buffer_time = 0.00000000000000000000000000001  # in ms (should make this as small as possible but not 0)
+            current_time = pygame.time.get_ticks()
+            elapsed_time = current_time - self.start_time
 
-                if elapsed_time >= buffer_time:
-                    dt = self.clock.tick(FRAMES_PER_SECOND) / 1000
+            buffer_time = 0.00000000000000000000000000001  # in ms (should make this as small as possible but not 0)
 
-                if dt >= 1:
-                    dt = 1
+            if elapsed_time >= buffer_time:
+                dt = self.clock.tick(FRAMES_PER_SECOND) / 1000
 
-                EventManager.queue_events()
-                for event in EventManager.events:
-                    if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                        self.running = False
-                        self.scene.save_world_to_json(self.world_name)
-                        self.scene.inventory.save_inventory_to_json(self.player_name)
-                        pygame.quit()
-                        sys.exit()
+            if dt >= 1:
+                dt = 1
 
-                self.scene.draw(dt=dt)
-                self.screen.blit(
-                    self.font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"),
-                    dest=(WINDOW_WIDTH - 200, 10))
-                pygame.display.update()
-                self.clock.tick(FRAMES_PER_SECOND)
+            EventManager.queue_events()
+            for event in EventManager.events:
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    self.running = False
+                    self.scene.save_world_to_json(self.world_name)
+                    self.scene.inventory.save_inventory_to_json(self.player_name)
+                    pygame.quit()
+                    sys.exit()
+
+            self.scene.draw(dt=dt)
+            self.screen.blit(
+                self.font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"),
+                dest=(WINDOW_WIDTH - 200, 10))
+            pygame.display.update()
+            self.clock.tick(FRAMES_PER_SECOND)
 
     def menu_events(self):
-        self.main_menu_selection()
-        if self.menu_state_stack[-1] == "player selection":
-            self.player_menu_selection()
-        if self.menu_state_stack[-1] == "world selection":
-            self.world_menu_selection()
-        if self.menu_state_stack[-1] == "game":
-            self.menu_active = False
+        while self.menu_active:
+            if self.menu_state_stack[-1] == "main menu":
+                self.main_menu_selection()
+            if self.menu_state_stack[-1] == "player selection":
+                self.player_menu_selection()
+            if self.menu_state_stack[-1] == "world selection":
+                self.world_menu_selection()
+            if self.menu_state_stack[-1] == "game":
+                self.menu_active = False
+                self.scene = Scene(screen=self.screen, world_name=self.world_name,
+                                   inventory_name=self.player_name)
 
     def menu_draw(self, menu_options, selected_option):
         self.screen.fill((0, 0, 0))
@@ -116,6 +117,7 @@ class Game:
 
         inventory_files = os.listdir("player_save_files")
         inventory_files.append("Create New Player")
+        inventory_files.append("Back")
 
         menu_options = [re.split(pattern=r'\.json', string=file)[0] for file in inventory_files]
         selected_option = 0
@@ -130,14 +132,16 @@ class Game:
                     elif event.key == pygame.K_DOWN:
                         selected_option = abs((selected_option + 1)) % len(menu_options)
                     elif event.key == pygame.K_RETURN:
-                        if selected_option == len(inventory_files) - 1:  # Create New Player
+                        if selected_option == len(inventory_files) - 1:  # Back
+                            self.menu_state_stack.pop()  # Remove the last menu state from the stack
+                            return
+                        elif selected_option == len(inventory_files) - 2:  # Create New Player
                             self.new_player_menu_creation()
                             if "world selection" not in self.menu_state_stack:
                                 self.menu_state_stack.append("world selection")
                             return
                         else:
-                            self.player_name = re.split(pattern=r'\.json', string=inventory_files[selected_option])[
-                                0]
+                            self.player_name = re.split(pattern=r'\.json', string=inventory_files[selected_option])[0]
                             if "world selection" not in self.menu_state_stack:
                                 self.menu_state_stack.append("world selection")
                             return
@@ -172,6 +176,7 @@ class Game:
 
         world_files = os.listdir("world_save_files")
         world_files.append("Create New World")
+        world_files.append("Back")
 
         menu_options = [re.split(pattern=r'\.json', string=file)[0] for file in world_files]
         selected_option = 0
@@ -186,7 +191,11 @@ class Game:
                     elif event.key == pygame.K_DOWN:
                         selected_option = (selected_option + 1) % len(menu_options)
                     elif event.key == pygame.K_RETURN:
-                        if selected_option == len(world_files) - 1:  # Create New World
+                        if selected_option == len(world_files) - 1:  # Back
+                            self.menu_state_stack.pop()  # Remove the last menu state from the stack
+                            print(self.menu_state_stack[-1])
+                            return
+                        elif selected_option == len(world_files) - 2:  # Create New World
                             self.new_world_menu_creation()
                             if "game" not in self.menu_state_stack:
                                 self.menu_state_stack.append("game")
