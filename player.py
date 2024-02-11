@@ -18,9 +18,9 @@ class Player:
         self.velocity = [0, 0]
 
         self.directions = {
-            'left': False,
-            'right': False,
-            'up': False
+            "left": False,
+            "right": False,
+            "up": False
         }
         self.on_ground = False
 
@@ -28,30 +28,30 @@ class Player:
         for event in EventManager.events:  # Handle events
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d:
-                    self.directions['right'] = True
+                    self.directions["right"] = True
                 if event.key == pygame.K_a:
-                    self.directions['left'] = True
+                    self.directions["left"] = True
                 if event.key == pygame.K_SPACE:
-                    self.directions['up'] = True
+                    self.directions["up"] = True
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_d:
-                    self.directions['right'] = False
+                    self.directions["right"] = False
                 if event.key == pygame.K_a:
-                    self.directions['left'] = False
+                    self.directions["left"] = False
                 if event.key == pygame.K_SPACE:
-                    self.directions['up'] = False
+                    self.directions["up"] = False
 
     def set_velocity(self):
-        if self.directions['right']:
+        if self.directions["right"]:
             self.velocity[0] = HORIZONTAL_SPEED
-        if self.directions['left']:
+        if self.directions["left"]:
             self.velocity[0] = -HORIZONTAL_SPEED
-        if self.directions['up'] and self.on_ground:  # Jumping allowed only when the player is on the ground
+        if self.directions["up"] and self.on_ground:  # Jumping allowed only when the player is on the ground
             self.on_ground = False
             self.velocity[1] = -JUMP_HEIGHT
 
-        if not self.directions['right'] and not self.directions['left']:
+        if not self.directions["right"] and not self.directions["left"]:
             self.velocity[0] = 0
 
     def horizontal_collision(self, chunks, block_textures):

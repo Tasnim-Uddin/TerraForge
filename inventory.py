@@ -51,7 +51,7 @@ class Inventory:
     @staticmethod
     def is_block(item):
         try:
-            if all_texture_data[item]["type"] == "block":
+            if all_texture_data[item]["menu_type"] == "block":
                 return True
             else:
                 return False

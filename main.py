@@ -13,29 +13,23 @@ class Game:
     def __init__(self):
         pygame.init()
 
+        self.menu_active = True
+        self.menu_font = pygame.font.Font(filename=None, size=40)
+        self.text_input = TextInput()
         self.user_database = UserDatabase()
+        self.username = None
 
         self.clock = pygame.time.Clock()
         self.start_time = 0
         self.running = True
         self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
-        self.font = pygame.font.Font(filename=None, size=60)
-
-        self.menu_active = True
-        self.menu_font = pygame.font.Font(filename=None, size=40)
-
-        self.text_input = TextInput()
+        self.game_font = pygame.font.Font(filename=None, size=60)
 
         # Add a stack to keep track of the menu states
-        self.menu_state_stack = ["login or register"]
+        self.menu_state_stack = ["login or register"]  # Starts off at login or register menu page
 
         self.world_name = None
         self.player_name = None
-
-        self.player_data = None
-        self.world_data = None
-
-        self.username = None
 
         self.scene = None
 
@@ -69,7 +63,7 @@ class Game:
 
             self.scene.draw(dt=dt)
             self.screen.blit(
-                source=self.font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"),
+                source=self.game_font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"),
                 dest=(WINDOW_WIDTH - 200, 10))
             pygame.display.update()
             self.clock.tick()
@@ -119,8 +113,14 @@ class Game:
                 self.scene = Scene(screen=self.screen, world_name=self.world_name,
                                    inventory_name=self.player_name)
 
-    def menu_draw(self, menu_options, selected_option):
+    def menu_draw(self, menu_options, selected_option, menu_type=None):
         self.screen.fill((0, 0, 0))
+
+        if menu_type:
+            text = self.menu_font.render(text=f"{menu_type}", antialias=True, color="#39a5d4")
+            text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
+            self.screen.blit(source=text, dest=text_rect)
+
         for number, option in enumerate(menu_options):
             colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
             text = self.menu_font.render(text=option, antialias=True, color=colour)
@@ -128,6 +128,30 @@ class Game:
                 center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50)) if option == "Back" else text.get_rect(
                 center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + number * 50))
             self.screen.blit(source=text, dest=text_rect)
+        pygame.display.flip()
+
+    def sub_menu_draw(self, menu_options, selected_option, menu_type, detail_type=None):
+        self.screen.fill((0, 0, 0))
+
+        text = self.menu_font.render(text=f"{menu_type}", antialias=True, color="#39a5d4")
+        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
+        self.screen.blit(source=text, dest=text_rect)
+
+        if detail_type is not None:
+            text = self.menu_font.render(text=f"Enter {menu_type} {detail_type}:", antialias=True, color=(255, 255, 255))
+        else:
+            text = self.menu_font.render(text=f"Enter New {menu_type}:", antialias=True, color=(255, 255, 255))
+        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
+        self.screen.blit(source=text, dest=text_rect)
+
+        for number, option in enumerate(menu_options):
+            if option == "Text Box":
+                self.text_input.draw(screen=self.screen)
+            elif option == "Back":
+                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
+                text = self.menu_font.render(text=option, antialias=True, color=colour)
+                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
+                self.screen.blit(source=text, dest=text_rect)
         pygame.display.flip()
 
     def login_register_selection(self):
@@ -155,17 +179,6 @@ class Game:
                             pygame.quit()
                             sys.exit()
 
-    # def login(self):
-    #     username = input("Enter username: ")
-    #     password = input("Enter password: ")
-    #     if self.user_database.authenticate_user(username, password):
-    #         print("Login successful.")
-    #         self.username = username
-    #         self.menu_state_stack.append("main menu")
-    #         return
-    #     else:
-    #         print("Login failed. Invalid username or password.")
-
     def login_username_menu(self):
         menu_options = ["Text Box", "Back"]
         selected_option = 0
@@ -174,7 +187,8 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.login_username_menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
+                               menu_type="Login", detail_type="Username")
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -193,27 +207,6 @@ class Game:
 
             self.text_input.update()
 
-    def login_username_menu_draw(self, menu_options, selected_option):
-        self.screen.fill((0, 0, 0))
-
-        text = self.menu_font.render(text="Login", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
-        self.screen.blit(source=text, dest=text_rect)
-
-        text = self.menu_font.render(text="Enter login username:", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(source=text, dest=text_rect)
-
-        for number, option in enumerate(menu_options):
-            if option == "Text Box":
-                self.text_input.draw(screen=self.screen)
-            elif option == "Back":
-                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
-                text = self.menu_font.render(text=option, antialias=True, color=colour)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
-                self.screen.blit(source=text, dest=text_rect)
-        pygame.display.flip()
-
     def login_password_menu(self):
         menu_options = ["Text Box", "Back"]
         selected_option = 0
@@ -222,7 +215,9 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.login_password_menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
+                               menu_type="Login", detail_type="Password")
+
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -246,37 +241,6 @@ class Game:
 
             self.text_input.update()
 
-    def login_password_menu_draw(self, menu_options, selected_option):
-        self.screen.fill((0, 0, 0))
-
-        text = self.menu_font.render(text="Login", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
-        self.screen.blit(source=text, dest=text_rect)
-
-        text = self.menu_font.render(text="Enter login password:", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(source=text, dest=text_rect)
-
-        for number, option in enumerate(menu_options):
-            if option == "Text Box":
-                self.text_input.draw(screen=self.screen)
-            elif option == "Back":
-                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
-                text = self.menu_font.render(text=option, antialias=True, color=colour)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
-                self.screen.blit(source=text, dest=text_rect)
-
-        pygame.display.flip()
-
-    # def register(self):
-    #     username = input("Enter username: ")
-    #     password = input("Enter password: ")
-    #     if self.user_database.register_user(username, password):
-    #         print("Registration successful. You can now login.")
-    #         # Proceed to login menu or any other part of the game
-    #     else:
-    #         print("Registration failed. Username already exists.")
-
     def register_username_menu(self):
         menu_options = ["Text Box", "Back"]
         selected_option = 0
@@ -285,7 +249,8 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.register_username_menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
+                               menu_type="Register", detail_type="Username")
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -304,27 +269,6 @@ class Game:
 
             self.text_input.update()
 
-    def register_username_menu_draw(self, menu_options, selected_option):
-        self.screen.fill((0, 0, 0))
-
-        text = self.menu_font.render(text="Register", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
-        self.screen.blit(source=text, dest=text_rect)
-
-        text = self.menu_font.render(text="Enter register username:", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(source=text, dest=text_rect)
-
-        for number, option in enumerate(menu_options):
-            if option == "Text Box":
-                self.text_input.draw(screen=self.screen)
-            elif option == "Back":
-                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
-                text = self.menu_font.render(text=option, antialias=True, color=colour)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
-                self.screen.blit(source=text, dest=text_rect)
-        pygame.display.flip()
-
     def register_password_menu(self):
         menu_options = ["Text Box", "Back"]
         selected_option = 0
@@ -333,7 +277,8 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.register_password_menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
+                               menu_type="Register", detail_type="Password")
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -356,28 +301,6 @@ class Game:
                                 return
 
             self.text_input.update()
-
-    def register_password_menu_draw(self, menu_options, selected_option):
-        self.screen.fill((0, 0, 0))
-
-        text = self.menu_font.render(text="Register", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
-        self.screen.blit(source=text, dest=text_rect)
-
-        text = self.menu_font.render(text="Enter register password:", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(source=text, dest=text_rect)
-
-        for number, option in enumerate(menu_options):
-            if option == "Text Box":
-                self.text_input.draw(screen=self.screen)
-            elif option == "Back":
-                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
-                text = self.menu_font.render(text=option, antialias=True, color=colour)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
-                self.screen.blit(source=text, dest=text_rect)
-
-        pygame.display.flip()
 
     def main_menu_selection(self):
         menu_options = ["Play", "Quit"]
@@ -409,11 +332,11 @@ class Game:
         inventory_files.append("Create New Player")
         inventory_files.append("Back")
 
-        menu_options = [re.split(pattern=r'\.json', string=file)[0] for file in inventory_files]
+        menu_options = [re.split(pattern=r"\.json", string=file)[0] for file in inventory_files]
         selected_option = 0
 
         while True:
-            self.menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.menu_draw(menu_options=menu_options, selected_option=selected_option, menu_type="Player")
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -429,7 +352,7 @@ class Game:
                             self.menu_state_stack.append("create new player")
                             return
                         else:
-                            self.player_name = re.split(pattern=r'\.json', string=inventory_files[selected_option])[0]
+                            self.player_name = re.split(pattern=r"\.json", string=inventory_files[selected_option])[0]
                             self.menu_state_stack.append("world selection")
                             return
 
@@ -441,7 +364,7 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.new_player_menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option, menu_type="Player")
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -460,23 +383,6 @@ class Game:
 
             self.text_input.update()
 
-    def new_player_menu_draw(self, menu_options, selected_option):
-        self.screen.fill((0, 0, 0))
-        text = self.menu_font.render(text="Enter new player name:", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(source=text, dest=text_rect)
-
-        for number, option in enumerate(menu_options):
-            if option == "Text Box":
-                self.text_input.draw(screen=self.screen)
-            elif option == "Back":
-                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
-                text = self.menu_font.render(text=option, antialias=True, color=colour)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
-                self.screen.blit(source=text, dest=text_rect)
-
-        pygame.display.flip()
-
     def world_menu_selection(self):
         if not os.path.exists(path="world_save_files"):
             os.makedirs(name="world_save_files")
@@ -485,11 +391,11 @@ class Game:
         world_files.append("Create New World")
         world_files.append("Back")
 
-        menu_options = [re.split(pattern=r'\.json', string=file)[0] for file in world_files]
+        menu_options = [re.split(pattern=r"\.json", string=file)[0] for file in world_files]
         selected_option = 0
 
         while True:
-            self.menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.menu_draw(menu_options=menu_options, selected_option=selected_option, menu_type="World")
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -505,7 +411,7 @@ class Game:
                             self.menu_state_stack.append("create new world")
                             return
                         else:
-                            self.world_name = re.split(pattern=r'\.json', string=world_files[selected_option])[0]
+                            self.world_name = re.split(pattern=r"\.json", string=world_files[selected_option])[0]
                             self.menu_state_stack.append("game")
                             return
 
@@ -517,7 +423,7 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.new_world_menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option, menu_type="World")
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -535,23 +441,6 @@ class Game:
                             return
 
             self.text_input.update()
-
-    def new_world_menu_draw(self, menu_options, selected_option):
-        self.screen.fill((0, 0, 0))
-        text = self.menu_font.render(text="Enter new world name:", antialias=True, color=(255, 255, 255))
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(source=text, dest=text_rect)
-
-        for number, option in enumerate(menu_options):
-            if option == "Text Box":
-                self.text_input.draw(screen=self.screen)
-            elif option == "Back":
-                colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
-                text = self.menu_font.render(text=option, antialias=True, color=colour)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
-                self.screen.blit(source=text, dest=text_rect)
-
-        pygame.display.flip()
 
 
 if __name__ == "__main__":
