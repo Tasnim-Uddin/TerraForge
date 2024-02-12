@@ -1,10 +1,12 @@
 import random
 from opensimplex import *
+import shutil
 
 from player import Player
 from block import Block
 from inventory import *
 from event_manager import EventManager
+from global_constants import *
 
 
 class Scene:
@@ -209,14 +211,13 @@ class Scene:
 
     def save_world_to_json(self, world_name):
         all_chunks = self.get_chunks_to_save()
-        save_directory = "world_save_files"
-        with open(os.path.join(save_directory, f"{world_name}.json"), "w") as json_file:
+        with open(os.path.join(WORLD_SAVE_FOLDER, f"{world_name}.json"), "w") as json_file:
             json.dump(all_chunks, json_file)
+
 
     @staticmethod
     def load_world_from_json(world_name):
-        load_directory = "world_save_files"
-        world_path = os.path.join(load_directory, f"{world_name}.json")
+        world_path = os.path.join(WORLD_SAVE_FOLDER, f"{world_name}.json")
         if os.path.exists(world_path):
             with open(world_path, "r") as json_file:
                 loaded_chunks = json.load(json_file)
@@ -228,3 +229,7 @@ class Scene:
         else:
             chunks = {}
         return chunks
+
+    def delete_local_files(self):
+        shutil.rmtree(WORLD_SAVE_FOLDER)
+

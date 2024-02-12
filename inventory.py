@@ -1,6 +1,7 @@
 import pygame
 import json
 import os
+import shutil
 
 from global_constants import *
 from all_texture_data import all_texture_data
@@ -223,14 +224,12 @@ class Inventory:
 
     def save_inventory_to_json(self, inventory_name):
         saved_inventory = self.get_inventory_to_save()
-        save_directory = "player_save_files"
-        with open(os.path.join(save_directory, f"{inventory_name}.json"), "w") as json_file:
+        with open(os.path.join(PLAYER_SAVE_FOLDER, f"{inventory_name}.json"), "w") as json_file:
             json.dump(saved_inventory, json_file)
 
     @staticmethod
     def load_inventory_from_json(inventory_name):
-        load_directory = "player_save_files"
-        inventory_path = os.path.join(load_directory, f"{inventory_name}.json")
+        inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{inventory_name}.json")
         if os.path.exists(inventory_path):
             with open(inventory_path, "r") as json_file:
                 loaded_inventory = json.load(json_file)
@@ -250,3 +249,6 @@ class Inventory:
             inventory_items[(0, 2)]["item"], inventory_items[(0, 2)]["quantity"] = "axe", 1
 
         return inventory_items
+
+    def delete_local_files(self):
+        shutil.rmtree(PLAYER_SAVE_FOLDER)

@@ -1,3 +1,7 @@
+PLAYER_SAVE_FOLDER = "player_save_files"
+WORLD_SAVE_FOLDER = "world_save_files"
+
+
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 FRAMES_PER_SECOND = 240

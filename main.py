@@ -16,7 +16,7 @@ class Game:
         self.menu_active = True
         self.menu_font = pygame.font.Font(filename=None, size=40)
         self.text_input = TextInput()
-        self.user_database = Client()
+        self.client = Client()
         self.username = None
 
         self.clock = pygame.time.Clock()
@@ -56,8 +56,16 @@ class Game:
             for event in EventManager.events:
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self.running = False
-                    self.scene.save_world_to_json(world_name=self.world_name)
+
                     self.scene.inventory.save_inventory_to_json(inventory_name=self.player_name)
+                    self.scene.save_world_to_json(world_name=self.world_name)
+
+                    self.client.upload_file(username=self.username, file_path=self.player_name, file_type="player")
+                    self.client.upload_file(username=self.username, file_path=self.world_name, file_type="world")
+
+                    self.scene.delete_local_files()
+                    self.scene.inventory.delete_local_files()
+
                     pygame.quit()
                     sys.exit()
 
@@ -92,6 +100,7 @@ class Game:
                         self.menu_state_stack.remove("register password")
 
             elif self.menu_state_stack[-1] == "main menu":
+                self.client.download_files(username=self.username)
                 self.main_menu_selection()
 
             elif self.menu_state_stack[-1] == "player selection":
@@ -231,7 +240,7 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text.strip()
-                            if self.user_database.authenticate_user(self.username, password):
+                            if self.client.authenticate_user(self.username, password):
                                 self.menu_state_stack.append("main menu")
                                 return
                             else:
@@ -292,7 +301,7 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text.strip()
-                            if self.user_database.register_user(self.username, password):
+                            if self.client.register_user(self.username, password):
                                 self.menu_state_stack.append("login or register")
                                 return
                             else:
@@ -325,10 +334,7 @@ class Game:
                             sys.exit()
 
     def player_menu_selection(self):
-        if not os.path.exists(path="player_save_files"):
-            os.makedirs(name="player_save_files")
-
-        inventory_files = os.listdir(path="player_save_files")
+        inventory_files = os.listdir(path=PLAYER_SAVE_FOLDER)
         inventory_files.append("Create New Player")
         inventory_files.append("Back")
 
@@ -384,10 +390,7 @@ class Game:
             self.text_input.update()
 
     def world_menu_selection(self):
-        if not os.path.exists(path="world_save_files"):
-            os.makedirs(name="world_save_files")
-
-        world_files = os.listdir(path="world_save_files")
+        world_files = os.listdir(path=WORLD_SAVE_FOLDER)
         world_files.append("Create New World")
         world_files.append("Back")
 
