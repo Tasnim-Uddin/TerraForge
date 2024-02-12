@@ -6,7 +6,7 @@ from global_constants import *
 from event_manager import EventManager
 from text_input import TextInput
 from scene import *
-from user_database import UserDatabase
+from client import Client
 
 
 class Game:
@@ -16,7 +16,7 @@ class Game:
         self.menu_active = True
         self.menu_font = pygame.font.Font(filename=None, size=40)
         self.text_input = TextInput()
-        self.user_database = UserDatabase()
+        self.user_database = Client()
         self.username = None
 
         self.clock = pygame.time.Clock()
