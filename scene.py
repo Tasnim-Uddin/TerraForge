@@ -229,7 +229,3 @@ class Scene:
         else:
             chunks = {}
         return chunks
-
-    def delete_local_files(self):
-        shutil.rmtree(WORLD_SAVE_FOLDER)
-

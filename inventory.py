@@ -249,6 +249,3 @@ class Inventory:
             inventory_items[(0, 2)]["item"], inventory_items[(0, 2)]["quantity"] = "axe", 1
 
         return inventory_items
-
-    def delete_local_files(self):
-        shutil.rmtree(PLAYER_SAVE_FOLDER)

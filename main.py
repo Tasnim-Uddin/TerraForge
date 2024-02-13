@@ -60,14 +60,9 @@ class Game:
                     self.scene.inventory.save_inventory_to_json(inventory_name=self.player_name)
                     self.scene.save_world_to_json(world_name=self.world_name)
 
-                    self.client.upload_file(username=self.username, file_path=self.player_name, file_type="player")
-                    self.client.upload_file(username=self.username, file_path=self.world_name, file_type="world")
+                    self.client.upload_file(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
 
-                    self.scene.delete_local_files()
-                    self.scene.inventory.delete_local_files()
-
-                    pygame.quit()
-                    sys.exit()
+                    self.quit_game()
 
             self.scene.draw(dt=dt)
             self.screen.blit(
@@ -75,6 +70,13 @@ class Game:
                 dest=(WINDOW_WIDTH - 200, 10))
             pygame.display.update()
             self.clock.tick()
+
+    def quit_game(self):
+        self.running = False
+        shutil.rmtree(WORLD_SAVE_FOLDER)
+        shutil.rmtree(PLAYER_SAVE_FOLDER)
+        pygame.quit()
+        sys.exit()
 
     def menu_events(self):
         while self.menu_active:
@@ -100,7 +102,6 @@ class Game:
                         self.menu_state_stack.remove("register password")
 
             elif self.menu_state_stack[-1] == "main menu":
-                self.client.download_files(username=self.username)
                 self.main_menu_selection()
 
             elif self.menu_state_stack[-1] == "player selection":
@@ -184,9 +185,7 @@ class Game:
                             self.menu_state_stack.append("register username")
                             return
                         elif selected_option == 2:  # Quit
-                            self.running = False
-                            pygame.quit()
-                            sys.exit()
+                            self.quit_game()
 
     def login_username_menu(self):
         menu_options = ["Text Box", "Back"]
@@ -241,6 +240,7 @@ class Game:
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text.strip()
                             if self.client.authenticate_user(self.username, password):
+                                self.client.download_files(username=self.username)
                                 self.menu_state_stack.append("main menu")
                                 return
                             else:
@@ -329,9 +329,7 @@ class Game:
                             self.menu_state_stack.append("player selection")
                             return
                         elif selected_option == 1:
-                            self.running = False
-                            pygame.quit()
-                            sys.exit()
+                            self.quit_game()
 
     def player_menu_selection(self):
         inventory_files = os.listdir(path=PLAYER_SAVE_FOLDER)
