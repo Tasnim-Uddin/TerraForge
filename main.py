@@ -60,7 +60,7 @@ class Game:
                     self.scene.inventory.save_inventory_to_json(inventory_name=self.player_name)
                     self.scene.save_world_to_json(world_name=self.world_name)
 
-                    self.client.upload_file(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
+                    self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
 
                     self.quit_game()
 
@@ -445,4 +445,5 @@ class Game:
 
 
 if __name__ == "__main__":
-    Game().run()
+    game = Game()
+    game.run()

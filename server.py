@@ -10,56 +10,62 @@ import sqlite3
 from werkzeug.utils import secure_filename
 
 DATABASE_NAME = "user_database.db"
-UPLOAD_FOLDER = "uploads"
-PLAYER_SAVE_FOLDER = "player_save_files"
-WORLD_SAVE_FOLDER = "world_save_files"
 
 SERVER_IP = "192.168.0.80"
 
+
 class Server:
     def __init__(self):
-        if not os.path.exists(path=PLAYER_SAVE_FOLDER):
-            os.makedirs(name=PLAYER_SAVE_FOLDER)
-        if not os.path.exists(path=WORLD_SAVE_FOLDER):
-            os.makedirs(name=WORLD_SAVE_FOLDER)
 
         self.app = Flask(__name__)
-        self.app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-        self.app.config["PLAYER_SAVE_FOLDER"] = PLAYER_SAVE_FOLDER
-        self.app.config["WORLD_SAVE_FOLDER"] = WORLD_SAVE_FOLDER
+        self.app.config["PLAYER_SAVE_FOLDER"] = "player_save_files"
+        self.app.config["WORLD_SAVE_FOLDER"] = "world_save_files"
+
+        if not os.path.exists(path=self.app.config["PLAYER_SAVE_FOLDER"]):
+            os.makedirs(name=self.app.config["PLAYER_SAVE_FOLDER"])
+        if not os.path.exists(path=self.app.config["WORLD_SAVE_FOLDER"]):
+            os.makedirs(name=self.app.config["WORLD_SAVE_FOLDER"])
 
         # Define routes
         self.app.add_url_rule(rule="/register", endpoint="register_user", view_func=self.register_user,
                               methods=["POST"])
         self.app.add_url_rule(rule="/authenticate", endpoint="authenticate_user", view_func=self.authenticate_user,
                               methods=["POST"])
-        self.app.add_url_rule(rule="/upload", endpoint="upload_file", view_func=self.upload_file,
+        self.app.add_url_rule(rule="/upload", endpoint="upload_files", view_func=self.upload_files,
                               methods=["POST"])
-        self.app.add_url_rule(rule="/download", endpoint="download_file", view_func=self.download_files,
+        self.app.add_url_rule(rule="/download", endpoint="download_files", view_func=self.download_files,
                               methods=["GET"])
 
     def run(self):
         self.create_tables()
         self.app.run(host="192.168.0.80", port=5000)
 
-    def create_tables(self):
+    @staticmethod
+    def create_tables():
         connection = sqlite3.connect(DATABASE_NAME)
         cursor = connection.cursor()
+        # Create the users table with ID and username as primary key
         cursor.execute("""CREATE TABLE IF NOT EXISTS users (      
-                                username TEXT PRIMARY KEY NOT NULL,
-                                hashed_password TEXT NOT NULL,
-                                salt TEXT NOT NULL
-                            )""")
+                                        USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        username TEXT UNIQUE,
+                                        hashed_password TEXT NOT NULL,
+                                        salt TEXT NOT NULL
+                                    )""")
+
+        # Create the save_files table with username as foreign key
         cursor.execute("""CREATE TABLE IF NOT EXISTS save_files (      
-                                username TEXT PRIMARY KEY NOT NULL,
-                                player_path TEXT,
-                                world_path TEXT,
-                                FOREIGN KEY (username) REFERENCES users(username)
-                            )""")
+                                    SAVE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    username TEXT NOT NULL,
+                                    file_path TEXT NOT NULL,
+                                    file_type TEXT NOT NULL,
+                                    UNIQUE(username, file_path, file_type),
+                                    FOREIGN KEY (username) REFERENCES users(username)
+                                )""")
         connection.commit()
         connection.close()
 
-    def register_user(self):
+    @staticmethod
+    def register_user():
         data = request.json
         username = data.get("username")
         password = data.get("password")
@@ -116,31 +122,12 @@ class Server:
             return jsonify({"error": str(error)})
 
     # Client requesting to upload a file to server
-    def upload_file(self):
-        # username = request.form.get("username")
-        # file_type = request.form.get("file_type")  # Added to get the chosen file_type from the client
-        # file = request.files["file"]
-        # if file:
-        #     if file_type == "player":
-        #         folder_path = self.app.config["PLAYER_SAVE_FOLDER"]
-        #     elif file_type == "world":
-        #         folder_path = self.app.config["WORLD_SAVE_FOLDER"]
-        #     else:
-        #         return jsonify({"error": "Invalid file_type specified"})
-        #
-        #     filename = secure_filename(file.filename)
-        #     print(filename)
-        #     file_path = os.path.join(folder_path, filename)
-        #     print(file_path)
-        #     file.save(file_path)
-        #     print("File uploaded by user:", username)
-
+    def upload_files(self):
         username = request.form.get("username")
         player_file = request.files["player"]
         world_file = request.files["world"]
 
         if player_file and world_file:
-
             player_filename = secure_filename(player_file.filename)
             world_filename = secure_filename(world_file.filename)
             player_file_path = os.path.join(self.app.config["PLAYER_SAVE_FOLDER"], player_filename)
@@ -151,124 +138,60 @@ class Server:
 
             print("Files uploaded by user:", username)
 
-            # Insert into save_files table
             with sqlite3.connect(database=DATABASE_NAME) as connection:
                 cursor = connection.cursor()
-                cursor.execute("SELECT COUNT(*) FROM save_files WHERE username = ?", (username,))
-                row_count = cursor.fetchone()
-
-                if row_count == 0:
-                    # Insert a new row if no row exists for the specified username
-                    json_string_player = [player_filename]
-                    player_filename = json.dumps(json_string_player)
-                    json_string_world = [world_filename]
-                    world_filename = json.dumps(json_string_world)
-                    cursor.execute("INSERT INTO save_files (username, player_path, world_path) VALUES (?, ? ,?)",
-                                   (username, player_filename, world_filename))
-                else:
-                    # Update the existing row if a row exists for the specified username
-                    cursor.execute("SELECT player_path, world_path FROM save_files WHERE username = ?", (username,))
-                    both_paths = cursor.fetchone()
-                    json_string_player = both_paths[0]
-                    json_string_world = both_paths[1]
-                    all_player_paths = json.loads(json_string_player)
-                    all_world_paths = json.loads(json_string_world)
-                    all_player_paths.append(player_filename)
-                    all_world_paths.append(world_filename)
-                    player_filename = json.dumps(list(set(all_player_paths)))
-                    world_filename = json.dumps(list(set(all_world_paths)))
-                    cursor.execute("UPDATE save_files SET player_path = ?, world_path = ? WHERE username = ?",
-                                   (player_filename, world_filename, username))
+                try:
+                    cursor.execute("INSERT INTO save_files (username, file_path, file_type) VALUES (?, ? ,?)",
+                                   (username, player_filename, "player"))
+                except Exception as error:
+                    print("player insert error:", error)
+                try:
+                    cursor.execute("INSERT INTO save_files (username, file_path, file_type) VALUES (?, ? ,?)",
+                                   (username, world_filename, "world"))
+                except Exception as error:
+                    print("world insert error:", error)
                 connection.commit()
             return jsonify({"success": True})
         else:
             return jsonify({"error": "No file uploaded"})
 
-        #     # Insert into save_files table
-        #     with sqlite3.connect(database=DATABASE_NAME) as connection:
-        #         cursor = connection.cursor()
-        #         cursor.execute("SELECT COUNT(*) FROM save_files WHERE username = ?", (username,))
-        #         row_count = cursor.fetchone()[0]
-        #
-        #         if row_count == 0:  # TODO- after one call and player added in, it will no longer come here to insert the world so fix this.
-        #             # Insert a new row if no row exists for the specified username
-        #             json_string = [filename]
-        #             filename = json.dumps(json_string)
-        #             cursor.execute("INSERT INTO save_files (username, {}) VALUES (?, ?)".format(f"{file_type}_path"),
-        #                            (username, filename))
-        #         else:
-        #             if file_type == "player":
-        #                 # Update the existing row if a row exists for the specified username
-        #                 cursor.execute("SELECT player_path FROM save_files WHERE username = ?", (username,))
-        #                 json_string = cursor.fetchone()[0]
-        #                 all_player_paths = json.loads(json_string)
-        #                 all_player_paths.append(filename)
-        #                 filename = json.dumps(list(set(all_player_paths)))
-        #                 cursor.execute("UPDATE save_files SET player_path = ? WHERE username = ?",
-        #                                (filename, username))
-        #             elif file_type == "world":
-        #                 # Update the existing row if a row exists for the specified username
-        #                 cursor.execute("SELECT world_path FROM save_files WHERE username = ?", (username,))
-        #                 json_string = cursor.fetchone()[0]
-        #                 all_world_paths = json.loads(json_string)
-        #                 all_world_paths.append(filename)
-        #                 filename = json.dumps(list(set(all_world_paths)))
-        #                 cursor.execute("UPDATE save_files SET world_path = ? WHERE username = ?",
-        #                                (filename, username))
-        #         connection.commit()
-        #     return jsonify({"success": True})
-        # else:
-        #     return jsonify({"error": "No file uploaded"})
-
     # Client requesting to download a file from server
     def download_files(self):
         username = request.args.get("username")
-
         try:
-            # Retrieve player_path and world_path associated with the username
             with sqlite3.connect(database=DATABASE_NAME) as connection:
                 cursor = connection.cursor()
-                cursor.execute("SELECT player_path, world_path FROM save_files WHERE username=?", (username,))
-                paths = cursor.fetchone()
+                cursor.execute("SELECT file_path, file_type FROM save_files WHERE username=?", (username,))
+                paths = cursor.fetchall()
 
                 if paths:
-                    json_all_player_path = paths[0]
-                    json_all_world_path = paths[1]
-                    all_player_path = json.loads(json_all_player_path)
-                    all_world_path = json.loads(json_all_world_path)
-
                     files_to_send = []
 
-                    # Add player file to files_to_send list
-                    if all_player_path:
-                        for player_path in all_player_path:
-                            player_file_path = os.path.join(self.app.config["PLAYER_SAVE_FOLDER"], player_path)
-                            with open(player_file_path, "rb") as f:
-                                player_content = f.read()
-                            files_to_send.append((("player", player_file_path), player_content))
+                    for record in paths:
+                        filename = record[0]
+                        filetype = record[1]
+                        print(filename, filetype)
+                        if filetype == "player":
+                            file_path = os.path.join(self.app.config["PLAYER_SAVE_FOLDER"], filename)
+                        elif filetype == "world":
+                            file_path = os.path.join(self.app.config["WORLD_SAVE_FOLDER"], filename)
+                        with open(file_path, "rb") as file:
+                            file_content = file.read()
+                        files_to_send.append(((filetype, file_path), file_content))
 
-                    # Add world file to files_to_send list
-                    if all_world_path:
-                        for world_path in all_world_path:
-                            world_file_path = os.path.join(self.app.config["WORLD_SAVE_FOLDER"], world_path)
-                            with open(world_file_path, "rb") as f:
-                                world_content = f.read()
-                            files_to_send.append((("world", world_file_path), world_content))
-
-                    # Send files to the client
                     file_data = []
-                    for file_name, file_content in files_to_send:
+                    for file_info, file_content in files_to_send:
                         file_content_encoded = base64.b64encode(file_content).decode(
                             "utf-8")  # Encode bytes to base64 string so that no problems parsing
-                        file_data.append((file_name, file_content_encoded))
+                        file_data.append((file_info, file_content_encoded))
 
                     return jsonify({"files": file_data})
 
                 else:
                     return jsonify({"error": "No files found for the user"})
 
-        except Exception as e:
-            return jsonify({"error": str(e)})
+        except Exception as error:
+            return jsonify({"error": str(error)})
 
 
 if __name__ == "__main__":

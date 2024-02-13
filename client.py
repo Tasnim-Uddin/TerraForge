@@ -8,7 +8,8 @@ SERVER_URL = "http://192.168.0.80:5000"
 
 
 class Client:
-    def register_user(self, username, password):
+    @staticmethod
+    def register_user(username, password):
         print("Sending registration request for username:", username)
 
         """Send plaintext username and password to the server. 
@@ -22,7 +23,8 @@ class Client:
         print("Response:", response.text)
         return response.json()
 
-    def authenticate_user(self, username, password):
+    @staticmethod
+    def authenticate_user(username, password):
         print("Sending authentication request for username:", username)
 
         # Send plaintext username and password to the server
@@ -40,20 +42,8 @@ class Client:
             print("Authentication failed:", user_data.get("error", "Unknown error"))
             return False
 
-    # def upload_file(self, username, file_path, file_type):
-    #     print("Uploading file:", file_path)
-    #     url = SERVER_URL + "/upload"
-    #     if file_type == "player":
-    #         file = {"file": open(os.path.join(PLAYER_SAVE_FOLDER, f"{file_path}.json"), "rb")}
-    #     if file_type == "world":
-    #         file = {"file": open(os.path.join(WORLD_SAVE_FOLDER, f"{file_path}.json"), "rb")}
-    #     data = {"username": username, "file_type": file_type}
-    #     print(data)
-    #     print(file)
-    #     response = requests.post(url, files=file, data=data)
-    #     print("Response:", response.text)
-
-    def upload_file(self, username, player_file_path, world_file_path):
+    @staticmethod
+    def upload_files(username, player_file_path, world_file_path):
         url = SERVER_URL + "/upload"
         player_file = open(os.path.join(PLAYER_SAVE_FOLDER, f"{player_file_path}.json"), "rb")
         world_file = open(os.path.join(WORLD_SAVE_FOLDER, f"{world_file_path}.json"), "rb")
@@ -62,7 +52,8 @@ class Client:
         response = requests.post(url, files=files, data=username)
         print("Response:", response.text)
 
-    def download_files(self, username):
+    @staticmethod
+    def download_files(username):
         if not os.path.exists(path=PLAYER_SAVE_FOLDER):
             os.makedirs(name=PLAYER_SAVE_FOLDER)
         if not os.path.exists(path=WORLD_SAVE_FOLDER):
