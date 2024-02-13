@@ -44,13 +44,18 @@ class Client:
 
     @staticmethod
     def upload_files(username, player_file_path, world_file_path):
+        print("Uploading files for username:", username)
         url = SERVER_URL + "/upload"
         player_file = open(os.path.join(PLAYER_SAVE_FOLDER, f"{player_file_path}.json"), "rb")
         world_file = open(os.path.join(WORLD_SAVE_FOLDER, f"{world_file_path}.json"), "rb")
         files = {"player": player_file, "world": world_file}
         username = {"username": username}
         response = requests.post(url, files=files, data=username)
-        print("Response:", response.text)
+        if response.status_code == 200:
+            print("File uploaded successfully:", player_file)
+            print("File uploaded successfully:", world_file)
+        else:
+            print("Failed to upload files:", response.text)
 
     @staticmethod
     def download_files(username):

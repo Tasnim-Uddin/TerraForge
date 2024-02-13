@@ -91,7 +91,8 @@ class Server:
             print("Registration failed. Username already exists:", username)
             return jsonify({"error": "Registration failed. Username already exists."})
 
-    def authenticate_user(self):
+    @staticmethod
+    def authenticate_user():
         data = request.json
         username = data.get("username")
         password = data.get("password")
