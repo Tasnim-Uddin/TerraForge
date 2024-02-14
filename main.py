@@ -11,6 +11,10 @@ from client import Client
 
 class Game:
     def __init__(self):
+        if not os.path.exists(path=PLAYER_SAVE_FOLDER):
+            os.makedirs(name=PLAYER_SAVE_FOLDER)
+        if not os.path.exists(path=WORLD_SAVE_FOLDER):
+            os.makedirs(name=WORLD_SAVE_FOLDER)
         pygame.init()
 
         self.menu_active = True
@@ -49,9 +53,6 @@ class Game:
             if elapsed_time >= buffer_time:
                 dt = self.clock.tick(FRAMES_PER_SECOND) / 1000
 
-            if dt >= 1:
-                dt = 1
-
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
@@ -67,7 +68,7 @@ class Game:
             self.scene.draw(dt=dt)
             self.screen.blit(
                 source=self.game_font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"),
-                dest=(WINDOW_WIDTH - 200, 10))
+                dest=(WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))
             pygame.display.update()
             self.clock.tick()
 

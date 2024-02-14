@@ -7,7 +7,7 @@ from block import Block
 from inventory import *
 from event_manager import EventManager
 from global_constants import *
-from enemy import Enemy
+from slime_enemy import SlimeEnemy
 
 
 class Scene:
@@ -38,7 +38,7 @@ class Scene:
         self.spawn_enemy()
 
     def spawn_enemy(self):
-        new_enemy = Enemy()
+        new_enemy = SlimeEnemy()
         self.enemies.append(new_enemy)
 
     @staticmethod
@@ -206,7 +206,7 @@ class Scene:
 
         self.inventory.update()
         self.player.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
-        self.player.draw(screen=self.screen, offset=self.camera_offset)
+        self.player.draw(screen=self.screen, camera_offset=self.camera_offset)
         for enemy in self.enemies:
             relative_chunk_position = (
                 int(enemy.x // (CHUNK_WIDTH * BLOCK_SIZE)),
@@ -214,9 +214,9 @@ class Scene:
             )
             # Check if the relative chunk position is in surrounding_chunks
             if relative_chunk_position in surrounding_chunks:
-                enemy.attack_update(player_rect=self.player.rect)
+                enemy.attack_update(player=self.player, dt=dt)
                 enemy.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
-                enemy.draw(screen=self.screen, offset=self.camera_offset)
+                enemy.draw(screen=self.screen, camera_offset=self.camera_offset)
             else:
                 self.enemies.remove(enemy)
         self.inventory.draw()
