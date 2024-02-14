@@ -26,7 +26,7 @@ class Game:
         self.game_font = pygame.font.Font(filename=None, size=60)
 
         # Add a stack to keep track of the menu states
-        self.menu_state_stack = ["login or register"]  # Starts off at login or register menu page
+        self.menu_state_stack = ["main menu"]  # Starts off at login or register menu page
 
         self.world_name = None
         self.player_name = None
@@ -60,7 +60,7 @@ class Game:
                     self.scene.inventory.save_inventory_to_json(inventory_name=self.player_name)
                     self.scene.save_world_to_json(world_name=self.world_name)
 
-                    self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
+                    # self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
 
                     self.quit_game()
 
@@ -73,8 +73,8 @@ class Game:
 
     def quit_game(self):
         self.running = False
-        shutil.rmtree(WORLD_SAVE_FOLDER)
-        shutil.rmtree(PLAYER_SAVE_FOLDER)
+        # shutil.rmtree(WORLD_SAVE_FOLDER)
+        # shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
         sys.exit()
 
@@ -239,8 +239,9 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text.strip()
-                            if self.client.authenticate_user(self.username, password):
-                                self.client.download_files(username=self.username)
+                            # if self.client.authenticate_user(self.username, password):
+                            if password:
+                                # self.client.download_files(username=self.username)
                                 self.menu_state_stack.append("main menu")
                                 return
                             else:

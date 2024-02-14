@@ -7,6 +7,7 @@ from block import Block
 from inventory import *
 from event_manager import EventManager
 from global_constants import *
+from enemy import Enemy
 
 
 class Scene:
@@ -29,6 +30,16 @@ class Scene:
 
         self.lower_cave_threshold = 0.015
         self.upper_cave_threshold = 0.7
+
+        self.enemies = []
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+
+    def spawn_enemy(self):
+        new_enemy = Enemy()
+        self.enemies.append(new_enemy)
 
     @staticmethod
     def load_block_sprites():
@@ -122,8 +133,8 @@ class Scene:
                                                                       1]) and within_reach:
             if self.inventory.is_block(item=held_item):
                 new_block = Block(block=held_item, position=(
-                int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE,
-                int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
+                    int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE,
+                    int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
                 self.chunks[place_chunk_position].append(new_block)
                 self.inventory.remove_item(item=held_item)
 
@@ -196,6 +207,18 @@ class Scene:
         self.inventory.update()
         self.player.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
         self.player.draw(screen=self.screen, offset=self.camera_offset)
+        for enemy in self.enemies:
+            relative_chunk_position = (
+                int(enemy.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+                int(enemy.y // (CHUNK_HEIGHT * BLOCK_SIZE))
+            )
+            # Check if the relative chunk position is in surrounding_chunks
+            if relative_chunk_position in surrounding_chunks:
+                enemy.attack_update(player_rect=self.player.rect)
+                enemy.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
+                enemy.draw(screen=self.screen, offset=self.camera_offset)
+            else:
+                self.enemies.remove(enemy)
         self.inventory.draw()
 
     def get_chunks_to_save(self):
@@ -213,7 +236,6 @@ class Scene:
         all_chunks = self.get_chunks_to_save()
         with open(os.path.join(WORLD_SAVE_FOLDER, f"{world_name}.json"), "w") as json_file:
             json.dump(all_chunks, json_file)
-
 
     @staticmethod
     def load_world_from_json(world_name):

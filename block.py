@@ -1,6 +1,7 @@
 import pygame
 from global_constants import *
 
+
 class Block:
     def __init__(self, block, position):
         self.block = block
