@@ -36,6 +36,13 @@ class Scene:
         self.spawn_enemy()
         self.spawn_enemy()
         self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
 
     def spawn_enemy(self):
         new_enemy = SlimeEnemy()
@@ -87,7 +94,7 @@ class Scene:
 
         return current_chunk_blocks
 
-    def break_block(self, chunks, held_item):
+    def break_block(self, chunks):
         mouse_position = pygame.mouse.get_pos()
 
         within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
@@ -103,16 +110,16 @@ class Scene:
                 if block_rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                            mouse_position[1] + self.camera_offset[1]) and within_reach:
                     breaking_item = block.block
-                    if held_item == "pickaxe" and self.inventory.is_block(item=breaking_item):
+                    if self.inventory.is_block(item=breaking_item):
                         self.inventory.add_item(item=breaking_item)
                         self.chunks[break_chunk_position].remove(block)
 
     def place_block(self, chunks, held_item):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
+        within_reach = bool((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
                 mouse_position[1] + self.camera_offset[
-            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE <= REACH)
 
         place_chunk_position = (int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE)),
                                 int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE)))
@@ -131,12 +138,12 @@ class Scene:
         if not block_exists and not self.player.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                                                   mouse_position[1] + self.camera_offset[
                                                                       1]) and within_reach:
-            if self.inventory.is_block(item=held_item):
-                new_block = Block(block=held_item, position=(
-                    int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE,
-                    int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
-                self.chunks[place_chunk_position].append(new_block)
-                self.inventory.remove_item(item=held_item)
+
+            new_block = Block(block=held_item, position=(
+                int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE,
+                int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
+            self.chunks[place_chunk_position].append(new_block)
+            self.inventory.remove_item(item=held_item)
 
     def draw(self, dt):
         self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[
@@ -200,9 +207,11 @@ class Scene:
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # left mouse click
-                    self.break_block(chunks=surrounding_chunks, held_item=held_item)
+                    if held_item == "pickaxe":
+                        self.break_block(chunks=surrounding_chunks)
                 if event.button == 3:  # right mouse click
-                    self.place_block(chunks=surrounding_chunks, held_item=held_item)
+                    if self.inventory.is_block(item=held_item):
+                        self.place_block(chunks=surrounding_chunks, held_item=held_item)
 
         self.inventory.update()
         self.player.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
@@ -214,10 +223,16 @@ class Scene:
             )
             # Check if the relative chunk position is in surrounding_chunks
             if relative_chunk_position in surrounding_chunks:
+                print(dt * 10)
                 enemy.attack_update(player=self.player, dt=dt)
                 enemy.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
                 enemy.draw(screen=self.screen, camera_offset=self.camera_offset)
+                if held_item == "sword":
+                    self.player.attack(enemy=enemy, dt=dt)
             else:
+                self.enemies.remove(enemy)
+
+            if enemy.health <= 0:
                 self.enemies.remove(enemy)
         self.inventory.draw()
 

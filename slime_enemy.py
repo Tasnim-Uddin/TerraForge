@@ -18,9 +18,9 @@ class SlimeEnemy(Entity):
         super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
 
         # Randomly spawn the enemy within the game world
-        self.x = random.randint(a=0, b=1500)
+        self.x = random.randint(a=1000, b=1500)
 
-        self.attack_distance = 0 * BLOCK_SIZE  # Define the distance at which the enemy starts attacking
+        self.attack_distance = 15 * BLOCK_SIZE  # Define the distance at which the enemy starts attacking
 
         self.direction_timer = 0
         self.random_direction = None
@@ -30,6 +30,9 @@ class SlimeEnemy(Entity):
             "right": False,
             "idle": False
         }
+
+        self.attack_cooldown = 0
+        self.attack_interval = 0.5
 
     def random_movement(self):
         if self.direction_timer <= 0:
@@ -65,5 +68,15 @@ class SlimeEnemy(Entity):
             self.velocity[0] = dx / distance * speed
             self.velocity[1] += GRAVITY * dt
             self.jump()
+            if self.rect.colliderect(player.rect):
+                # Perform the attack
+                if self.attack_cooldown <= 0:
+                    # Attack the player, deduct health
+                    player.health -= 1  # Adjust the amount of health deduction as needed
+                # Reset the cooldown
+                self.attack_cooldown = self.attack_interval
+            else:
+                # Reduce the cooldown timer
+                self.attack_cooldown -= dt * 10
         elif distance > self.attack_distance:
             self.random_movement()
