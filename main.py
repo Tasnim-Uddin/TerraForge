@@ -10,7 +10,6 @@ from scene import *
 from client import Client
 
 
-
 class Game:
     def __init__(self):
         if not os.path.exists(path=PLAYER_SAVE_FOLDER):
@@ -43,7 +42,6 @@ class Game:
         dt = 0
         while self.running:
             self.menu_events()
-            print(self.scene.player.health)
 
             if self.start_time == 0:
                 self.start_time = pygame.time.get_ticks()  # Start the timer when the player selects world and inventory
@@ -51,7 +49,7 @@ class Game:
             current_time = pygame.time.get_ticks()
             elapsed_time = current_time - self.start_time
 
-            buffer_time = 0.00000000000000000000000000001  # in ms (should make this as small as possible but not 0)
+            buffer_time = 1  # in ms (should make this as small as possible but not 0)
 
             if elapsed_time >= buffer_time:
                 dt = self.clock.tick(FRAMES_PER_SECOND) / 1000
@@ -60,12 +58,11 @@ class Game:
             for event in EventManager.events:
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self.running = False
+                    self.quit_game()
 
-                    self.scene.inventory.save_inventory_to_json(inventory_name=self.player_name)
-                    self.scene.save_world_to_json(world_name=self.world_name)
-
-                    # self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
-
+                if self.scene.player.health <= 0:
+                    self.scene.player.death_screen(screen=self.screen)
+                    self.running = False
                     self.quit_game()
 
             self.scene.draw(dt=dt)
@@ -78,6 +75,9 @@ class Game:
 
     def quit_game(self):
         self.running = False
+        self.scene.inventory.save_inventory_to_json(inventory_name=self.player_name)
+        self.scene.save_world_to_json(world_name=self.world_name)
+        # self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
         # shutil.rmtree(WORLD_SAVE_FOLDER)
         # shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()

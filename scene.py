@@ -1,5 +1,6 @@
 import math
 import random
+import sys
 
 import pygame
 from opensimplex import *
@@ -215,6 +216,7 @@ class Scene:
         self.inventory.update()
         self.player.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
         self.player.draw(screen=self.screen, camera_offset=self.camera_offset)
+
         for enemy in self.enemies:
             relative_chunk_position = (
                 int(enemy.x // (CHUNK_WIDTH * BLOCK_SIZE)),
@@ -232,6 +234,7 @@ class Scene:
 
             if enemy.health <= 0:
                 self.enemies.remove(enemy)
+
         self.inventory.draw()
 
     def get_chunks_to_save(self):

@@ -18,8 +18,6 @@ class Player(Entity):
         self.attack_cooldown = 0
         self.attack_interval = 0.1
 
-        self.health = PLAYER_MAX_HEALTH
-
     def get_input(self):
         for event in EventManager.events:  # Handle events
             if event.type == pygame.KEYDOWN:
@@ -72,7 +70,6 @@ class Player(Entity):
 
         # Calculate the width of the lost health bar (red) based on the current health of the player
         lost_health_width = ((100 - self.health) / 100) * health_bar_width
-        # print(lost_health_width)
         lost_health_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width + (health_bar_width - lost_health_width),
                                        0, lost_health_width, health_bar_height)
 
@@ -93,7 +90,6 @@ class Player(Entity):
                     distance_to_enemy = ((enemy.rect.centery - self.rect.centery)**2 + (enemy.rect.centerx - self.rect.centerx)**2) ** 0.5
                     mouse_position = pygame.mouse.get_pos()
                     mouse_distance_to_enemy = ((enemy.rect.centery - (mouse_position[1] + camera_offset[1]))**2 + (enemy.rect.centerx - (mouse_position[0] + camera_offset[0]))**2) ** 0.5
-                    print(mouse_distance_to_enemy)
                     if 0 <= distance_to_enemy <= BLOCK_SIZE and 0 <= mouse_distance_to_enemy <= BLOCK_SIZE:
                         # Check if attack cooldown has expired
                         if self.attack_cooldown <= 0:
@@ -103,3 +99,31 @@ class Player(Entity):
                         else:
                             # Reduce the cooldown timer
                             self.attack_cooldown -= dt * 10
+
+    @staticmethod
+    def death_screen(screen):
+        font = pygame.font.Font(None, 100)  # Choose font and size
+        text_surface = font.render("Wasted", True, (255, 0, 0))  # Render the text with red color
+        text_rect = text_surface.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))  # Position the text
+        death_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))  # Create a surface for death screen
+        death_surface.fill((0, 0, 0))  # Fill the surface with black
+        alpha = 0
+
+        # Gradually increase the alpha value to create a smooth transition
+        while alpha <= 255:
+            death_surface.set_alpha(alpha)
+            screen.blit(death_surface, (0, 0))
+            pygame.display.update()
+            pygame.time.delay(10)
+            alpha += 1
+
+        # Delay before rendering the "Wasted" text
+        pygame.time.delay(200)  # in ms
+
+        # Blit the text onto the screen after the delay
+        screen.blit(text_surface, text_rect)
+        pygame.display.update()
+
+        # After the text is rendered, wait for a while before game ends
+        pygame.time.delay(3000)  # in ms
+
