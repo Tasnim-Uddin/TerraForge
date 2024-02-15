@@ -1,4 +1,7 @@
+import math
 import random
+
+import pygame
 from opensimplex import *
 import shutil
 
@@ -32,16 +35,6 @@ class Scene:
         self.upper_cave_threshold = 0.7
 
         self.enemies = []
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
         self.spawn_enemy()
 
     def spawn_enemy(self):
@@ -135,10 +128,16 @@ class Scene:
             if block_exists:
                 break
 
-        if not block_exists and not self.player.rect.collidepoint(mouse_position[0] + self.camera_offset[0],
+        # To make sure that the block cannot be placed within the block grid a player is on
+        player_max_right = math.ceil(self.player.rect.right / BLOCK_SIZE) * BLOCK_SIZE
+        player_min_left = (self.player.rect.left // BLOCK_SIZE) * BLOCK_SIZE
+        player_min_top = (self.player.rect.top // BLOCK_SIZE) * BLOCK_SIZE
+        player_max_bottom = math.ceil(self.player.rect.bottom / BLOCK_SIZE) * BLOCK_SIZE
+        player_block_rect = pygame.Rect(player_min_left, player_min_top, player_max_right-player_min_left, player_max_bottom-player_min_top)
+
+        if not block_exists and not player_block_rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                                                   mouse_position[1] + self.camera_offset[
                                                                       1]) and within_reach:
-
             new_block = Block(block=held_item, position=(
                 int(mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE,
                 int(mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
@@ -223,12 +222,11 @@ class Scene:
             )
             # Check if the relative chunk position is in surrounding_chunks
             if relative_chunk_position in surrounding_chunks:
-                print(dt * 10)
                 enemy.attack_update(player=self.player, dt=dt)
                 enemy.update(chunks=surrounding_chunks, block_textures=self.block_textures, dt=dt)
                 enemy.draw(screen=self.screen, camera_offset=self.camera_offset)
                 if held_item == "sword":
-                    self.player.attack(enemy=enemy, dt=dt)
+                    self.player.attack(enemy=enemy, camera_offset=self.camera_offset, dt=dt)
             else:
                 self.enemies.remove(enemy)
 

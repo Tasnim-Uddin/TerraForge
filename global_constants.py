@@ -35,3 +35,7 @@ ROW_SLOTS = 3
 # SlimeEnemy related
 ENEMY_HORIZONTAL_SPEED = 500
 ENEMY_JUMP_HEIGHT = 900
+
+
+PLAYER_MAX_HEALTH = 101  # Added 1 extra HP because for some reason, player starts at 1 health lower if enemy in game
+DEFAULT_HEALTH = 100

@@ -1,3 +1,4 @@
+# import ez_profile
 import math
 import sys
 import re
@@ -7,6 +8,7 @@ from event_manager import EventManager
 from text_input import TextInput
 from scene import *
 from client import Client
+
 
 
 class Game:
@@ -41,6 +43,7 @@ class Game:
         dt = 0
         while self.running:
             self.menu_events()
+            print(self.scene.player.health)
 
             if self.start_time == 0:
                 self.start_time = pygame.time.get_ticks()  # Start the timer when the player selects world and inventory
@@ -67,7 +70,8 @@ class Game:
 
             self.scene.draw(dt=dt)
             self.screen.blit(
-                source=self.game_font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True, color="white"),
+                source=self.game_font.render(text=f"FPS: {math.floor(self.clock.get_fps())}", antialias=True,
+                                             color="white"),
                 dest=(WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))
             pygame.display.update()
             self.clock.tick()
@@ -149,7 +153,8 @@ class Game:
         self.screen.blit(source=text, dest=text_rect)
 
         if detail_type is not None:
-            text = self.menu_font.render(text=f"Enter {menu_type} {detail_type}:", antialias=True, color=(255, 255, 255))
+            text = self.menu_font.render(text=f"Enter {menu_type} {detail_type}:", antialias=True,
+                                         color=(255, 255, 255))
         else:
             text = self.menu_font.render(text=f"Enter New {menu_type}:", antialias=True, color=(255, 255, 255))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))

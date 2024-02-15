@@ -16,9 +16,9 @@ class Player(Entity):
         super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
 
         self.attack_cooldown = 0
-        self.attack_interval = 0.000000000000000000000001
+        self.attack_interval = 0.1
 
-        self.health = 100
+        self.health = PLAYER_MAX_HEALTH
 
     def get_input(self):
         for event in EventManager.events:  # Handle events
@@ -68,14 +68,15 @@ class Player(Entity):
         lost_health_color = (255, 0, 0)  # Red color for lost health bar
 
         # Draw the background health bar (green) at the very top right of the screen
-        health_bar_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width - 10, 0, health_bar_width, health_bar_height)
+        health_bar_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width, 0, health_bar_width, health_bar_height)
 
         # Calculate the width of the lost health bar (red) based on the current health of the player
         lost_health_width = ((100 - self.health) / 100) * health_bar_width
+        # print(lost_health_width)
         lost_health_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width + (health_bar_width - lost_health_width),
                                        0, lost_health_width, health_bar_height)
 
-        if 0 <= self.health <= 100:
+        if 0 <= self.health <= PLAYER_MAX_HEALTH:
             pygame.draw.rect(screen, health_bar_color, health_bar_rect)
             pygame.draw.rect(screen, lost_health_color, lost_health_rect)
         else:
@@ -84,13 +85,16 @@ class Player(Entity):
 
             pygame.draw.rect(screen, lost_health_color, lost_health_rect)
 
-    def attack(self, enemy, dt):
+    def attack(self, enemy, camera_offset, dt):
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     # Iterate over enemies to check for attack range
                     distance_to_enemy = ((enemy.rect.centery - self.rect.centery)**2 + (enemy.rect.centerx - self.rect.centerx)**2) ** 0.5
-                    if 0 <= distance_to_enemy <= BLOCK_SIZE:
+                    mouse_position = pygame.mouse.get_pos()
+                    mouse_distance_to_enemy = ((enemy.rect.centery - (mouse_position[1] + camera_offset[1]))**2 + (enemy.rect.centerx - (mouse_position[0] + camera_offset[0]))**2) ** 0.5
+                    print(mouse_distance_to_enemy)
+                    if 0 <= distance_to_enemy <= BLOCK_SIZE and 0 <= mouse_distance_to_enemy <= BLOCK_SIZE:
                         # Check if attack cooldown has expired
                         if self.attack_cooldown <= 0:
                             enemy.health -= 30

@@ -23,7 +23,7 @@ class Entity:
         }
         self.on_ground = False
 
-        self.health = 100
+        self.health = DEFAULT_HEALTH
 
     def horizontal_collision(self, chunks, block_textures):
         if self.x <= 0:
@@ -38,7 +38,7 @@ class Entity:
                     elif self.velocity[0] < 0:
                         self.x = block_rect.right
                     self.velocity[0] = 0
-                    return True
+                    return
 
     def vertical_collision(self, chunks, block_textures):
         for chunk in chunks:
@@ -51,7 +51,7 @@ class Entity:
                     elif self.velocity[1] < 0:
                         self.y = block_rect.bottom
                     self.velocity[1] = 0
-                    return True
+                    return
 
     def movement(self, chunks, block_textures, dt):
         self.velocity[1] += GRAVITY * dt
