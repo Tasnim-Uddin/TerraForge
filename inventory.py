@@ -1,7 +1,6 @@
 import pygame
 import json
 import os
-import shutil
 
 from global_constants import *
 from all_texture_data import all_texture_data
@@ -50,14 +49,11 @@ class Inventory:
                     return
 
     @staticmethod
-    def is_block(item):
+    def item_type(item):
         try:
-            if all_texture_data[item]["item_type"] == "block":
-                return True
-            else:
-                return False
+            return all_texture_data[item]["item_type"]
         except KeyError:
-            return False
+            return None
 
     def update(self):
         for event in EventManager.events:
@@ -242,8 +238,8 @@ class Inventory:
         else:
             inventory_items = {(row, column): {"item": None, "quantity": None} for row in range(ROW_SLOTS) for column in range(COLUMN_SLOTS)}
 
-            inventory_items[(0, 0)]["item"], inventory_items[(0, 0)]["quantity"] = "sword", 1
-            inventory_items[(0, 1)]["item"], inventory_items[(0, 1)]["quantity"] = "pickaxe", 1
-            inventory_items[(0, 2)]["item"], inventory_items[(0, 2)]["quantity"] = "axe", 1
+            inventory_items[(0, 0)]["item"], inventory_items[(0, 0)]["quantity"] = "copper_sword", 1
+            inventory_items[(0, 1)]["item"], inventory_items[(0, 1)]["quantity"] = "copper_pickaxe", 1
+            inventory_items[(0, 2)]["item"], inventory_items[(0, 2)]["quantity"] = "copper_axe", 1
 
         return inventory_items

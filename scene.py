@@ -3,7 +3,6 @@ import random
 
 import pygame
 from opensimplex import *
-import shutil
 
 from player import Player
 from inventory import *
