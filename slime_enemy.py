@@ -18,7 +18,7 @@ class SlimeEnemy(Entity):
         super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
 
         # Randomly spawn the enemy within the game world
-        self.x = random.randint(a=50, b=1000)
+        self.x = random.randint(a=1000, b=1500)
 
         self.attack_distance = 15 * BLOCK_SIZE  # Define the distance at which the enemy starts attacking
 

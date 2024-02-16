@@ -53,6 +53,8 @@ class Game:
 
             if elapsed_time >= buffer_time:
                 dt = self.clock.tick(FRAMES_PER_SECOND) / 1000
+            else:
+                self.scene.player.health = 100
 
             EventManager.queue_events()
             for event in EventManager.events:
@@ -76,7 +78,7 @@ class Game:
         self.running = False
         self.scene.inventory.save_inventory_to_json(inventory_name=self.player_name)
         self.scene.save_world_to_json(world_name=self.world_name)
-        # self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
+        # # self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
         # shutil.rmtree(WORLD_SAVE_FOLDER)
         # shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
@@ -170,7 +172,7 @@ class Game:
         pygame.display.flip()
 
     def login_register_selection(self):
-        menu_options = ["Login", "Register", "Quit"]  # Update menu options
+        menu_options = ["Login", "Register", "Quit"]
         selected_option = 0
 
         while True:

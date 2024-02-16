@@ -8,15 +8,17 @@ from entity import Entity
 class Player(Entity):
     def __init__(self):
         idle_image = pygame.transform.scale(surface=pygame.image.load(file="assets/player.png").convert_alpha(),
-                                            size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
+                                            size=(BLOCK_SIZE, 1 * BLOCK_SIZE))
         right_image = pygame.transform.scale(surface=pygame.image.load(file="assets/right_player.png").convert_alpha(),
-                                             size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
+                                             size=(BLOCK_SIZE, 1 * BLOCK_SIZE))
         left_image = pygame.transform.scale(surface=pygame.image.load(file="assets/left_player.png").convert_alpha(),
-                                             size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
+                                             size=(BLOCK_SIZE, 1 * BLOCK_SIZE))
         super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
 
         self.attack_cooldown = 0
         self.attack_interval = 0.1
+
+        self.health = 100
 
     def get_input(self):
         for event in EventManager.events:  # Handle events
@@ -53,8 +55,8 @@ class Player(Entity):
             self.on_ground = False
             self.velocity[1] = -PLAYER_JUMP_HEIGHT
 
-    def movement(self, chunks, block_textures, dt):
-        super().movement(chunks=chunks, block_textures=block_textures, dt=dt)
+    def movement(self, chunks, dt):
+        super().movement(chunks=chunks, dt=dt)
         self.get_input()
         self.set_velocity()
 
