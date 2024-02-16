@@ -2,7 +2,8 @@ all_texture_data = {
     "grass": {"item_type": "block", "size": (16, 16), "position": (48, 464)},  # position: pixel coordinates of top left of image on sprite sheet
     "dirt": {"item_type": "block", "size": (16, 16), "position": (48, 480)},
     "stone": {"item_type": "block", "size": (16, 16), "position": (0, 16)},
-    "sword": {"item_type": "weapon", "size": (16, 16), "position": (16, 560)},
-    "pickaxe": {"item_type": "weapon", "size": (16, 16), "position": (0, 560)},
-    "axe": {"item_type": "weapon", "size": (16, 16), "position": (64, 560)}
+    "copper_sword": {"item_type": "sword", "size": (16, 16), "position": (16, 560)},
+    "copper_pickaxe": {"item_type": "pickaxe", "size": (16, 16), "position": (0, 560)},
+    "copper_axe": {"item_type": "axe", "size": (16, 16), "position": (64, 560)},
+    "slime": {"item_type": "utility", "size": (16, 16), "position": (64, 640)}
 }

@@ -39,90 +39,6 @@ class Scene:
         self.spawn_enemy()
         self.spawn_enemy()
         self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
 
     def spawn_enemy(self):
         new_enemy = SlimeEnemy()
@@ -183,7 +99,7 @@ class Scene:
 
         try:
             breaking_item = self.chunks[break_chunk_position][break_block_position]
-            if self.inventory.is_block(item=self.chunks[break_chunk_position][break_block_position]) and within_reach:
+            if self.inventory.item_type(item=self.chunks[break_chunk_position][break_block_position]) == "block" and within_reach:
                 self.inventory.add_item(item=breaking_item)
                 del self.chunks[break_chunk_position][break_block_position]
         except KeyError:
@@ -286,11 +202,10 @@ class Scene:
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # left mouse click
-                    if held_item == "pickaxe":
+                    if self.inventory.item_type(item=held_item) == "pickaxe":
                         self.break_block()
                 if event.button == 3:  # right mouse click
-                    if self.inventory.is_block(item=held_item):
-                        # self.place_block(chunks=surrounding_chunks, held_item=held_item)
+                    if self.inventory.item_type(item=held_item) == "block":
                         self.place_block(held_item=held_item)
 
 
@@ -304,14 +219,14 @@ class Scene:
                 enemy.attack_update(player=self.player, dt=dt)
                 enemy.update(chunks=surrounding_chunks, dt=dt)
                 enemy.draw(screen=self.screen, camera_offset=self.camera_offset)
-                if held_item == "sword":
+                if self.inventory.item_type(item=held_item) == "sword":
                     self.player.attack(enemy=enemy, camera_offset=self.camera_offset, dt=dt)
             else:
                 self.enemies.remove(enemy)
 
             if enemy.health <= 0:
                 self.enemies.remove(enemy)
-                self.inventory.add_item(item="stone")  # TODO: change stone to slime and add slime texture
+                self.inventory.add_item(item="slime")  # TODO: change stone to slime and add slime texture
 
         self.player.update(chunks=surrounding_chunks, dt=dt)
         self.player.draw(screen=self.screen, camera_offset=self.camera_offset)
