@@ -1,6 +1,5 @@
 import math
 import random
-import sys
 
 import pygame
 from opensimplex import *
@@ -37,6 +36,71 @@ class Scene:
         self.player = Player()
 
         self.enemies = []
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
+        self.spawn_enemy()
         self.spawn_enemy()
         self.spawn_enemy()
         self.spawn_enemy()
@@ -229,9 +293,6 @@ class Scene:
                         # self.place_block(chunks=surrounding_chunks, held_item=held_item)
                         self.place_block(held_item=held_item)
 
-        self.inventory.update()
-        self.player.update(chunks=surrounding_chunks, dt=dt)
-        self.player.draw(screen=self.screen, camera_offset=self.camera_offset)
 
         for enemy in self.enemies:
             relative_chunk_position = (
@@ -252,6 +313,9 @@ class Scene:
                 self.enemies.remove(enemy)
                 self.inventory.add_item(item="stone")  # TODO: change stone to slime and add slime texture
 
+        self.player.update(chunks=surrounding_chunks, dt=dt)
+        self.player.draw(screen=self.screen, camera_offset=self.camera_offset)
+        self.inventory.update()
         self.inventory.draw()
 
     def save_world_to_json(self, world_name):
