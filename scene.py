@@ -25,8 +25,6 @@ class Scene:
         self.inventory = Inventory(screen=self.screen, textures=self.block_textures,
                                    inventory_name=inventory_name)
 
-        self.player = Player()
-
         self.precise_camera_offset = [0, 0]
         self.camera_offset = [0, 0]
 
@@ -35,8 +33,14 @@ class Scene:
         self.lower_cave_threshold = 0.015
         self.upper_cave_threshold = 0.7
 
+        self.player = Player()
+
         self.enemies = []
         self.spawn_enemy()
+        # self.spawn_enemy()
+        # self.spawn_enemy()
+        # self.spawn_enemy()
+        # self.spawn_enemy()
 
     def spawn_enemy(self):
         new_enemy = SlimeEnemy()
@@ -161,26 +165,26 @@ class Scene:
         self.screen.fill("#5c7cf4")
 
         neighbour_chunk_offsets = [
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top left
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE)),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top right
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top left
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top right
 
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Left
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE)),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Middle
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Right
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Left
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Middle
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Right
 
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom left
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE)),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom
-            (int(self.player.rect.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
-             int(self.player.rect.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom right
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom left
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom
+            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom right
         ]
 
         surrounding_chunks = {}
@@ -234,6 +238,7 @@ class Scene:
 
             if enemy.health <= 0:
                 self.enemies.remove(enemy)
+                self.inventory.add_item(item="stone")  # TODO: change stone to slime and add slime texture
 
         self.inventory.draw()
 

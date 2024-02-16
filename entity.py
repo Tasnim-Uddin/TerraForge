@@ -25,12 +25,9 @@ class Entity:
 
         self.health = DEFAULT_HEALTH
 
-    def horizontal_collision(self, chunks, block_textures):
-        if self.x <= 0:
-            self.x = 0
-
-        for chunk in chunks:
-            for block in chunks[chunk]:
+    def horizontal_collision(self, surrounding_chunks, block_textures):
+        for chunk in surrounding_chunks:
+            for block in surrounding_chunks[chunk]:
                 block_rect = block.create_rect(block=block, block_textures=block_textures)
                 if block_rect.colliderect(self.rect):
                     if self.velocity[0] > 0:
@@ -40,9 +37,9 @@ class Entity:
                     self.velocity[0] = 0
                     return
 
-    def vertical_collision(self, chunks, block_textures):
-        for chunk in chunks:
-            for block in chunks[chunk]:
+    def vertical_collision(self, surrounding_chunks, block_textures):
+        for chunk in surrounding_chunks:
+            for block in surrounding_chunks[chunk]:
                 block_rect = block.create_rect(block=block, block_textures=block_textures)
                 if block_rect.colliderect(self.rect):
                     if self.velocity[1] > 0:
@@ -58,12 +55,12 @@ class Entity:
 
         self.y += self.velocity[1] * dt
         self.rect.y = self.y
-        self.vertical_collision(chunks=chunks, block_textures=block_textures)
+        self.vertical_collision(surrounding_chunks=chunks, block_textures=block_textures)
         self.rect.y = self.y
 
         self.x += self.velocity[0] * dt
         self.rect.x = self.x
-        self.horizontal_collision(chunks=chunks, block_textures=block_textures)
+        self.horizontal_collision(surrounding_chunks=chunks, block_textures=block_textures)
         self.rect.x = self.x
 
     def update(self, chunks, block_textures, dt):
@@ -94,4 +91,3 @@ class Entity:
         lost_health_rect = pygame.Rect(self.rect.x - camera_offset[0] + (health_bar_width - lost_health_width),
                                        self.y - camera_offset[1] - 10, lost_health_width, health_bar_height)
         pygame.draw.rect(screen, (255, 0, 0), lost_health_rect)
-

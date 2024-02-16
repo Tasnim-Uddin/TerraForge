@@ -103,7 +103,7 @@ class Player(Entity):
     @staticmethod
     def death_screen(screen):
         font = pygame.font.Font(None, 100)  # Choose font and size
-        text_surface = font.render("Wasted", True, (255, 0, 0))  # Render the text with red color
+        text_surface = font.render("wasted", True, (255, 0, 0))  # Render the text with red color
         text_rect = text_surface.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))  # Position the text
         death_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))  # Create a surface for death screen
         death_surface.fill((0, 0, 0))  # Fill the surface with black

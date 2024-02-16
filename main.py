@@ -62,7 +62,6 @@ class Game:
 
                 if self.scene.player.health <= 0:
                     self.scene.player.death_screen(screen=self.screen)
-                    self.running = False
                     self.quit_game()
 
             self.scene.draw(dt=dt)

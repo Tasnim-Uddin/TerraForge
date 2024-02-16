@@ -32,7 +32,7 @@ class SlimeEnemy(Entity):
         }
 
         self.attack_cooldown = 0
-        self.attack_interval = 0.5
+        self.attack_interval = 1
 
     def random_movement(self):
         if self.direction_timer <= 0:
@@ -75,7 +75,7 @@ class SlimeEnemy(Entity):
                 # Perform the attack
                 if self.attack_cooldown <= 0:
                     # Attack the player, deduct health
-                    player.health -= 1  # Adjust the amount of health deduction as needed
+                    player.health -= 10  # Adjust the amount of health deduction as needed
                 # Reset the cooldown
                 self.attack_cooldown = self.attack_interval
             else:
