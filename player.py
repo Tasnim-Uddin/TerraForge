@@ -8,11 +8,11 @@ from entity import Entity
 class Player(Entity):
     def __init__(self):
         idle_image = pygame.transform.scale(surface=pygame.image.load(file="assets/player.png").convert_alpha(),
-                                            size=(BLOCK_SIZE, 1 * BLOCK_SIZE))
+                                            size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
         right_image = pygame.transform.scale(surface=pygame.image.load(file="assets/right_player.png").convert_alpha(),
-                                             size=(BLOCK_SIZE, 1 * BLOCK_SIZE))
+                                             size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
         left_image = pygame.transform.scale(surface=pygame.image.load(file="assets/left_player.png").convert_alpha(),
-                                             size=(BLOCK_SIZE, 1 * BLOCK_SIZE))
+                                             size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
         super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
 
         self.attack_cooldown = 0
@@ -55,8 +55,8 @@ class Player(Entity):
             self.on_ground = False
             self.velocity[1] = -PLAYER_JUMP_HEIGHT
 
-    def movement(self, chunks, dt):
-        super().movement(chunks=chunks, dt=dt)
+    def movement(self, surrounding_chunks, dt):
+        super().movement(surrounding_chunks=surrounding_chunks, dt=dt)
         self.get_input()
         self.set_velocity()
 
@@ -116,16 +116,16 @@ class Player(Entity):
             death_surface.set_alpha(alpha)
             screen.blit(death_surface, (0, 0))
             pygame.display.update()
-            pygame.time.delay(20)  # in ms
+            pygame.time.delay(20)
             alpha += 1
 
         # Delay before rendering the "Wasted" text
-        pygame.time.delay(500)  # in ms
+        pygame.time.delay(500)
 
         # Blit the text onto the screen after the delay
         screen.blit(text_surface, text_rect)
         pygame.display.update()
 
         # # After the text is rendered, wait for a while before game ends
-        pygame.time.delay(2000)  # in ms
+        pygame.time.delay(2000)
 

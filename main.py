@@ -40,6 +40,8 @@ class Game:
 
     def run(self):
         dt = 0
+        invincibility_duration = 1000  # Duration of invincibility
+        invincibility_end_time = pygame.time.get_ticks() + invincibility_duration
         while self.running:
             self.menu_events()
 
@@ -49,11 +51,12 @@ class Game:
             current_time = pygame.time.get_ticks()
             elapsed_time = current_time - self.start_time
 
-            buffer_time = 100  # in ms (to ensure player loaded above ground and health is not starting at < 100)
+            buffer_time = 1  # To ensure player starts off above ground
 
             if elapsed_time >= buffer_time:
                 dt = self.clock.tick(FRAMES_PER_SECOND) / 1000
-            else:
+
+            if current_time <= invincibility_end_time:
                 self.scene.player.health = 100
 
             EventManager.queue_events()
@@ -63,7 +66,6 @@ class Game:
                     self.quit_game()
 
             if self.scene.player.health <= 0:
-                print("yes dead")
                 self.scene.player.death_screen(screen=self.screen)
                 self.quit_game()
 

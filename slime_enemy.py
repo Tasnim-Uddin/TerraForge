@@ -20,7 +20,7 @@ class SlimeEnemy(Entity):
         # Randomly spawn the enemy within the game world
         self.x = random.randint(a=1000, b=1500)
 
-        self.attack_distance = 15 * BLOCK_SIZE  # Define the distance at which the enemy starts attacking
+        self.attack_distance = 2 * BLOCK_SIZE  # Define the distance at which the enemy starts attacking
 
         self.direction_timer = 0
         self.random_direction = None
@@ -48,9 +48,9 @@ class SlimeEnemy(Entity):
                 self.velocity[0] = -ENEMY_HORIZONTAL_SPEED
                 self.directions["right"] = False
             elif self.random_direction == "idle":
+                self.velocity[0] = 0
                 self.directions["right"] = False
                 self.directions["left"] = False
-                self.velocity[0] = 0
         self.jump()
 
     def jump(self):
@@ -70,8 +70,17 @@ class SlimeEnemy(Entity):
         elif distance <= self.attack_distance:  # If player is within attack range
             if distance != 0:
                 self.velocity[0] = dx / distance * speed
+                if self.velocity[0] < 0:
+                    self.directions["left"] = True
+                    self.directions["right"] = False
+                elif self.velocity[0] > 0:
+                    self.directions["right"] = True
+                    self.directions["left"] = False
             elif distance == 0:
                 self.velocity[0] = 0
+                self.directions["idle"] = True
+                self.directions["left"] = False
+                self.directions["right"] = False
             self.velocity[1] += GRAVITY * dt
             self.jump()
             if self.rect.colliderect(player.rect):

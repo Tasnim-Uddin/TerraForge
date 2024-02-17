@@ -23,42 +23,30 @@ class Entity:
         }
         self.on_ground = False
 
+        self.surrounding_blocks = []
+        self.surrounding_block_rects = []
+
         self.health = DEFAULT_HEALTH
 
-    def horizontal_collision(self, surrounding_chunks):
-        if self.x <= 0:
-            self.x = 0
+    def get_surrounding_blocks(self, surrounding_chunks):
+        self.surrounding_blocks = []
+        for entity_block_y_offset in range(-self.rect.height // BLOCK_SIZE + 1, self.rect.height // BLOCK_SIZE + 1):
+            for entity_block_x_offset in range(-self.rect.width // BLOCK_SIZE + 1, self.rect.width // BLOCK_SIZE + 1):
+                self.surrounding_blocks.append((
+                    int((self.x // BLOCK_SIZE) + entity_block_x_offset),
+                    int((self.y // BLOCK_SIZE) + entity_block_y_offset)
+                ))
 
-        # TODO: this is for 1x1, make algorithm for all sizes (e.g. if player is 1x2 or enemy is 3x3 etc
-        surrounding_blocks = [
-            (int(self.x // BLOCK_SIZE - 1),
-             int(self.y // BLOCK_SIZE + 1)),  # Top left
-            (int(self.x // BLOCK_SIZE),
-             int(self.y // BLOCK_SIZE + 1)),  # Top
-            (int(self.x // BLOCK_SIZE + 1),
-             int(self.y // BLOCK_SIZE + 1)),  # Top right
-
-            (int(self.x // BLOCK_SIZE - 1),
-             int(self.y // BLOCK_SIZE)),  # Left
-            (int(self.x // BLOCK_SIZE),
-             int(self.y // BLOCK_SIZE)),  # Middle
-            (int(self.x // BLOCK_SIZE + 1),
-             int(self.y // BLOCK_SIZE)),  # Right
-
-            (int(self.x // BLOCK_SIZE - 1),
-             int(self.y // BLOCK_SIZE - 1)),  # Bottom left
-            (int(self.x // BLOCK_SIZE),
-             int(self.y // BLOCK_SIZE - 1)),  # Bottom
-            (int(self.x // BLOCK_SIZE + 1),
-             int(self.y // BLOCK_SIZE - 1)),  # Bottom right
-        ]
-
-        surrounding_block_rects = []
-        for block in surrounding_blocks:
+        self.surrounding_block_rects = []
+        for block in self.surrounding_blocks:
             if (int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT)) in surrounding_chunks and block in \
                     surrounding_chunks[(int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT))]:
                 block_rect = pygame.Rect(block[0] * BLOCK_SIZE, block[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-                surrounding_block_rects.append(block_rect)
+                self.surrounding_block_rects.append(block_rect)
+
+    def horizontal_collision(self, surrounding_block_rects):
+        if self.x <= 0:
+            self.x = 0
 
         for block_rect in surrounding_block_rects:
             if self.rect.colliderect(block_rect):
@@ -69,38 +57,7 @@ class Entity:
                 self.velocity[0] = 0
                 return
 
-    def vertical_collision(self, surrounding_chunks):
-        # TODO: this is for 1x1, make algorithm for all sizes (e.g. if player is 1x2 or enemy is 3x3 etc
-        surrounding_blocks = [
-            (int(self.x // BLOCK_SIZE - 1),
-             int(self.y // BLOCK_SIZE + 1)),  # Top left
-            (int(self.x // BLOCK_SIZE),
-             int(self.y // BLOCK_SIZE + 1)),  # Top
-            (int(self.x // BLOCK_SIZE + 1),
-             int(self.y // BLOCK_SIZE + 1)),  # Top right
-
-            (int(self.x // BLOCK_SIZE - 1),
-             int(self.y // BLOCK_SIZE)),  # Left
-            (int(self.x // BLOCK_SIZE),
-             int(self.y // BLOCK_SIZE)),  # Middle
-            (int(self.x // BLOCK_SIZE + 1),
-             int(self.y // BLOCK_SIZE)),  # Right
-
-            (int(self.x // BLOCK_SIZE - 1),
-             int(self.y // BLOCK_SIZE - 1)),  # Bottom left
-            (int(self.x // BLOCK_SIZE),
-             int(self.y // BLOCK_SIZE - 1)),  # Bottom
-            (int(self.x // BLOCK_SIZE + 1),
-             int(self.y // BLOCK_SIZE - 1)),  # Bottom right
-        ]
-
-        surrounding_block_rects = []
-        for block in surrounding_blocks:
-            if (int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT)) in surrounding_chunks and block in \
-                    surrounding_chunks[(int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT))]:
-                block_rect = pygame.Rect(block[0] * BLOCK_SIZE, block[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-                surrounding_block_rects.append(block_rect)
-
+    def vertical_collision(self, surrounding_block_rects):
         for block_rect in surrounding_block_rects:
             if self.rect.colliderect(block_rect):
                 if self.velocity[1] > 0:
@@ -111,23 +68,32 @@ class Entity:
                 self.velocity[1] = 0
                 return
 
-    def movement(self, chunks, dt):
+    def movement(self, surrounding_chunks, dt):
         self.velocity[1] += GRAVITY * dt
 
         self.y += self.velocity[1] * dt
         self.rect.y = self.y
-        self.vertical_collision(surrounding_chunks=chunks)
+        self.get_surrounding_blocks(surrounding_chunks=surrounding_chunks)
+        self.vertical_collision(surrounding_block_rects=self.surrounding_block_rects)
         self.rect.y = self.y
 
         self.x += self.velocity[0] * dt
         self.rect.x = self.x
-        self.horizontal_collision(surrounding_chunks=chunks)
+        self.get_surrounding_blocks(surrounding_chunks=surrounding_chunks)
+        self.horizontal_collision(surrounding_block_rects=self.surrounding_block_rects)
         self.rect.x = self.x
 
     def update(self, chunks, dt):
-        self.movement(chunks=chunks, dt=dt)
+        self.movement(surrounding_chunks=chunks, dt=dt)
 
     def draw(self, screen, camera_offset):
+        # for block in self.surrounding_blocks:
+        #     pygame.draw.rect(surface=screen, color="white",
+        #                      rect=pygame.Rect(block[0] * BLOCK_SIZE - camera_offset[0],
+        #                                       block[1] * BLOCK_SIZE - camera_offset[1],
+        #                                       BLOCK_SIZE, BLOCK_SIZE),
+        #                      width=2)
+
         if self.directions["idle"]:
             screen.blit(self.image, (self.x - camera_offset[0], self.y - camera_offset[1]))
         if self.directions["left"]:

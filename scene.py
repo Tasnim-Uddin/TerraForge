@@ -146,28 +146,36 @@ class Scene:
         # Sky colour
         self.screen.fill("#5c7cf4")
 
-        neighbour_chunk_offsets = [
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top left
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top right
+        # neighbour_chunk_offsets = [
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top left
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + 1)),  # Top right
+        #
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Left
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Middle
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Right
+        #
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom left
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom
+        #     (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
+        #      int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom right
+        # ]
 
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Left
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Middle
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE))),  # Right
-
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) - 1),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom left
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE)),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom
-            (int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + 1),
-             int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) - 1)),  # Bottom right
-        ]
+        neighbour_chunk_offsets = []
+        for chunk_y_offset in range(-1, 2):
+            for chunk_x_offset in range(-1, 2):
+                neighbour_chunk_offsets.append((
+                    int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + chunk_x_offset),
+                    int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + chunk_y_offset)
+                ))
 
         surrounding_chunks = {}
         for offset in neighbour_chunk_offsets:
@@ -234,7 +242,7 @@ class Scene:
         world_path = os.path.join(WORLD_SAVE_FOLDER, f"{world_name}.json")
         # Convert tuple keys to strings
         serialised_chunks = {f"{chunk_position[0]};{chunk_position[1]}": {f"{block_position[0]};{block_position[1]}": block for block_position, block in blocks_dict.items()} for chunk_position, blocks_dict in self.chunks.items()}
-        # Save serialised chunks to a JSON file
+        # Save serialised surrounding_chunks to a JSON file
         with open(world_path, "w") as json_file:
             json.dump(serialised_chunks, json_file)
 
@@ -243,7 +251,7 @@ class Scene:
         world_path = os.path.join(WORLD_SAVE_FOLDER, f"{world_name}.json")
         if os.path.exists(world_path):
 
-            # Load serialized chunks from the JSON file
+            # Load serialized surrounding_chunks from the JSON file
             with open(world_path, "r") as json_file:
                 serialised_chunks = json.load(json_file)
             # Convert string keys back to tuples
