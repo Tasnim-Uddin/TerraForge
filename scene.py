@@ -36,8 +36,6 @@ class Scene:
 
         self.enemies = []
         self.spawn_enemy()
-        self.spawn_enemy()
-        self.spawn_enemy()
 
     def spawn_enemy(self):
         new_enemy = SlimeEnemy()

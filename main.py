@@ -49,7 +49,7 @@ class Game:
             current_time = pygame.time.get_ticks()
             elapsed_time = current_time - self.start_time
 
-            buffer_time = 1  # in ms (should make this as small as possible but not 0)
+            buffer_time = 100  # in ms (to ensure player loaded above ground and health is not starting at < 100)
 
             if elapsed_time >= buffer_time:
                 dt = self.clock.tick(FRAMES_PER_SECOND) / 1000
@@ -62,9 +62,10 @@ class Game:
                     self.running = False
                     self.quit_game()
 
-                if self.scene.player.health <= 0:
-                    self.scene.player.death_screen(screen=self.screen)
-                    self.quit_game()
+            if self.scene.player.health <= 0:
+                print("yes dead")
+                self.scene.player.death_screen(screen=self.screen)
+                self.quit_game()
 
             self.scene.draw(dt=dt)
             self.screen.blit(

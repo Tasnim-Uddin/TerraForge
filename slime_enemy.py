@@ -32,7 +32,7 @@ class SlimeEnemy(Entity):
         }
 
         self.attack_cooldown = 0
-        self.attack_interval = 1
+        self.attack_interval = 15
 
     def random_movement(self):
         if self.direction_timer <= 0:
@@ -67,17 +67,19 @@ class SlimeEnemy(Entity):
 
         if distance > self.attack_distance:  # If player is out of attack range, perform random movement
             self.random_movement()
-        elif distance <= self.attack_distance and distance != 0:  # If player is within attack range
-            self.velocity[0] = dx / distance * speed
+        elif distance <= self.attack_distance:  # If player is within attack range
+            if distance != 0:
+                self.velocity[0] = dx / distance * speed
+            elif distance == 0:
+                self.velocity[0] = 0
             self.velocity[1] += GRAVITY * dt
             self.jump()
             if self.rect.colliderect(player.rect):
                 # Perform the attack
                 if self.attack_cooldown <= 0:
                     # Attack the player, deduct health
-                    player.health -= 10  # Adjust the amount of health deduction as needed
-                # Reset the cooldown
-                self.attack_cooldown = self.attack_interval
-            else:
-                # Reduce the cooldown timer
-                self.attack_cooldown -= dt * 10
+                    player.health -= 5  # Adjust the amount of health deduction as needed
+                    # Reset the cooldown
+                    self.attack_cooldown = self.attack_interval
+        # Reduce the cooldown timer
+        self.attack_cooldown -= dt * 10

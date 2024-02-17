@@ -112,20 +112,20 @@ class Player(Entity):
         alpha = 0
 
         # Gradually increase the alpha value to create a smooth transition
-        while alpha <= 255:
+        while alpha <= 50:
             death_surface.set_alpha(alpha)
             screen.blit(death_surface, (0, 0))
             pygame.display.update()
-            pygame.time.delay(10)
+            pygame.time.delay(20)  # in ms
             alpha += 1
 
         # Delay before rendering the "Wasted" text
-        pygame.time.delay(200)  # in ms
+        pygame.time.delay(500)  # in ms
 
         # Blit the text onto the screen after the delay
         screen.blit(text_surface, text_rect)
         pygame.display.update()
 
-        # After the text is rendered, wait for a while before game ends
-        pygame.time.delay(3000)  # in ms
+        # # After the text is rendered, wait for a while before game ends
+        pygame.time.delay(2000)  # in ms
 
