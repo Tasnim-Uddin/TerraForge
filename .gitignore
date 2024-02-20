@@ -1,7 +1,8 @@
-# Game-related folders that are not required to be saved here
+# Game-related that are not required to be saved here
 examples/
 player_save_files/
 world_save_files/
+user_database.db
 
 
 # Byte-compiled / optimized / DLL files
