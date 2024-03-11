@@ -18,7 +18,8 @@ class Inventory:
         self.active_column = 0
         self.selected_item = self.inventory_items[(self.active_row, self.active_column)]["item"]
 
-        self.font = pygame.font.Font(filename=None, size=30)
+        self.slot_font = pygame.font.Font(filename=None, size=20)
+        self.quantity_font = pygame.font.Font(filename=None, size=30)
 
         self.inventory_expanded = False
         self.clicked_slot_position = None
@@ -198,9 +199,12 @@ class Inventory:
                         source=pygame.transform.scale(surface=self.textures[item_data["item"]], size=(BLOCK_SIZE, BLOCK_SIZE)),
                         dest=(padding_x + (BLOCK_SIZE * 2) * column_slot_number,
                          padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))
-                    quantity_text = self.font.render(text=str(item_data["quantity"]), antialias=True, color="#fc0015")
-                    self.screen.blit(source=quantity_text, dest=(
+                    slot_text = self.slot_font.render(text=str(item_data["quantity"]), antialias=True, color="#c0c2c0")
+                    quantity_text = self.quantity_font.render(text=str(item_data["quantity"]), antialias=True, color="white")
+                    self.screen.blit(source=slot_text, dest=(
                         (BLOCK_SIZE * 2) * column_slot_number + 5, (BLOCK_SIZE * 2) * true_item_row_slot_number + 5))
+                    self.screen.blit(source=quantity_text, dest=(
+                        (BLOCK_SIZE * 2) * column_slot_number + 20, (BLOCK_SIZE * 2) * true_item_row_slot_number + 40))
 
         if not self.inventory_expanded:
             pygame.draw.rect(surface=self.screen, color="black",
