@@ -199,10 +199,9 @@ class Inventory:
                         source=pygame.transform.scale(surface=self.textures[item_data["item"]], size=(BLOCK_SIZE, BLOCK_SIZE)),
                         dest=(padding_x + (BLOCK_SIZE * 2) * column_slot_number,
                          padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))
-                    slot_text = self.slot_font.render(text=str(item_data["quantity"]), antialias=True, color="#c0c2c0")
-                    quantity_text = self.quantity_font.render(text=str(item_data["quantity"]), antialias=True, color="white")
-                    self.screen.blit(source=slot_text, dest=(
-                        (BLOCK_SIZE * 2) * column_slot_number + 5, (BLOCK_SIZE * 2) * true_item_row_slot_number + 5))
+
+                    quantity_text = self.quantity_font.render(text=str(item_data["quantity"]), antialias=True,
+                                                              color="white")
                     self.screen.blit(source=quantity_text, dest=(
                         (BLOCK_SIZE * 2) * column_slot_number + 20, (BLOCK_SIZE * 2) * true_item_row_slot_number + 40))
 
@@ -210,6 +209,11 @@ class Inventory:
             pygame.draw.rect(surface=self.screen, color="black",
                              rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * COLUMN_SLOTS, BLOCK_SIZE * 2),
                              width=2)
+            for column_slot_number in range(1, COLUMN_SLOTS + 1):
+                slot_text = self.slot_font.render(text=str(column_slot_number), antialias=True, color="#c0c2c0")
+                self.screen.blit(source=slot_text, dest=(
+                    (BLOCK_SIZE * 2) * column_slot_number + 5, (BLOCK_SIZE * 2) * 1 + 5))
+
         if self.inventory_expanded:
             pygame.draw.rect(surface=self.screen, color="black",
                              rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * COLUMN_SLOTS, (BLOCK_SIZE * 2) * 3),
