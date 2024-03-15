@@ -129,3 +129,8 @@ class Player(Entity):
         # # After the text is rendered, wait for a while before game ends
         pygame.time.delay(2000)
 
+    def get_player_health(self):
+        return self.health
+
+    def set_player_health(self, health):
+        self.health = health

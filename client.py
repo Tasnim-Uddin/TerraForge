@@ -4,7 +4,7 @@ import os
 import requests
 from global_constants import PLAYER_SAVE_FOLDER, WORLD_SAVE_FOLDER
 
-SERVER_URL = "http://192.168.0.80:5000"
+SERVER_URL = "http://10.192.46.106:5000"
 
 
 class Client:

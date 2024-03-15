@@ -12,18 +12,21 @@ from slime_enemy import SlimeEnemy
 
 
 class Scene:
-    def __init__(self, screen, world_name, inventory_name):
+    def __init__(self, game):
 
-        self.screen = screen
+        self.screen = game.screen
+
+        self.__inventory_name = game.get_player_name()
+        self.__world_name = game.get_world_name()
 
         self.block_textures = self.load_block_sprites()
 
-        self.chunks = self.load_world_from_json(world_name=world_name)
+        self.__chunks = self.load_world_from_json()
 
         # {(chunk_x, chunk_y): {(block_x, block_y): "block_type"}}  block_type is "grass", "dirt", "stone", ...
 
         self.inventory = Inventory(screen=self.screen, textures=self.block_textures,
-                                   inventory_name=inventory_name)
+                                   inventory_name=self.__inventory_name)
 
         self.precise_camera_offset = [0, 0]
         self.camera_offset = [0, 0]
@@ -33,14 +36,17 @@ class Scene:
         self.lower_cave_threshold = 0.015
         self.upper_cave_threshold = 0.7
 
-        self.player = Player()
+        self.__player = Player()
 
-        self.enemies = []
-        self.spawn_enemy()
+        self.__enemies = []
+        self.__spawn_enemy()
 
-    def spawn_enemy(self):
+    def get_player(self):
+        return self.__player
+
+    def __spawn_enemy(self):
         new_enemy = SlimeEnemy()
-        self.enemies.append(new_enemy)
+        self.__enemies.append(new_enemy)
 
     @staticmethod
     def load_block_sprites():
@@ -75,19 +81,19 @@ class Scene:
                     air_in_cave = True
 
                 if real_y + height_noise == 0:
-                    self.chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "grass"
+                    self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "grass"
                 elif 0 < (real_y + height_noise) <= 10 * BLOCK_SIZE:
-                    self.chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "dirt"
+                    self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "dirt"
                 if 10 * BLOCK_SIZE < (real_y + height_noise):
                     if not air_in_cave:
-                        self.chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "stone"
+                        self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "stone"
 
     def break_block(self):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
+        within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.__player.rect.centerx) ** 2 + (
                 mouse_position[1] + self.camera_offset[
-            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
+            1] - self.__player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
 
         break_chunk_position = (int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE)),
                                 int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE)))
@@ -96,20 +102,20 @@ class Scene:
                                 int((mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
 
         try:
-            breaking_item = self.chunks[break_chunk_position][break_block_position]
+            breaking_item = self.__chunks[break_chunk_position][break_block_position]
             if self.inventory.item_type(
-                    item=self.chunks[break_chunk_position][break_block_position]) == "block" and within_reach:
+                    item=self.__chunks[break_chunk_position][break_block_position]) == "block" and within_reach:
                 self.inventory.add_item(item=breaking_item)
-                del self.chunks[break_chunk_position][break_block_position]
+                del self.__chunks[break_chunk_position][break_block_position]
         except KeyError:
             pass
 
     def place_block(self, held_item):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool((((mouse_position[0] + self.camera_offset[0] - self.player.rect.centerx) ** 2 + (
+        within_reach = bool((((mouse_position[0] + self.camera_offset[0] - self.__player.rect.centerx) ** 2 + (
                 mouse_position[1] + self.camera_offset[
-            1] - self.player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE <= REACH)
+            1] - self.__player.rect.centery) ** 2) ** 0.5) / BLOCK_SIZE <= REACH)
 
         place_chunk_position = (int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE)),
                                 int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE)))
@@ -118,26 +124,26 @@ class Scene:
                                 int((mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
 
         block_exists = bool(
-            place_chunk_position in self.chunks and place_block_position in self.chunks[place_chunk_position])
+            place_chunk_position in self.__chunks and place_block_position in self.__chunks[place_chunk_position])
 
         # To make sure that the block cannot be placed within the block grid a player is on
-        player_max_right = math.ceil(self.player.rect.right / BLOCK_SIZE) * BLOCK_SIZE
-        player_min_left = (self.player.rect.left // BLOCK_SIZE) * BLOCK_SIZE
-        player_min_top = (self.player.rect.top // BLOCK_SIZE) * BLOCK_SIZE
-        player_max_bottom = math.ceil(self.player.rect.bottom / BLOCK_SIZE) * BLOCK_SIZE
+        player_max_right = math.ceil(self.__player.rect.right / BLOCK_SIZE) * BLOCK_SIZE
+        player_min_left = (self.__player.rect.left // BLOCK_SIZE) * BLOCK_SIZE
+        player_min_top = (self.__player.rect.top // BLOCK_SIZE) * BLOCK_SIZE
+        player_max_bottom = math.ceil(self.__player.rect.bottom / BLOCK_SIZE) * BLOCK_SIZE
         player_block_rect = pygame.Rect(player_min_left, player_min_top, player_max_right - player_min_left,
                                         player_max_bottom - player_min_top)
 
         if not block_exists and not player_block_rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                                                    mouse_position[1] + self.camera_offset[
                                                                        1]) and within_reach:
-            self.chunks[place_chunk_position][place_block_position] = held_item
+            self.__chunks[place_chunk_position][place_block_position] = held_item
             self.inventory.remove_item(item=held_item)
 
     def draw(self, dt):
-        self.precise_camera_offset[0] += (self.player.rect.centerx - self.precise_camera_offset[
+        self.precise_camera_offset[0] += (self.__player.rect.centerx - self.precise_camera_offset[
             0] - WINDOW_WIDTH / 2) / HORIZONTAL_SCROLL_DELAY_FACTOR
-        self.precise_camera_offset[1] += (self.player.rect.centery - self.precise_camera_offset[
+        self.precise_camera_offset[1] += (self.__player.rect.centery - self.precise_camera_offset[
             1] - WINDOW_HEIGHT / 2) / VERTICAL_SCROLL_DELAY_FACTOR
 
         self.camera_offset[0] = int(self.precise_camera_offset[0])
@@ -173,18 +179,18 @@ class Scene:
         for chunk_y_offset in range(-1, 2):
             for chunk_x_offset in range(-1, 2):
                 neighbour_chunk_offsets.append((
-                    int(self.player.x // (CHUNK_WIDTH * BLOCK_SIZE) + chunk_x_offset),
-                    int(self.player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + chunk_y_offset)
+                    int(self.__player.x // (CHUNK_WIDTH * BLOCK_SIZE) + chunk_x_offset),
+                    int(self.__player.y // (CHUNK_HEIGHT * BLOCK_SIZE) + chunk_y_offset)
                 ))
 
         surrounding_chunks = {}
         for offset in neighbour_chunk_offsets:
-            if (offset[0], offset[1]) not in self.chunks:
-                self.chunks[(offset[0], offset[1])] = {}
+            if (offset[0], offset[1]) not in self.__chunks:
+                self.__chunks[(offset[0], offset[1])] = {}
                 self.generate_chunk(offset, key=(offset[0], offset[1]))
             if (offset[0], offset[1]) not in surrounding_chunks:
                 surrounding_chunks[(offset[0], offset[1])] = []
-            surrounding_chunks[(offset[0], offset[1])] = self.chunks.get((offset[0], offset[1]), [])
+            surrounding_chunks[(offset[0], offset[1])] = self.__chunks.get((offset[0], offset[1]), [])
 
             # self.screen.fblits(
             #     [(self.block_textures[block],
@@ -213,32 +219,32 @@ class Scene:
                     if self.inventory.item_type(item=held_item) == "block":
                         self.place_block(held_item=held_item)
 
-        for enemy in self.enemies:
+        for enemy in self.__enemies:
             relative_chunk_position = (
                 int(enemy.x // (CHUNK_WIDTH * BLOCK_SIZE)),
                 int(enemy.y // (CHUNK_HEIGHT * BLOCK_SIZE))
             )
             # Check if the relative chunk position is in surrounding_chunks
             if relative_chunk_position in surrounding_chunks:
-                enemy.attack_update(player=self.player, dt=dt)
+                enemy.attack_update(player=self.__player, dt=dt)
                 enemy.update(chunks=surrounding_chunks, dt=dt)
                 enemy.draw(screen=self.screen, camera_offset=self.camera_offset)
                 if self.inventory.item_type(item=held_item) == "sword":
-                    self.player.attack(enemy=enemy, camera_offset=self.camera_offset, dt=dt)
+                    self.__player.attack(enemy=enemy, camera_offset=self.camera_offset, dt=dt)
             else:
-                self.enemies.remove(enemy)
+                self.__enemies.remove(enemy)
 
             if enemy.health <= 0:
-                self.enemies.remove(enemy)
+                self.__enemies.remove(enemy)
                 self.inventory.add_item(item="slime")
 
-        self.player.update(chunks=surrounding_chunks, dt=dt)
-        self.player.draw(screen=self.screen, camera_offset=self.camera_offset)
+        self.__player.update(chunks=surrounding_chunks, dt=dt)
+        self.__player.draw(screen=self.screen, camera_offset=self.camera_offset)
         self.inventory.update()
         self.inventory.draw()
 
-    def save_world_to_json(self, world_name):
-        world_path = os.path.join(WORLD_SAVE_FOLDER, f"{world_name}.json")
+    def save_world_to_json(self):
+        world_path = os.path.join(WORLD_SAVE_FOLDER, f"{self.__world_name}.json")
         # Convert tuple keys to strings
         # serialised_chunks = {
         #     f"{chunk_position[0]};{chunk_position[1]}": {f"{block_position[0]};{block_position[1]}": block for
@@ -246,7 +252,7 @@ class Scene:
         #     chunk_position, blocks_dict in self.chunks.items()}
         serialised_chunks = {}
 
-        for chunk_position, blocks_dict in self.chunks.items():
+        for chunk_position, blocks_dict in self.__chunks.items():
             chunk_key = f"{chunk_position[0]};{chunk_position[1]}"
             serialised_chunks[chunk_key] = {}
 
@@ -257,9 +263,8 @@ class Scene:
         with open(world_path, "w") as json_file:
             json.dump(serialised_chunks, json_file)
 
-    @staticmethod
-    def load_world_from_json(world_name):
-        world_path = os.path.join(WORLD_SAVE_FOLDER, f"{world_name}.json")
+    def load_world_from_json(self):
+        world_path = os.path.join(WORLD_SAVE_FOLDER, f"{self.__world_name}.json")
         if os.path.exists(world_path):
 
             # Load serialized surrounding_chunks from the JSON file

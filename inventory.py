@@ -12,11 +12,11 @@ class Inventory:
         self.screen = screen
         self.textures = textures
 
-        self.inventory_items = self.load_inventory_from_json(inventory_name=inventory_name)
+        self.__inventory_items = self.load_inventory_from_json(inventory_name=inventory_name)
 
         self.active_row = 0
         self.active_column = 0
-        self.selected_item = self.inventory_items[(self.active_row, self.active_column)]["item"]
+        self.__selected_item = self.__inventory_items[(self.active_row, self.active_column)]["item"]
 
         self.slot_font = pygame.font.Font(filename=None, size=20)
         self.quantity_font = pygame.font.Font(filename=None, size=30)
@@ -25,23 +25,25 @@ class Inventory:
         self.clicked_slot_position = None
         self.clicked_once = False
 
+    def get_inventory(self):
+        return self.__inv
     def get_selected_item(self):
-        return self.selected_item
+        return self.__selected_item
 
     def add_item(self, item):
-        for item_data in self.inventory_items.values():
+        for item_data in self.__inventory_items.values():
             if item_data["item"] == item:
                 item_data["quantity"] += 1
                 return
 
-        for item_data in self.inventory_items.values():
+        for item_data in self.__inventory_items.values():
             if item_data["item"] is None:
                 item_data["item"] = item
                 item_data["quantity"] = 1
                 return
 
     def remove_item(self, item):
-        for item_data in self.inventory_items.values():
+        for item_data in self.__inventory_items.values():
             if item_data["item"] == item:
                 item_data["quantity"] -= 1
                 if item_data["quantity"] <= 0:
@@ -114,11 +116,11 @@ class Inventory:
                             if slot_position != self.clicked_slot_position:
                                 slot1_key = self.clicked_slot_position
                                 slot2_key = slot_position
-                                self.inventory_items[slot1_key]["item"], self.inventory_items[slot2_key]["item"] = \
-                                    self.inventory_items[slot2_key]["item"], self.inventory_items[slot1_key]["item"]
+                                self.__inventory_items[slot1_key]["item"], self.__inventory_items[slot2_key]["item"] = \
+                                    self.__inventory_items[slot2_key]["item"], self.__inventory_items[slot1_key]["item"]
 
-                                self.inventory_items[slot1_key]["quantity"], self.inventory_items[slot2_key]["quantity"] = \
-                                    self.inventory_items[slot2_key]["quantity"], self.inventory_items[slot1_key]["quantity"]
+                                self.__inventory_items[slot1_key]["quantity"], self.__inventory_items[slot2_key]["quantity"] = \
+                                    self.__inventory_items[slot2_key]["quantity"], self.__inventory_items[slot1_key]["quantity"]
 
                             self.clicked_slot_position = None
                             self.clicked_once = False
@@ -132,11 +134,11 @@ class Inventory:
                             if slot_position != self.clicked_slot_position:
                                 slot1_key = self.clicked_slot_position
                                 slot2_key = slot_position
-                                self.inventory_items[slot1_key]["item"], self.inventory_items[slot2_key]["item"] = \
-                                    self.inventory_items[slot2_key]["item"], self.inventory_items[slot1_key]["item"]
+                                self.__inventory_items[slot1_key]["item"], self.__inventory_items[slot2_key]["item"] = \
+                                    self.__inventory_items[slot2_key]["item"], self.__inventory_items[slot1_key]["item"]
 
-                                self.inventory_items[slot1_key]["quantity"], self.inventory_items[slot2_key]["quantity"] = \
-                                    self.inventory_items[slot2_key]["quantity"], self.inventory_items[slot1_key]["quantity"]
+                                self.__inventory_items[slot1_key]["quantity"], self.__inventory_items[slot2_key]["quantity"] = \
+                                    self.__inventory_items[slot2_key]["quantity"], self.__inventory_items[slot1_key]["quantity"]
 
                             elif slot_position == self.clicked_slot_position:
                                 pass
@@ -148,7 +150,7 @@ class Inventory:
             slot_position = (self.active_row, self.active_column)
         except IndexError:
             slot_position = (0, COLUMN_SLOTS - 1)
-        self.selected_item = self.inventory_items[slot_position]["item"]
+        self.__selected_item = self.__inventory_items[slot_position]["item"]
 
     def draw(self):
         pygame.draw.rect(surface=self.screen, color="#4444a4",
@@ -163,7 +165,7 @@ class Inventory:
         padding_x = BLOCK_SIZE // 2
         padding_y = BLOCK_SIZE // 2
 
-        for slot_position, item_data in self.inventory_items.items():
+        for slot_position, item_data in self.__inventory_items.items():
             true_item_row_slot_number = slot_position[0]
 
             row_slot_number = 0
@@ -222,9 +224,9 @@ class Inventory:
 
     def get_inventory_to_save(self):
         saved_inventory = {}
-        for slot_position in self.inventory_items:
+        for slot_position in self.__inventory_items:
             json_slot_position = ";".join(map(str, slot_position))  # Convert tuple to string
-            saved_inventory[json_slot_position] = self.inventory_items[slot_position]
+            saved_inventory[json_slot_position] = self.__inventory_items[slot_position]
         return saved_inventory
 
     def save_inventory_to_json(self, inventory_name):
@@ -233,14 +235,13 @@ class Inventory:
         # serialised_inventory = {f"{slot_position[0]};{slot_position[1]}": slot for slot_position, slot in self.inventory_items.items()}
         serialised_inventory = {}
 
-        for slot_position, slot in self.inventory_items.items():
+        for slot_position, slot in self.__inventory_items.items():
             serialised_inventory[f"{slot_position[0]};{slot_position[1]}"] = slot
         # Save serialised inventory to a JSON file
         with open(inventory_path, "w") as json_file:
             json.dump(serialised_inventory, json_file)
 
-    @staticmethod
-    def load_inventory_from_json(inventory_name):
+    def load_inventory_from_json(self, inventory_name):
         inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{inventory_name}.json")
         if os.path.exists(inventory_path):
             # Load serialised inventory from the JSON file
