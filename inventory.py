@@ -8,11 +8,12 @@ from event_manager import EventManager
 
 
 class Inventory:
-    def __init__(self, screen, textures, inventory_name):
+    def __init__(self, game, screen, textures):
         self.screen = screen
         self.textures = textures
 
-        self.__inventory_items = self.load_inventory_from_json(inventory_name=inventory_name)
+        self.__inventory_name = game.get_player_name()
+        self.__inventory_items = self.load_inventory_from_json()
 
         self.active_row = 0
         self.active_column = 0
@@ -25,8 +26,6 @@ class Inventory:
         self.clicked_slot_position = None
         self.clicked_once = False
 
-    def get_inventory(self):
-        return self.__inv
     def get_selected_item(self):
         return self.__selected_item
 
@@ -52,7 +51,7 @@ class Inventory:
                     return
 
     @staticmethod
-    def item_type(item):
+    def get_item_type(item):
         try:
             return all_texture_data[item]["item_type"]
         except KeyError:
@@ -71,7 +70,6 @@ class Inventory:
                         self.clicked_slot_position = None
                         self.clicked_once = False
 
-            if event.type == pygame.KEYDOWN:
                 for key in range(1, COLUMN_SLOTS + 1):
                     if event.key == getattr(pygame, f"K_{key}"):
                         self.active_row = 0
@@ -126,7 +124,7 @@ class Inventory:
                             self.clicked_once = False
 
                 if self.inventory_expanded:
-                    if 0 <= column_slot_number < COLUMN_SLOTS and 0 <= row_slot_number < 3:
+                    if 0 <= column_slot_number < COLUMN_SLOTS and 0 <= row_slot_number < ROW_SLOTS:
                         if not self.clicked_once:
                             self.clicked_slot_position = slot_position
                             self.clicked_once = True
@@ -157,7 +155,7 @@ class Inventory:
                          rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * COLUMN_SLOTS,
                                           BLOCK_SIZE * 2))  # Draw inventory background
         if self.inventory_expanded:
-            for row in range(1, 3):
+            for row in range(1, ROW_SLOTS):
                 pygame.draw.rect(surface=self.screen, color="#4444a4",
                                  rect=pygame.Rect(0, row * BLOCK_SIZE * 2, (BLOCK_SIZE * 2) * COLUMN_SLOTS,
                                                   BLOCK_SIZE * 2))  # Draw inventory background
@@ -197,15 +195,15 @@ class Inventory:
 
             if item_data["item"] is not None:
                 if true_item_row_slot_number == 0 or (true_item_row_slot_number != 0 and self.inventory_expanded):
-                    self.screen.blit(
-                        source=pygame.transform.scale(surface=self.textures[item_data["item"]], size=(BLOCK_SIZE, BLOCK_SIZE)),
-                        dest=(padding_x + (BLOCK_SIZE * 2) * column_slot_number,
-                         padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))
+                    self.screen.fblits([(
+                        pygame.transform.scale(surface=self.textures[item_data["item"]], size=(BLOCK_SIZE, BLOCK_SIZE)),
+                        (padding_x + (BLOCK_SIZE * 2) * column_slot_number,
+                         padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))])
 
                     quantity_text = self.quantity_font.render(text=str(item_data["quantity"]), antialias=True,
                                                               color="black")
-                    self.screen.blit(source=quantity_text, dest=(
-                        (BLOCK_SIZE * 2) * column_slot_number + 20, (BLOCK_SIZE * 2) * true_item_row_slot_number + 40))
+                    self.screen.fblits([(quantity_text, (
+                        (BLOCK_SIZE * 2) * column_slot_number + 20, (BLOCK_SIZE * 2) * true_item_row_slot_number + 40))])
 
         if not self.inventory_expanded:
             pygame.draw.rect(surface=self.screen, color="black",
@@ -214,35 +212,33 @@ class Inventory:
 
         if self.inventory_expanded:
             pygame.draw.rect(surface=self.screen, color="black",
-                             rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * COLUMN_SLOTS, (BLOCK_SIZE * 2) * 3),
+                             rect=pygame.Rect(0, 0, (BLOCK_SIZE * 2) * COLUMN_SLOTS, (BLOCK_SIZE * 2) * ROW_SLOTS),
                              width=2)
 
         for column_slot_number in range(1, COLUMN_SLOTS + 1):
             slot_text = self.slot_font.render(text=str(column_slot_number), antialias=True, color="#c0c2c0")
-            self.screen.blit(source=slot_text, dest=(
-                (BLOCK_SIZE * 2) * (column_slot_number - 1) + 5, + 5))
+            self.screen.fblits([(slot_text, ((BLOCK_SIZE * 2) * (column_slot_number - 1) + 5, + 5))])
 
-    def get_inventory_to_save(self):
-        saved_inventory = {}
-        for slot_position in self.__inventory_items:
-            json_slot_position = ";".join(map(str, slot_position))  # Convert tuple to string
-            saved_inventory[json_slot_position] = self.__inventory_items[slot_position]
-        return saved_inventory
+    # def get_inventory_to_save(self):
+    #     saved_inventory = {}
+    #     for slot_position in self.__inventory_items:
+    #         json_slot_position = ";".join(map(str, slot_position))  # Convert tuple to string
+    #         saved_inventory[json_slot_position] = self.__inventory_items[slot_position]
+    #     return saved_inventory
 
-    def save_inventory_to_json(self, inventory_name):
-        inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{inventory_name}.json")
+    def save_inventory_to_json(self):
+        inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{self.__inventory_name}.json")
         # Convert tuple keys to string representations
         # serialised_inventory = {f"{slot_position[0]};{slot_position[1]}": slot for slot_position, slot in self.inventory_items.items()}
         serialised_inventory = {}
-
         for slot_position, slot in self.__inventory_items.items():
             serialised_inventory[f"{slot_position[0]};{slot_position[1]}"] = slot
         # Save serialised inventory to a JSON file
         with open(inventory_path, "w") as json_file:
             json.dump(serialised_inventory, json_file)
 
-    def load_inventory_from_json(self, inventory_name):
-        inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{inventory_name}.json")
+    def load_inventory_from_json(self):
+        inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{self.__inventory_name}.json")
         if os.path.exists(inventory_path):
             # Load serialised inventory from the JSON file
             with open(inventory_path, "r") as json_file:
@@ -250,14 +246,12 @@ class Inventory:
             # Convert string keys back to tuples
             # inventory_items = {tuple(map(int, slot_position.split(";"))): slot for slot_position, slot in serialised_inventory.items()}
             inventory_items = {}
-
             for slot_position, slot in serialised_inventory.items():
                 slot_position = tuple(map(int, slot_position.split(";")))
                 inventory_items[slot_position] = slot
         else:
             # inventory_items = {(row, column): {"item": None, "quantity": None} for row in range(ROW_SLOTS) for column in range(COLUMN_SLOTS)}
             inventory_items = {}
-
             for row in range(ROW_SLOTS):
                 for column in range(COLUMN_SLOTS):
                     position = (row, column)

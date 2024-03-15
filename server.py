@@ -1,5 +1,4 @@
 import base64
-import json
 import os
 
 from flask import Flask, request, jsonify
@@ -11,7 +10,7 @@ from werkzeug.utils import secure_filename
 
 DATABASE_NAME = "user_database.db"
 
-SERVER_IP = "10.192.46.106"
+SERVER_IP = "192.168.0.80"
 
 
 class Server:

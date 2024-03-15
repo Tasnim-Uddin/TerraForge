@@ -5,83 +5,83 @@ from global_constants import *
 
 class Entity:
     def __init__(self, idle_image, left_image, right_image):
-        self.image = idle_image
+        self.idle_image = idle_image
         self.left_image = left_image
         self.right_image = right_image
 
-        self.x = 0
-        self.y = 0
+        self._x = 0
+        self._y = 0
 
-        self.rect = pygame.Rect(self.x, self.y, self.image.get_width(), self.image.get_height())
-        self.velocity = [0, 0]
+        self._rect = pygame.Rect(self._x, self._y, self.idle_image.get_width(), self.idle_image.get_height())
+        self._velocity = [0, 0]
 
-        self.directions = {
+        self._directions = {
             "left": False,
             "right": False,
             "up": False,
             "idle": False
         }
-        self.on_ground = False
+        self._on_ground = False
 
-        self.surrounding_blocks = []
-        self.surrounding_block_rects = []
+        self._surrounding_blocks = []
+        self._surrounding_block_rects = []
 
-        self.health = DEFAULT_HEALTH
+        self._health = MAX_HEALTH
 
-    def get_surrounding_blocks(self, surrounding_chunks):
-        self.surrounding_blocks = []
-        for entity_block_y_offset in range(-self.rect.height // BLOCK_SIZE + 1, self.rect.height // BLOCK_SIZE + 1):
-            for entity_block_x_offset in range(-self.rect.width // BLOCK_SIZE + 1, self.rect.width // BLOCK_SIZE + 1):
-                self.surrounding_blocks.append((
-                    int((self.x // BLOCK_SIZE) + entity_block_x_offset),
-                    int((self.y // BLOCK_SIZE) + entity_block_y_offset)
+    def _get_surrounding_blocks(self, surrounding_chunks):
+        self._surrounding_blocks = []
+        for entity_block_y_offset in range(-self._rect.height // BLOCK_SIZE + 1, self._rect.height // BLOCK_SIZE + 1):
+            for entity_block_x_offset in range(-self._rect.width // BLOCK_SIZE + 1, self._rect.width // BLOCK_SIZE + 1):
+                self._surrounding_blocks.append((
+                    int((self._x // BLOCK_SIZE) + entity_block_x_offset),
+                    int((self._y // BLOCK_SIZE) + entity_block_y_offset)
                 ))
 
-        self.surrounding_block_rects = []
-        for block in self.surrounding_blocks:
+        self._surrounding_block_rects = []
+        for block in self._surrounding_blocks:
             if (int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT)) in surrounding_chunks and block in \
                     surrounding_chunks[(int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT))]:
                 block_rect = pygame.Rect(block[0] * BLOCK_SIZE, block[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-                self.surrounding_block_rects.append(block_rect)
+                self._surrounding_block_rects.append(block_rect)
 
-    def horizontal_collision(self, surrounding_block_rects):
+    def _horizontal_collision(self, surrounding_block_rects):
         for block_rect in surrounding_block_rects:
-            if self.rect.colliderect(block_rect):
-                if self.velocity[0] > 0:
-                    self.x = block_rect.left - self.rect.width
-                elif self.velocity[0] < 0:
-                    self.x = block_rect.right
-                self.velocity[0] = 0
+            if self._rect.colliderect(block_rect):
+                if self._velocity[0] > 0:
+                    self._x = block_rect.left - self._rect.width
+                elif self._velocity[0] < 0:
+                    self._x = block_rect.right
+                self._velocity[0] = 0
                 return
 
-    def vertical_collision(self, surrounding_block_rects):
+    def _vertical_collision(self, surrounding_block_rects):
         for block_rect in surrounding_block_rects:
-            if self.rect.colliderect(block_rect):
-                if self.velocity[1] > 0:
-                    self.y = block_rect.top - self.rect.height
-                    self.on_ground = True
-                elif self.velocity[1] < 0:
-                    self.y = block_rect.bottom
-                self.velocity[1] = 0
+            if self._rect.colliderect(block_rect):
+                if self._velocity[1] > 0:
+                    self._y = block_rect.top - self._rect.height
+                    self._on_ground = True
+                elif self._velocity[1] < 0:
+                    self._y = block_rect.bottom
+                self._velocity[1] = 0
                 return
 
-    def movement(self, surrounding_chunks, dt):
-        self.velocity[1] += GRAVITY * dt
+    def _movement(self, surrounding_chunks, dt):
+        self._velocity[1] += GRAVITY * dt
 
-        self.y += self.velocity[1] * dt
-        self.rect.y = self.y
-        self.get_surrounding_blocks(surrounding_chunks=surrounding_chunks)
-        self.vertical_collision(surrounding_block_rects=self.surrounding_block_rects)
-        self.rect.y = self.y
+        self._y += self._velocity[1] * dt
+        self._rect.y = self._y
+        self._get_surrounding_blocks(surrounding_chunks=surrounding_chunks)
+        self._vertical_collision(surrounding_block_rects=self._surrounding_block_rects)
+        self._rect.y = self._y
 
-        self.x += self.velocity[0] * dt
-        self.rect.x = self.x
-        self.get_surrounding_blocks(surrounding_chunks=surrounding_chunks)
-        self.horizontal_collision(surrounding_block_rects=self.surrounding_block_rects)
-        self.rect.x = self.x
+        self._x += self._velocity[0] * dt
+        self._rect.x = self._x
+        self._get_surrounding_blocks(surrounding_chunks=surrounding_chunks)
+        self._horizontal_collision(surrounding_block_rects=self._surrounding_block_rects)
+        self._rect.x = self._x
 
     def update(self, chunks, dt):
-        self.movement(surrounding_chunks=chunks, dt=dt)
+        self._movement(surrounding_chunks=chunks, dt=dt)
 
     def draw(self, screen, camera_offset):
         # for block in self.surrounding_blocks:
@@ -91,12 +91,12 @@ class Entity:
         #                                       BLOCK_SIZE, BLOCK_SIZE),
         #                      width=2)
 
-        if self.directions["idle"]:
-            screen.blit(self.image, (self.x - camera_offset[0], self.y - camera_offset[1]))
-        if self.directions["left"]:
-            screen.blit(self.left_image, (self.x - camera_offset[0], self.y - camera_offset[1]))
-        if self.directions["right"]:
-            screen.blit(self.right_image, (self.x - camera_offset[0], self.y - camera_offset[1]))
+        if self._directions["idle"]:
+            screen.fblits([(self.idle_image, (self._x - camera_offset[0], self._y - camera_offset[1]))])
+        if self._directions["left"]:
+            screen.fblits([(self.left_image, (self._x - camera_offset[0], self._y - camera_offset[1]))])
+        if self._directions["right"]:
+            screen.fblits([(self.right_image, (self._x - camera_offset[0], self._y - camera_offset[1]))])
 
         self.draw_health_bar(screen=screen, camera_offset=camera_offset)
 
@@ -106,12 +106,27 @@ class Entity:
         health_bar_height = 5
 
         # Draw the background health bar (green)
-        health_bar_rect = pygame.Rect(self.rect.x - camera_offset[0], self.y - camera_offset[1] - 10, health_bar_width,
+        health_bar_rect = pygame.Rect(self._rect.x - camera_offset[0], self._y - camera_offset[1] - 10, health_bar_width,
                                       health_bar_height)
         pygame.draw.rect(surface=screen, color=(0, 255, 0), rect=health_bar_rect)
 
         # Calculate the width of the lost health bar (red)
-        lost_health_width = ((100 - self.health) / 100) * health_bar_width
-        lost_health_rect = pygame.Rect(self.rect.x - camera_offset[0] + (health_bar_width - lost_health_width),
-                                       self.y - camera_offset[1] - 10, lost_health_width, health_bar_height)
+        lost_health_width = ((100 - self._health) / 100) * health_bar_width
+        lost_health_rect = pygame.Rect(self._rect.x - camera_offset[0] + (health_bar_width - lost_health_width),
+                                       self._y - camera_offset[1] - 10, lost_health_width, health_bar_height)
         pygame.draw.rect(screen, (255, 0, 0), lost_health_rect)
+
+    def get_x(self):
+        return self._x
+
+    def get_y(self):
+        return self._y
+
+    def get_rect(self):
+        return self._rect
+
+    def get_health(self):
+        return self._health
+
+    def set_health(self, health):
+        self._health = health

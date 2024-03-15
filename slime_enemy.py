@@ -1,5 +1,3 @@
-from collections import deque
-
 import pygame
 import random
 
@@ -18,77 +16,72 @@ class SlimeEnemy(Entity):
         super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
 
         # Randomly spawn the enemy within the game world
-        self.x = random.randint(a=1000, b=1500)
+        self.__x = random.randint(a=1000, b=1500)
 
-        self.attack_distance = 10 * BLOCK_SIZE  # Define the distance at which the enemy starts attacking
+        self.__attack_distance = 10 * BLOCK_SIZE  # Define the distance at which the enemy starts attacking
 
-        self.direction_timer = 0
-        self.random_direction = None
+        self.__direction_timer = 0
+        self.__random_direction = None
 
-        self.directions = {
+        self._directions = {
             "left": False,
             "right": False,
             "idle": False
         }
 
-        self.attack_cooldown = 0
-        self.attack_interval = 15
+        self.__attack_cooldown = 0
 
-    def random_movement(self):
-        if self.direction_timer <= 0:
-            self.direction_timer = random.randint(100, 150)  # Number of frames before the enemy changes direction
-            self.random_direction = random.choice(list(self.directions.keys()))
-            self.directions[self.random_direction] = True
+    def __random_movement(self):
+        if self.__direction_timer <= 0:
+            self.__direction_timer = random.randint(100, 150)  # Number of frames before the enemy changes direction
+            self.__random_direction = random.choice(list(self._directions.keys()))
+            self._directions[self.__random_direction] = True
         else:
-            self.direction_timer -= 1
-            if self.random_direction == "right":
-                self.velocity[0] = ENEMY_HORIZONTAL_SPEED
-                self.directions["left"] = False
-            elif self.random_direction == "left":
-                self.velocity[0] = -ENEMY_HORIZONTAL_SPEED
-                self.directions["right"] = False
-            elif self.random_direction == "idle":
-                self.velocity[0] = 0
-                self.directions["right"] = False
-                self.directions["left"] = False
-        self.jump()
+            self.__direction_timer -= 1
+            if self.__random_direction == "right":
+                self._velocity[0] = ENEMY_HORIZONTAL_SPEED
+                self._directions["left"] = False
+            elif self.__random_direction == "left":
+                self._velocity[0] = -ENEMY_HORIZONTAL_SPEED
+                self._directions["right"] = False
+            elif self.__random_direction == "idle":
+                self._velocity[0] = 0
+                self._directions["right"] = False
+                self._directions["left"] = False
+        self.__jump()
 
-    def jump(self):
+    def __jump(self):
         # Implement jumping only when on the ground
-        if self.on_ground:  # Jumping allowed only when the player is on the ground
-            self.on_ground = False
-            self.velocity[1] = -ENEMY_JUMP_HEIGHT
+        if self._on_ground:  # Jumping allowed only when the player is on the ground
+            self._on_ground = False
+            self._velocity[1] = -ENEMY_JUMP_HEIGHT
 
     def attack_update(self, player, dt):
         speed = ENEMY_HORIZONTAL_SPEED
-        dx = player.rect.centerx - self.rect.centerx
-        dy = player.rect.centery - self.rect.centery
+        dx = player.get_rect().centerx - self._rect.centerx
+        dy = player.get_rect().centery - self._rect.centery
         distance = (dx ** 2 + dy ** 2) ** 0.5
 
-        if distance > self.attack_distance:  # If player is out of attack range, perform random movement
-            self.random_movement()
-        elif distance <= self.attack_distance:  # If player is within attack range
+        if distance > self.__attack_distance:  # If player is out of attack range, perform random movement
+            self.__random_movement()
+        elif distance <= self.__attack_distance:  # If player is within attack range
             if distance != 0:
-                self.velocity[0] = dx / distance * speed
-                if self.velocity[0] < 0:
-                    self.directions["left"] = True
-                    self.directions["right"] = False
-                elif self.velocity[0] > 0:
-                    self.directions["right"] = True
-                    self.directions["left"] = False
+                self._velocity[0] = dx / distance * speed
+                if self._velocity[0] < 0:
+                    self._directions["left"] = True
+                    self._directions["right"] = False
+                elif self._velocity[0] > 0:
+                    self._directions["right"] = True
+                    self._directions["left"] = False
             elif distance == 0:
-                self.velocity[0] = 0
-                self.directions["idle"] = True
-                self.directions["left"] = False
-                self.directions["right"] = False
-            self.velocity[1] += GRAVITY * dt
-            self.jump()
-            if self.rect.colliderect(player.rect):
-                # Perform the attack
-                if self.attack_cooldown <= 0:
-                    # Attack the player, deduct health
-                    player.health -= 5  # Adjust the amount of health deduction as needed
-                    # Reset the cooldown
-                    self.attack_cooldown = self.attack_interval
-        # Reduce the cooldown timer
-        self.attack_cooldown -= dt * 10
+                self._velocity[0] = 0
+                self._directions["idle"] = True
+                self._directions["left"] = False
+                self._directions["right"] = False
+            self._velocity[1] += GRAVITY * dt
+            self.__jump()
+            if self._rect.colliderect(player.get_rect()):
+                if self.__attack_cooldown <= 0:
+                    player.set_health(health=player.get_health() - 5)
+                    self.__attack_cooldown = SLIME_ATTACK_INTERVAL
+        self.__attack_cooldown -= dt * 10

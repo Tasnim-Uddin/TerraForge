@@ -1,10 +1,7 @@
 # import ez_profile
-import math
 import sys
 import re
 
-from global_constants import *
-from event_manager import EventManager
 from text_input import TextInput
 from scene import *
 from client import Client
@@ -20,6 +17,7 @@ class Game:
 
         self.menu_active = True
         self.menu_font = pygame.font.Font(filename=None, size=40)
+        self.game_font = pygame.font.Font(filename=None, size=60)
         self.text_input = TextInput()
         self.__client = Client()
         self.__username = None
@@ -28,9 +26,7 @@ class Game:
         self.start_time = 0
         self.running = True
         self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
-        self.game_font = pygame.font.Font(filename=None, size=60)
 
-        # Add a stack to keep track of the menu states
         self.__menu_state_stack = ["main menu"]  # Should start off at login or register menu page, if at "main menu" then it is for testing game itself, not login system.
 
         self.__world_name = None
@@ -59,14 +55,13 @@ class Game:
 
             buffer_time = 1  # To ensure player starts off above ground
 
-            player = self.__scene.get_player()
-
             if elapsed_time >= buffer_time:
                 dt = self.__clock.tick(FRAMES_PER_SECOND) / 1000
 
+            player = self.__scene.get_player()
+
             if current_time <= invincibility_end_time:
-                player.set_player_health(health=100)
-                # self.__scene.__player.health = 100
+                player.set_health(health=100)
 
             EventManager.queue_events()
             for event in EventManager.events:
@@ -74,23 +69,22 @@ class Game:
                     self.running = False
                     self.__quit_game()
 
-            if player.get_player_health() <= 0:
+            if player.get_health() <= 0:
                 player.death_screen(game=self)
                 self.__quit_game()
 
             self.__scene.draw(dt=dt)
-            self.screen.blit(
-                source=self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True,
-                                             color="white"),
-                dest=(WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))
+            self.screen.fblits([(self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True, color="white"), (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))])
             pygame.display.update()
             self.__clock.tick()
 
     def __quit_game(self):
         self.running = False
-        self.__scene.inventory.save_inventory_to_json(self.in)
+        inventory = self.__scene.get_inventory()
+        inventory.save_inventory_to_json()
         self.__scene.save_world_to_json()
-        # # self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
+        # TODO: uncomment following code
+        # self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
         # shutil.rmtree(WORLD_SAVE_FOLDER)
         # shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
@@ -146,7 +140,7 @@ class Game:
         if menu_type:
             text = self.menu_font.render(text=f"{menu_type}", antialias=True, color="#39a5d4")
             text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
-            self.screen.blit(source=text, dest=text_rect)
+            self.screen.fblits([(text, text_rect)])
 
         for number, option in enumerate(menu_options):
             colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
@@ -154,15 +148,15 @@ class Game:
             text_rect = text.get_rect(
                 center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50)) if option == "Back" else text.get_rect(
                 center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + number * 50))
-            self.screen.blit(source=text, dest=text_rect)
+            self.screen.fblits([(text, text_rect)])
         pygame.display.flip()
 
     def sub_menu_draw(self, menu_options, selected_option, menu_type, detail_type=None):
         self.screen.fill((0, 0, 0))
 
-        text = self.menu_font.render(text=f"{menu_type}", antialias=True, color="#39a5d4")
+        text = self.menu_font.render(text=menu_type, antialias=True, color="#39a5d4")
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
-        self.screen.blit(source=text, dest=text_rect)
+        self.screen.fblits([(text, text_rect)])
 
         if detail_type is not None:
             text = self.menu_font.render(text=f"Enter {menu_type} {detail_type}:", antialias=True,
@@ -170,7 +164,7 @@ class Game:
         else:
             text = self.menu_font.render(text=f"Enter New {menu_type}:", antialias=True, color=(255, 255, 255))
         text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
-        self.screen.blit(source=text, dest=text_rect)
+        self.screen.fblits([(text, text_rect)])
 
         for number, option in enumerate(menu_options):
             if option == "Text Box":
@@ -179,7 +173,7 @@ class Game:
                 colour = (255, 255, 255) if number == selected_option else (128, 128, 128)
                 text = self.menu_font.render(text=option, antialias=True, color=colour)
                 text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
-                self.screen.blit(source=text, dest=text_rect)
+                self.screen.fblits([(text, text_rect)])
         pygame.display.flip()
 
     def login_register_selection(self):
