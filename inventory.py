@@ -230,7 +230,11 @@ class Inventory:
     def save_inventory_to_json(self, inventory_name):
         inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{inventory_name}.json")
         # Convert tuple keys to string representations
-        serialised_inventory = {f"{slot_position[0]};{slot_position[1]}": slot for slot_position, slot in self.inventory_items.items()}
+        # serialised_inventory = {f"{slot_position[0]};{slot_position[1]}": slot for slot_position, slot in self.inventory_items.items()}
+        serialised_inventory = {}
+
+        for slot_position, slot in self.inventory_items.items():
+            serialised_inventory[f"{slot_position[0]};{slot_position[1]}"] = slot
         # Save serialised inventory to a JSON file
         with open(inventory_path, "w") as json_file:
             json.dump(serialised_inventory, json_file)
@@ -243,9 +247,20 @@ class Inventory:
             with open(inventory_path, "r") as json_file:
                 serialised_inventory = json.load(json_file)
             # Convert string keys back to tuples
-            inventory_items = {tuple(map(int, slot_position.split(";"))): slot for slot_position, slot in serialised_inventory.items()}
+            # inventory_items = {tuple(map(int, slot_position.split(";"))): slot for slot_position, slot in serialised_inventory.items()}
+            inventory_items = {}
+
+            for slot_position, slot in serialised_inventory.items():
+                slot_position = tuple(map(int, slot_position.split(";")))
+                inventory_items[slot_position] = slot
         else:
-            inventory_items = {(row, column): {"item": None, "quantity": None} for row in range(ROW_SLOTS) for column in range(COLUMN_SLOTS)}
+            # inventory_items = {(row, column): {"item": None, "quantity": None} for row in range(ROW_SLOTS) for column in range(COLUMN_SLOTS)}
+            inventory_items = {}
+
+            for row in range(ROW_SLOTS):
+                for column in range(COLUMN_SLOTS):
+                    position = (row, column)
+                    inventory_items[position] = {"item": None, "quantity": None}
 
             inventory_items[(0, 0)]["item"], inventory_items[(0, 0)]["quantity"] = "copper_sword", 1
             inventory_items[(0, 1)]["item"], inventory_items[(0, 1)]["quantity"] = "copper_pickaxe", 1

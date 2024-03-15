@@ -31,7 +31,7 @@ class Game:
         self.game_font = pygame.font.Font(filename=None, size=60)
 
         # Add a stack to keep track of the menu states
-        self.menu_state_stack = ["main menu"]  # Starts off at login or register menu page
+        self.menu_state_stack = ["main menu"]  # Should start off at login or register menu page, if at "main menu" then it is for testing game itself, not login system.
 
         self.world_name = None
         self.player_name = None

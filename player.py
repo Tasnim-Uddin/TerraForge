@@ -92,7 +92,7 @@ class Player(Entity):
                     distance_to_enemy = ((enemy.rect.centery - self.rect.centery)**2 + (enemy.rect.centerx - self.rect.centerx)**2) ** 0.5
                     mouse_position = pygame.mouse.get_pos()
                     mouse_distance_to_enemy = ((enemy.rect.centery - (mouse_position[1] + camera_offset[1]))**2 + (enemy.rect.centerx - (mouse_position[0] + camera_offset[0]))**2) ** 0.5
-                    if 0 <= distance_to_enemy <= BLOCK_SIZE and 0 <= mouse_distance_to_enemy <= BLOCK_SIZE:
+                    if 0 <= distance_to_enemy <= 5 * BLOCK_SIZE and 0 <= mouse_distance_to_enemy <= 5 * BLOCK_SIZE:
                         # Check if attack cooldown has expired
                         if self.attack_cooldown <= 0:
                             enemy.health -= 30

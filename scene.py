@@ -13,6 +13,7 @@ from slime_enemy import SlimeEnemy
 
 class Scene:
     def __init__(self, screen, world_name, inventory_name):
+
         self.screen = screen
 
         self.block_textures = self.load_block_sprites()
@@ -96,7 +97,8 @@ class Scene:
 
         try:
             breaking_item = self.chunks[break_chunk_position][break_block_position]
-            if self.inventory.item_type(item=self.chunks[break_chunk_position][break_block_position]) == "block" and within_reach:
+            if self.inventory.item_type(
+                    item=self.chunks[break_chunk_position][break_block_position]) == "block" and within_reach:
                 self.inventory.add_item(item=breaking_item)
                 del self.chunks[break_chunk_position][break_block_position]
         except KeyError:
@@ -115,7 +117,8 @@ class Scene:
         place_block_position = (int((mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE),
                                 int((mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
 
-        block_exists = bool(place_chunk_position in self.chunks and place_block_position in self.chunks[place_chunk_position])
+        block_exists = bool(
+            place_chunk_position in self.chunks and place_block_position in self.chunks[place_chunk_position])
 
         # To make sure that the block cannot be placed within the block grid a player is on
         player_max_right = math.ceil(self.player.rect.right / BLOCK_SIZE) * BLOCK_SIZE
@@ -136,9 +139,6 @@ class Scene:
             0] - WINDOW_WIDTH / 2) / HORIZONTAL_SCROLL_DELAY_FACTOR
         self.precise_camera_offset[1] += (self.player.rect.centery - self.precise_camera_offset[
             1] - WINDOW_HEIGHT / 2) / VERTICAL_SCROLL_DELAY_FACTOR
-
-        if self.player.rect.centerx <= WINDOW_WIDTH / 2:  # Checking for the border on the left side - TODO: Check for the right side
-            self.precise_camera_offset[0] = 0
 
         self.camera_offset[0] = int(self.precise_camera_offset[0])
         self.camera_offset[1] = int(self.precise_camera_offset[1])
@@ -213,7 +213,6 @@ class Scene:
                     if self.inventory.item_type(item=held_item) == "block":
                         self.place_block(held_item=held_item)
 
-
         for enemy in self.enemies:
             relative_chunk_position = (
                 int(enemy.x // (CHUNK_WIDTH * BLOCK_SIZE)),
@@ -231,7 +230,7 @@ class Scene:
 
             if enemy.health <= 0:
                 self.enemies.remove(enemy)
-                self.inventory.add_item(item="slime")  # TODO: change stone to slime and add slime texture
+                self.inventory.add_item(item="slime")
 
         self.player.update(chunks=surrounding_chunks, dt=dt)
         self.player.draw(screen=self.screen, camera_offset=self.camera_offset)
@@ -241,7 +240,19 @@ class Scene:
     def save_world_to_json(self, world_name):
         world_path = os.path.join(WORLD_SAVE_FOLDER, f"{world_name}.json")
         # Convert tuple keys to strings
-        serialised_chunks = {f"{chunk_position[0]};{chunk_position[1]}": {f"{block_position[0]};{block_position[1]}": block for block_position, block in blocks_dict.items()} for chunk_position, blocks_dict in self.chunks.items()}
+        # serialised_chunks = {
+        #     f"{chunk_position[0]};{chunk_position[1]}": {f"{block_position[0]};{block_position[1]}": block for
+        #                                                  block_position, block in blocks_dict.items()} for
+        #     chunk_position, blocks_dict in self.chunks.items()}
+        serialised_chunks = {}
+
+        for chunk_position, blocks_dict in self.chunks.items():
+            chunk_key = f"{chunk_position[0]};{chunk_position[1]}"
+            serialised_chunks[chunk_key] = {}
+
+            for block_position, block in blocks_dict.items():
+                block_key = f"{block_position[0]};{block_position[1]}"
+                serialised_chunks[chunk_key][block_key] = block
         # Save serialised surrounding_chunks to a JSON file
         with open(world_path, "w") as json_file:
             json.dump(serialised_chunks, json_file)
@@ -255,7 +266,18 @@ class Scene:
             with open(world_path, "r") as json_file:
                 serialised_chunks = json.load(json_file)
             # Convert string keys back to tuples
-            chunks = {tuple(map(int, chunk_position.split(";"))): {tuple(map(int, block_position.split(";"))): block for block_position, block in blocks_dict.items()} for chunk_position, blocks_dict in serialised_chunks.items()}
+            # chunks = {tuple(map(int, chunk_position.split(";"))): {tuple(map(int, block_position.split(";"))): block for
+            #                                                        block_position, block in blocks_dict.items()} for
+            #           chunk_position, blocks_dict in serialised_chunks.items()}
+            chunks = {}
+
+            for chunk_position, blocks_dict in serialised_chunks.items():
+                chunk_position = tuple(map(int, chunk_position.split(";")))
+                chunks[chunk_position] = {}
+
+                for block_position, block in blocks_dict.items():
+                    block_position = tuple(map(int, block_position.split(";")))
+                    chunks[chunk_position][block_position] = block
         else:
             chunks = {}
         return chunks

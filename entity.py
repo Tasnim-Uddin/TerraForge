@@ -45,9 +45,6 @@ class Entity:
                 self.surrounding_block_rects.append(block_rect)
 
     def horizontal_collision(self, surrounding_block_rects):
-        if self.x <= 0:
-            self.x = 0
-
         for block_rect in surrounding_block_rects:
             if self.rect.colliderect(block_rect):
                 if self.velocity[0] > 0:
