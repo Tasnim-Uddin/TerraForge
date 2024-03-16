@@ -184,7 +184,7 @@ class Inventory:
             if true_item_row_slot_number == 0 or (true_item_row_slot_number != 0 and self.inventory_expanded):
                 if self.clicked_once:
                     if slot_position == self.clicked_slot_position:  # or slot_number == self.active_slot:
-                        pygame.draw.rect(surface=self.screen, color="white",
+                        pygame.draw.rect(surface=self.screen, color="#6ffc03",
                                          rect=pygame.Rect(column_slot_number * BLOCK_SIZE * 2,
                                                           row_slot_number * BLOCK_SIZE * 2, BLOCK_SIZE * 2,
                                                           BLOCK_SIZE * 2))
@@ -202,9 +202,9 @@ class Inventory:
                          padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))])
 
                     quantity_text = self.quantity_font.render(text=str(item_data["quantity"]), antialias=True,
-                                                              color="black")
+                                                              color="white")
                     self.screen.fblits([(quantity_text, (
-                        (BLOCK_SIZE * 2) * column_slot_number + 20, (BLOCK_SIZE * 2) * true_item_row_slot_number + 40))])
+                        (BLOCK_SIZE * 2) * column_slot_number + 10, (BLOCK_SIZE * 2) * true_item_row_slot_number + 40))])
 
         if not self.inventory_expanded:
             pygame.draw.rect(surface=self.screen, color="black",

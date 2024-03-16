@@ -223,7 +223,7 @@ class Scene:
             if relative_chunk_position in surrounding_chunks:
                 enemy.attack_update(player=self.__player, dt=dt)
                 enemy.update(chunks=surrounding_chunks, dt=dt)
-                enemy.update_draw(screen=self.screen, camera_offset=self.camera_offset)
+                enemy.draw(screen=self.screen, camera_offset=self.camera_offset)
                 if self.__inventory.get_item_type(item=held_item) == "sword":
                     self.__player.attack(enemy=enemy, camera_offset=self.camera_offset, dt=dt)
             else:
