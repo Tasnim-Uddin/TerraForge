@@ -91,9 +91,6 @@ class Scene:
     def __break_block(self):
         mouse_position = pygame.mouse.get_pos()
 
-        # within_reach = bool(int((((mouse_position[0] + self.camera_offset[0] - self.__player._rect.centerx) ** 2 + (
-        #         mouse_position[1] + self.camera_offset[
-        #     1] - self.__player._rect.centery) ** 2) ** 0.5) / BLOCK_SIZE) <= REACH)
         within_reach = False
         distance = int((((mouse_position[0] + self.camera_offset[0] - self.__player.get_rect().centerx) ** 2 + (
                 mouse_position[1] + self.camera_offset[1] - self.__player.get_rect().centery) ** 2) ** 0.5) / BLOCK_SIZE)
@@ -118,9 +115,11 @@ class Scene:
     def __place_block(self, held_item):
         mouse_position = pygame.mouse.get_pos()
 
-        within_reach = bool((((mouse_position[0] + self.camera_offset[0] - self.__player.get_rect().centerx) ** 2 + (
-                mouse_position[1] + self.camera_offset[
-            1] - self.__player.get_rect().centery) ** 2) ** 0.5) / BLOCK_SIZE <= REACH)
+        within_reach = False
+        distance = int((((mouse_position[0] + self.camera_offset[0] - self.__player.get_rect().centerx) ** 2 + (
+                mouse_position[1] + self.camera_offset[1] - self.__player.get_rect().centery) ** 2) ** 0.5) / BLOCK_SIZE)
+        if distance <= REACH:
+            within_reach = True
 
         place_chunk_position = (int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE)),
                                 int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE)))
@@ -145,7 +144,7 @@ class Scene:
             self.__chunks[place_chunk_position][place_block_position] = held_item
             self.__inventory.remove_item(item=held_item)
 
-    def draw(self, dt):
+    def update_draw(self, dt):
         self.precise_camera_offset[0] += (self.__player.get_rect().centerx - self.precise_camera_offset[
             0] - WINDOW_WIDTH / 2) / HORIZONTAL_SCROLL_DELAY_FACTOR
         self.precise_camera_offset[1] += (self.__player.get_rect().centery - self.precise_camera_offset[
@@ -197,15 +196,6 @@ class Scene:
                 surrounding_chunks[(offset[0], offset[1])] = []
             surrounding_chunks[(offset[0], offset[1])] = self.__chunks.get((offset[0], offset[1]), [])
 
-            # self.screen.fblits(
-            #     [(self.block_textures[block],
-            #       (block_position[0] * BLOCK_SIZE -
-            #        self.camera_offset[0],
-            #        block_position[1] * BLOCK_SIZE -
-            #        self.camera_offset[1])
-            #       )
-            #      for block_position, block in surrounding_chunks[(offset[0], offset[1])].items()])
-
             for block_position, block in surrounding_chunks[(offset[0], offset[1])].items():
                 self.screen.fblits([(self.all_textures[block],
                                      (block_position[0] * BLOCK_SIZE -
@@ -233,7 +223,7 @@ class Scene:
             if relative_chunk_position in surrounding_chunks:
                 enemy.attack_update(player=self.__player, dt=dt)
                 enemy.update(chunks=surrounding_chunks, dt=dt)
-                enemy.draw(screen=self.screen, camera_offset=self.camera_offset)
+                enemy.update_draw(screen=self.screen, camera_offset=self.camera_offset)
                 if self.__inventory.get_item_type(item=held_item) == "sword":
                     self.__player.attack(enemy=enemy, camera_offset=self.camera_offset, dt=dt)
             else:
@@ -251,12 +241,7 @@ class Scene:
     def save_world_to_json(self):
         world_path = os.path.join(WORLD_SAVE_FOLDER, f"{self.__world_name}.json")
         # Convert tuple keys to strings
-        # serialised_chunks = {
-        #     f"{chunk_position[0]};{chunk_position[1]}": {f"{block_position[0]};{block_position[1]}": block for
-        #                                                  block_position, block in blocks_dict.items()} for
-        #     chunk_position, blocks_dict in self.chunks.items()}
         serialised_chunks = {}
-
         for chunk_position, blocks_dict in self.__chunks.items():
             chunk_key = f"{chunk_position[0]};{chunk_position[1]}"
             serialised_chunks[chunk_key] = {}
@@ -276,11 +261,7 @@ class Scene:
             with open(world_path, "r") as json_file:
                 serialised_chunks = json.load(json_file)
             # Convert string keys back to tuples
-            # chunks = {tuple(map(int, chunk_position.split(";"))): {tuple(map(int, block_position.split(";"))): block for
-            #                                                        block_position, block in blocks_dict.items()} for
-            #           chunk_position, blocks_dict in serialised_chunks.items()}
             chunks = {}
-
             for chunk_position, blocks_dict in serialised_chunks.items():
                 chunk_position = tuple(map(int, chunk_position.split(";")))
                 chunks[chunk_position] = {}

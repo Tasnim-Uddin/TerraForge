@@ -84,6 +84,7 @@ class Entity:
         self._movement(surrounding_chunks=chunks, dt=dt)
 
     def draw(self, screen, camera_offset):
+        # Shows surrounding blocks
         # for block in self.surrounding_blocks:
         #     pygame.draw.rect(surface=screen, color="white",
         #                      rect=pygame.Rect(block[0] * BLOCK_SIZE - camera_offset[0],

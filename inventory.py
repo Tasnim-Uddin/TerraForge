@@ -29,6 +29,13 @@ class Inventory:
     def get_selected_item(self):
         return self.__selected_item
 
+    @staticmethod
+    def get_item_type(item):
+        try:
+            return all_texture_data[item]["item_type"]
+        except KeyError:
+            return None
+
     def add_item(self, item):
         for item_data in self.__inventory_items.values():
             if item_data["item"] == item:
@@ -50,13 +57,6 @@ class Inventory:
                     item_data["quantity"] = None
                     return
 
-    @staticmethod
-    def get_item_type(item):
-        try:
-            return all_texture_data[item]["item_type"]
-        except KeyError:
-            return None
-
     def update(self):
         for event in EventManager.events:
             if event.type == pygame.KEYDOWN:
@@ -64,8 +64,9 @@ class Inventory:
                     self.inventory_expanded = not self.inventory_expanded
 
                     if not self.inventory_expanded:
-                        self.active_row = 0
-                        self.active_column = 0
+                        if self.active_row > 0:
+                            self.active_row = 0
+                            self.active_column = 0
 
                         self.clicked_slot_position = None
                         self.clicked_once = False
@@ -219,17 +220,9 @@ class Inventory:
             slot_text = self.slot_font.render(text=str(column_slot_number), antialias=True, color="#c0c2c0")
             self.screen.fblits([(slot_text, ((BLOCK_SIZE * 2) * (column_slot_number - 1) + 5, + 5))])
 
-    # def get_inventory_to_save(self):
-    #     saved_inventory = {}
-    #     for slot_position in self.__inventory_items:
-    #         json_slot_position = ";".join(map(str, slot_position))  # Convert tuple to string
-    #         saved_inventory[json_slot_position] = self.__inventory_items[slot_position]
-    #     return saved_inventory
-
     def save_inventory_to_json(self):
         inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{self.__inventory_name}.json")
         # Convert tuple keys to string representations
-        # serialised_inventory = {f"{slot_position[0]};{slot_position[1]}": slot for slot_position, slot in self.inventory_items.items()}
         serialised_inventory = {}
         for slot_position, slot in self.__inventory_items.items():
             serialised_inventory[f"{slot_position[0]};{slot_position[1]}"] = slot
@@ -244,13 +237,11 @@ class Inventory:
             with open(inventory_path, "r") as json_file:
                 serialised_inventory = json.load(json_file)
             # Convert string keys back to tuples
-            # inventory_items = {tuple(map(int, slot_position.split(";"))): slot for slot_position, slot in serialised_inventory.items()}
             inventory_items = {}
             for slot_position, slot in serialised_inventory.items():
                 slot_position = tuple(map(int, slot_position.split(";")))
                 inventory_items[slot_position] = slot
         else:
-            # inventory_items = {(row, column): {"item": None, "quantity": None} for row in range(ROW_SLOTS) for column in range(COLUMN_SLOTS)}
             inventory_items = {}
             for row in range(ROW_SLOTS):
                 for column in range(COLUMN_SLOTS):

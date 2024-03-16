@@ -18,7 +18,7 @@ class Player(Entity):
         self.__attack_cooldown = 0
 
     def __get_input(self):
-        for event in EventManager.events:  # Handle events
+        for event in EventManager.events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d:
                     self._directions["right"] = True
@@ -47,8 +47,7 @@ class Player(Entity):
             self._velocity[0] = 0
 
     def __jump(self):
-        # Implement jumping only when on the ground
-        if self._directions["up"] and self._on_ground:  # Jumping allowed only when the player is on the ground
+        if self._directions["up"] and self._on_ground:
             self._on_ground = False
             self._velocity[1] = -PLAYER_JUMP_HEIGHT
 

@@ -8,28 +8,27 @@ SERVER_URL = "http://192.168.0.80:5000"
 
 
 class Client:
-    def __init__(self, game):
-        self.__username = game.get_username()
-
-    def register_user(self, password):
-        print("Sending registration request for username:", self.__username)
+    @staticmethod
+    def register_user(username, password):
+        print("Sending registration request for username:", username)
 
         """Send plaintext username and password to the server. 
         All hashing and salting done server side Should be using HTTPS to prevent MITM attacks, 
         but I am not due to lack of digital certificate/self-signed certificates"""
 
-        data = {"username": self.__username, "password": password}
+        data = {"username": username, "password": password}
         url = SERVER_URL + "/register"
         response = requests.post(url, json=data)
 
         print("Response:", response.text)
         return response.json()
 
-    def authenticate_user(self, password):
-        print("Sending authentication request for username:", self.__username)
+    @staticmethod
+    def authenticate_user(username, password):
+        print("Sending authentication request for username:", username)
 
         # Send plaintext username and password to the server
-        data = {"username": self.__username, "password": password}
+        data = {"username": username, "password": password}
         url = SERVER_URL + "/authenticate"
         response = requests.post(url, json=data)
 
@@ -37,19 +36,21 @@ class Client:
         user_data = response.json()
 
         if "authenticated" in user_data and user_data["authenticated"]:
-            print("User authenticated successfully:", self.__username)
+            print("User authenticated successfully:", username)
             return True
         else:
             print("Authentication failed:", user_data.get("error", "Unknown error"))
             return False
 
-    def upload_files(self, player_file_path, world_file_path):
-        print("Uploading files for username:", self.__username)
+    @staticmethod
+    def upload_files(username, player_file_path, world_file_path):
+        print("Uploading files for username:", username)
         url = SERVER_URL + "/upload"
+
         player_file = open(os.path.join(PLAYER_SAVE_FOLDER, f"{player_file_path}.json"), "rb")
         world_file = open(os.path.join(WORLD_SAVE_FOLDER, f"{world_file_path}.json"), "rb")
         files = {"player": player_file, "world": world_file}
-        username = {"username": self.__username}
+        username = {"username": username}
         response = requests.post(url, files=files, data=username)
         if response.status_code == 200:
             print("File uploaded successfully:", player_file)
@@ -57,15 +58,16 @@ class Client:
         else:
             print("Failed to upload files:", response.text)
 
-    def download_files(self):
+    @staticmethod
+    def download_files(username):
         if not os.path.exists(path=PLAYER_SAVE_FOLDER):
             os.makedirs(name=PLAYER_SAVE_FOLDER)
         if not os.path.exists(path=WORLD_SAVE_FOLDER):
             os.makedirs(name=WORLD_SAVE_FOLDER)
 
-        print("Downloading files for username:", self.__username)
+        print("Downloading files for username:", username)
         url = SERVER_URL + "/download"
-        response = requests.get(url, params={"username": self.__username})
+        response = requests.get(url, params={"username": username})
 
         if response.status_code == 200:
             files_data = response.json().get("files", [])

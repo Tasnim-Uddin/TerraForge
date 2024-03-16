@@ -1,4 +1,5 @@
 # import ez_profile
+# import shutil
 import sys
 import re
 
@@ -27,7 +28,7 @@ class Game:
         self.running = True
         self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
 
-        self.__menu_state_stack = ["main menu"]  # Should start off at login or register menu page, if at "main menu" then it is for testing game itself, not login system.
+        self.__menu_state_stack = ["main menu"]  # TODO: change to "login or register"
 
         self.__world_name = None
         self.__player_name = None
@@ -53,7 +54,7 @@ class Game:
             current_time = pygame.time.get_ticks()
             elapsed_time = current_time - self.start_time
 
-            buffer_time = 1  # To ensure player starts off above ground
+            buffer_time = 100  # To ensure player starts off above ground
 
             if elapsed_time >= buffer_time:
                 dt = self.__clock.tick(FRAMES_PER_SECOND) / 1000
@@ -61,7 +62,7 @@ class Game:
             player = self.__scene.get_player()
 
             if current_time <= invincibility_end_time:
-                player.set_health(health=100)
+                player.set_health(health=MAX_HEALTH)
 
             EventManager.queue_events()
             for event in EventManager.events:
@@ -73,18 +74,19 @@ class Game:
                 player.death_screen(game=self)
                 self.__quit_game()
 
-            self.__scene.draw(dt=dt)
+            self.__scene.update_draw(dt=dt)
             self.screen.fblits([(self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True, color="white"), (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))])
             pygame.display.update()
             self.__clock.tick()
 
     def __quit_game(self):
+        # TODO: uncomment code
         self.running = False
-        inventory = self.__scene.get_inventory()
-        inventory.save_inventory_to_json()
-        self.__scene.save_world_to_json()
-        # TODO: uncomment following code
-        # self.client.upload_files(username=self.username, player_file_path=self.player_name, world_file_path=self.world_name)
+        if self.__player_name is not None and self.__world_name is not None:
+            inventory = self.__scene.get_inventory()
+            inventory.save_inventory_to_json()
+            self.__scene.save_world_to_json()
+            # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
         # shutil.rmtree(WORLD_SAVE_FOLDER)
         # shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
@@ -251,11 +253,11 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text.strip()
-                            # if self.client.authenticate_user(self.username, password):
-                            if password:
-                                # self.client.download_files(username=self.username)
-                                self.__menu_state_stack.append("main menu")
-                                return
+                            if self.__client.authenticate_user(username=self.__username, password=password):
+                                if password:
+                                    self.__client.download_files(username=self.__username)
+                                    self.__menu_state_stack.append("main menu")
+                                    return
                             else:
                                 self.__menu_state_stack.pop()  # removes "login password"
                                 self.__menu_state_stack.pop()  # removes "login username"
@@ -314,7 +316,7 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text.strip()
-                            if self.__client.register_user(self.__username, password):
+                            if self.__client.register_user(username=self.__username, password=password):
                                 self.__menu_state_stack.append("login or register")
                                 return
                             else:
