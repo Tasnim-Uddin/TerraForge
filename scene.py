@@ -51,7 +51,7 @@ class Scene:
     @staticmethod
     def load_textures():
         textures = {}
-        atlas = pygame.image.load(file="assets/texture_sheet.png").convert_alpha()
+        atlas = pygame.image.load(file="assets/textures/texture_sheet.png").convert_alpha()
 
         for item, information in all_texture_data.items():
             textures[item] = pygame.Surface.subsurface(atlas,
@@ -210,6 +210,9 @@ class Scene:
                 if event.button == 1:  # left mouse click
                     if self.__inventory.get_item_type(item=held_item) == "pickaxe":
                         self.__break_block()
+                    if self.__inventory.get_item_type(item=held_item) == "sword":
+                        sword_swing_sound = pygame.mixer.Sound("assets/sound/sword_swing.mp3")
+                        sword_swing_sound.play()
                 if event.button == 3:  # right mouse click
                     if self.__inventory.get_item_type(item=held_item) == "block":
                         self.__place_block(held_item=held_item)

@@ -7,11 +7,11 @@ from entity import Entity
 
 class Player(Entity):
     def __init__(self):
-        idle_image = pygame.transform.scale(surface=pygame.image.load(file="assets/player.png").convert_alpha(),
+        idle_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/player.png").convert_alpha(),
                                             size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
-        right_image = pygame.transform.scale(surface=pygame.image.load(file="assets/right_player.png").convert_alpha(),
+        right_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/right_player.png").convert_alpha(),
                                              size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
-        left_image = pygame.transform.scale(surface=pygame.image.load(file="assets/left_player.png").convert_alpha(),
+        left_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/left_player.png").convert_alpha(),
                                             size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
         super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
 
@@ -108,6 +108,9 @@ class Player(Entity):
         death_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))  # Create a surface for death screen
         death_surface.fill((0, 0, 0))  # Fill the surface with black
         alpha = 0
+        player_death = pygame.mixer.Sound("assets/sound/player_death.mp3")
+        player_death.play(-1)
+
 
         # Gradually increase the alpha value to create a smooth transition
         while alpha <= 50:

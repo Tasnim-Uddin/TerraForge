@@ -1,5 +1,6 @@
 # import ez_profile
 # import shutil
+import pygame
 import sys
 import re
 
@@ -15,6 +16,8 @@ class Game:
         if not os.path.exists(path=WORLD_SAVE_FOLDER):
             os.makedirs(name=WORLD_SAVE_FOLDER)
         pygame.init()
+
+        self.background_music = None
 
         self.menu_active = True
         self.menu_font = pygame.font.Font(filename=None, size=40)
@@ -35,6 +38,12 @@ class Game:
 
         self.__scene = None
 
+    def load_background_music(self):
+        pygame.mixer.init()
+        self.background_music = pygame.mixer.Sound("assets/sound/background.mp3")
+        self.background_music.set_volume(30)  # Adjust volume as needed
+        self.background_music.play(loops=-1)  # Play indefinitely
+
     def get_player_name(self):
         return self.__player_name
 
@@ -47,6 +56,11 @@ class Game:
         invincibility_end_time = pygame.time.get_ticks() + invincibility_duration
         while self.running:
             self.__menu_events()
+
+            if self.__menu_state_stack[-1] == "game":
+                if self.background_music is None:
+                    self.load_background_music()
+                    self.background_music = 1
 
             if self.start_time == 0:
                 self.start_time = pygame.time.get_ticks()  # Start the timer when the player selects world and inventory
@@ -71,7 +85,7 @@ class Game:
                     self.__quit_game()
 
             if player.get_health() <= 0:
-                player.death_screen(game=self)
+                player.death_screen(screen=self.screen)
                 self.__quit_game()
 
             self.__scene.update_draw(dt=dt)

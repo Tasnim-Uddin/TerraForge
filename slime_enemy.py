@@ -7,11 +7,11 @@ from entity import Entity
 
 class SlimeEnemy(Entity):
     def __init__(self):
-        idle_image = pygame.transform.scale(surface=pygame.image.load(file="assets/slime.png").convert_alpha(),
+        idle_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/slime.png").convert_alpha(),
                                             size=(BLOCK_SIZE, BLOCK_SIZE))
-        right_image = pygame.transform.scale(surface=pygame.image.load(file="assets/right_slime.png").convert_alpha(),
+        right_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/right_slime.png").convert_alpha(),
                                              size=(BLOCK_SIZE, BLOCK_SIZE))
-        left_image = pygame.transform.scale(surface=pygame.image.load(file="assets/left_slime.png").convert_alpha(),
+        left_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/left_slime.png").convert_alpha(),
                                             size=(BLOCK_SIZE, BLOCK_SIZE))
         super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
 
@@ -83,5 +83,7 @@ class SlimeEnemy(Entity):
             if self._rect.colliderect(player.get_rect()):
                 if self.__attack_cooldown <= 0:
                     player.set_health(health=player.get_health() - 5)
+                    player_damage = pygame.mixer.Sound("assets/sound/player_damage.mp3")
+                    player_damage.play()
                     self.__attack_cooldown = SLIME_ATTACK_INTERVAL
         self.__attack_cooldown -= dt * 10
