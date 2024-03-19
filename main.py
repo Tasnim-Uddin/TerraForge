@@ -94,8 +94,8 @@ class Game:
             inventory.save_inventory_to_json()
             self.__scene.save_world_to_json()
             # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
-        # shutil.rmtree(WORLD_SAVE_FOLDER)
-        # shutil.rmtree(PLAYER_SAVE_FOLDER)
+        shutil.rmtree(WORLD_SAVE_FOLDER)
+        shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
         sys.exit()
 
