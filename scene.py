@@ -82,18 +82,85 @@ class Scene:
 
                 if real_y + height_noise == 0:
                     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "grass"
+                    # print("block: ", (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE)))
+                    if random.random() < 0.1:
+                        # if int(real_y / BLOCK_SIZE) - 1 < key[1] * CHUNK_HEIGHT:
+                        #     self.__chunks[(key[0], key[1] - 1)][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - 1)] = "tree"
+                        # else:
+                        #     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - 1)] = "tree"
+                        # if int(real_y / BLOCK_SIZE) - 2 < key[1] * CHUNK_HEIGHT:
+                        #     self.__chunks[(key[0], key[1] - 1)][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - 2)] = "tree"
+                        # else:
+                        #     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - 2)] = "tree"
+                        # if int(real_y / BLOCK_SIZE) - 3 < key[1] * CHUNK_HEIGHT:
+                        #     self.__chunks[(key[0], key[1] - 1)][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - 3)] = "tree"
+                        # else:
+                        #     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - 3)] = "tree"
+                        # if int(real_y / BLOCK_SIZE) - 4 < key[1] * CHUNK_HEIGHT:
+                        #     self.__chunks[(key[0], key[1] - 1)][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - 4)] = "tree_leaf"
+                        # else:
+                        #     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - 4)] = "tree_leaf"
+
+                        for y_shift_up in range(1, 5):
+                            if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
+                                if y_shift_up == 4:
+                                    self.__chunks[(key[0], key[1] - 1)][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
+                                else:
+                                    self.__chunks[(key[0], key[1] - 1)][
+                                        (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+                            else:
+                                if y_shift_up == 4:
+                                    self.__chunks[(key[0], key[1])][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
+                                else:
+                                    self.__chunks[(key[0], key[1])][
+                                        (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+
+                        # TODO: fix code so it works for leaf blocks on top of tree, like a pyramid shape. should have 2 for loops
+                        # for x_shift in range(-1, 2):
+                        #     if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
+                        #         self.__chunks[(key[0] - 1, key[1])][
+                        #             (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
+                        #     elif int(real_x / BLOCK_SIZE) + x_shift > key[0] * CHUNK_WIDTH:
+                        #         self.__chunks[(key[0] + 1, key[1])][
+                        #             (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
+                        #     else:
+                        #         self.__chunks[key][(int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
+
                 elif 0 < (real_y + height_noise) <= 10 * BLOCK_SIZE:
                     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "dirt"
                 if 10 * BLOCK_SIZE < (real_y + height_noise):
                     if not air_in_cave:
                         self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "stone"
 
+        # # Generate trees
+        # for _ in range(CHUNK_WIDTH):
+        #     if random.random() < 2:
+        #         tree_x = random.randint(1, CHUNK_WIDTH)
+        #         tree_y = 0
+        #
+        #         real_tree_x = int(chunk_offset[0] * CHUNK_WIDTH * BLOCK_SIZE + tree_x * BLOCK_SIZE)
+        #         real_tree_y = int(chunk_offset[1] * CHUNK_HEIGHT * BLOCK_SIZE + tree_y * BLOCK_SIZE)
+        #
+        #         # Ensure that the block beneath the potential tree location is grass
+        #         if (int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) + 1) in self.__chunks[key] and self.__chunks[key][
+        #             (int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) + 1)] == "grass":
+        #             # Ensure that the tree doesn't overwrite existing blocks
+        #             if (int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE)) not in self.__chunks[key] and \
+        #                 (int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) - 1) not in self.__chunks[key] and \
+        #                 (int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) - 2) not in self.__chunks[key] and \
+        #                 (int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) - 3) not in self.__chunks[key]:
+        #                 self.__chunks[key][(int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE))] = "tree"
+        #                 self.__chunks[key][(int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) - 1)] = "tree"
+        #                 self.__chunks[key][(int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) - 2)] = "tree"
+        #                 self.__chunks[key][(int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) - 3)] = "tree_leaf"
+
     def __break_block(self):
         mouse_position = pygame.mouse.get_pos()
 
         within_reach = False
         distance = int((((mouse_position[0] + self.camera_offset[0] - self.__player.get_rect().centerx) ** 2 + (
-                mouse_position[1] + self.camera_offset[1] - self.__player.get_rect().centery) ** 2) ** 0.5) / BLOCK_SIZE)
+                mouse_position[1] + self.camera_offset[
+            1] - self.__player.get_rect().centery) ** 2) ** 0.5) / BLOCK_SIZE)
         if distance <= REACH:
             within_reach = True
 
@@ -105,8 +172,8 @@ class Scene:
 
         try:
             breaking_item = self.__chunks[break_chunk_position][break_block_position]
-            if self.__inventory.get_item_type(
-                    item=self.__chunks[break_chunk_position][break_block_position]) == "block" and within_reach:
+            if (self.__inventory.get_item_type(
+                    item=self.__chunks[break_chunk_position][break_block_position]) == "block") and within_reach:
                 self.__inventory.add_item(item=breaking_item)
                 del self.__chunks[break_chunk_position][break_block_position]
         except KeyError:
@@ -117,7 +184,8 @@ class Scene:
 
         within_reach = False
         distance = int((((mouse_position[0] + self.camera_offset[0] - self.__player.get_rect().centerx) ** 2 + (
-                mouse_position[1] + self.camera_offset[1] - self.__player.get_rect().centery) ** 2) ** 0.5) / BLOCK_SIZE)
+                mouse_position[1] + self.camera_offset[
+            1] - self.__player.get_rect().centery) ** 2) ** 0.5) / BLOCK_SIZE)
         if distance <= REACH:
             within_reach = True
 
@@ -138,9 +206,9 @@ class Scene:
         player_block_rect = pygame.Rect(player_min_left, player_min_top, player_max_right - player_min_left,
                                         player_max_bottom - player_min_top)
 
-        if not block_exists and not player_block_rect.collidepoint(mouse_position[0] + self.camera_offset[0],
+        if not block_exists and within_reach and ("tree" in held_item or not player_block_rect.collidepoint(mouse_position[0] + self.camera_offset[0],
                                                                    mouse_position[1] + self.camera_offset[
-                                                                       1]) and within_reach:
+                                                                       1])):
             self.__chunks[place_chunk_position][place_block_position] = held_item
             self.__inventory.remove_item(item=held_item)
 
@@ -212,6 +280,7 @@ class Scene:
                         self.__break_block()
                     if self.__inventory.get_item_type(item=held_item) == "sword":
                         sword_swing_sound = pygame.mixer.Sound("assets/sound/sword_swing.mp3")
+                        sword_swing_sound.set_volume(0.2)
                         sword_swing_sound.play()
                 if event.button == 3:  # right mouse click
                     if self.__inventory.get_item_type(item=held_item) == "block":

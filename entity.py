@@ -1,6 +1,7 @@
 import pygame
 
 from global_constants import *
+from all_texture_data import all_texture_data
 
 
 class Entity:
@@ -41,8 +42,11 @@ class Entity:
         for block in self._surrounding_blocks:
             if (int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT)) in surrounding_chunks and block in \
                     surrounding_chunks[(int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT))]:
-                block_rect = pygame.Rect(block[0] * BLOCK_SIZE, block[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-                self._surrounding_block_rects.append(block_rect)
+                current_block = surrounding_chunks[(int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT))][(int(block[0]), int(block[1]))]
+
+                if "tree" not in current_block:
+                    block_rect = pygame.Rect(block[0] * BLOCK_SIZE, block[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+                    self._surrounding_block_rects.append(block_rect)
 
     def _horizontal_collision(self, surrounding_block_rects):
         for block_rect in surrounding_block_rects:

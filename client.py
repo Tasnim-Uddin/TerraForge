@@ -4,7 +4,7 @@ import os
 import requests
 from global_constants import PLAYER_SAVE_FOLDER, WORLD_SAVE_FOLDER
 
-SERVER_URL = "http://192.168.0.80:5000"
+SERVER_URL = "http://192.168.0.82:5000"
 
 
 class Client:
@@ -13,7 +13,7 @@ class Client:
         print("Sending registration request for username:", username)
 
         """Send plaintext username and password to the server. 
-        All hashing and salting done server side Should be using HTTPS to prevent MITM attacks, 
+        All hashing and salting done server side should be using HTTPS to prevent MITM attacks, 
         but I am not due to lack of digital certificate/self-signed certificates"""
 
         data = {"username": username, "password": password}
@@ -76,10 +76,12 @@ class Client:
                 file_name = file_info[1]
                 file_content = base64.b64decode(file_content_encoded)
                 if file_type == "player":
-                    with open(file_name, "wb") as file:
+                    file_path = os.path.join(PLAYER_SAVE_FOLDER, file_name)
+                    with open(file_path, "wb") as file:
                         file.write(file_content)
                 elif file_type == "world":
-                    with open(file_name, "wb") as file:
+                    file_path = os.path.join(WORLD_SAVE_FOLDER, file_name)
+                    with open(file_path, "wb") as file:
                         file.write(file_content)
                 print("File downloaded successfully:", file_name)
         else:

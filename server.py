@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 
 DATABASE_NAME = "user_database.db"
 
-SERVER_IP = "192.168.0.80"
+SERVER_IP = "192.168.0.82"
 
 
 class Server:
@@ -37,7 +37,7 @@ class Server:
 
     def run(self):
         self.create_tables()
-        self.app.run(host="192.168.0.80", port=5000)
+        self.app.run(host=SERVER_IP, port=5000)
 
     @staticmethod
     def create_tables():
@@ -177,7 +177,7 @@ class Server:
                             file_path = os.path.join(self.app.config["WORLD_SAVE_FOLDER"], filename)
                         with open(file_path, "rb") as file:
                             file_content = file.read()
-                        files_to_send.append(((filetype, file_path), file_content))
+                        files_to_send.append(((filetype, filename), file_content))
 
                     file_data = []
                     for file_info, file_content in files_to_send:

@@ -1,5 +1,5 @@
-PLAYER_SAVE_FOLDER = "player_save_files"
-WORLD_SAVE_FOLDER = "world_save_files"
+PLAYER_SAVE_FOLDER = "local_player_save_files"
+WORLD_SAVE_FOLDER = "local_world_save_files"
 
 
 WINDOW_WIDTH = 1280
@@ -36,7 +36,7 @@ ROW_SLOTS = 3
 # SlimeEnemy related
 ENEMY_HORIZONTAL_SPEED = 500
 ENEMY_JUMP_HEIGHT = 900
-SLIME_ATTACK_INTERVAL = 1
+SLIME_ATTACK_INTERVAL = 10
 
 
 MAX_HEALTH = 100

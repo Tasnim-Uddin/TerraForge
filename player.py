@@ -108,9 +108,9 @@ class Player(Entity):
         death_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))  # Create a surface for death screen
         death_surface.fill((0, 0, 0))  # Fill the surface with black
         alpha = 0
-        player_death = pygame.mixer.Sound("assets/sound/player_death.mp3")
-        player_death.play(-1)
-
+        # player_death = pygame.mixer.Sound("assets/sound/player_death.mp3")
+        # player_death.set_volume(0.3)
+        # player_death.play()
 
         # Gradually increase the alpha value to create a smooth transition
         while alpha <= 50:
