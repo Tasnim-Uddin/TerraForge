@@ -154,7 +154,7 @@ class Scene:
         #                 self.__chunks[key][(int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) - 2)] = "tree"
         #                 self.__chunks[key][(int(real_tree_x / BLOCK_SIZE), int(real_tree_y / BLOCK_SIZE) - 3)] = "tree_leaf"
 
-    def __break_block(self):
+    def __break_block(self, held_item):
         mouse_position = pygame.mouse.get_pos()
 
         within_reach = False
@@ -174,8 +174,10 @@ class Scene:
             breaking_item = self.__chunks[break_chunk_position][break_block_position]
             if (self.__inventory.get_item_type(
                     item=self.__chunks[break_chunk_position][break_block_position]) == "block") and within_reach:
-                self.__inventory.add_item(item=breaking_item)
-                del self.__chunks[break_chunk_position][break_block_position]
+                if (self.__inventory.get_item_type(item=held_item) == "pickaxe" and "tree" not in self.__chunks[break_chunk_position][break_block_position]) or (self.__inventory.get_item_type(item=held_item) == "axe" and "tree" in self.__chunks[break_chunk_position][break_block_position]):
+                    self.__inventory.add_item(item=breaking_item)
+                    del self.__chunks[break_chunk_position][break_block_position]
+
         except KeyError:
             pass
 
@@ -276,8 +278,7 @@ class Scene:
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # left mouse click
-                    if self.__inventory.get_item_type(item=held_item) == "pickaxe":
-                        self.__break_block()
+                    self.__break_block(held_item=held_item)
                     if self.__inventory.get_item_type(item=held_item) == "sword":
                         sword_swing_sound = pygame.mixer.Sound("assets/sound/sword_swing.mp3")
                         sword_swing_sound.set_volume(0.2)
