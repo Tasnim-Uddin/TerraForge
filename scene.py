@@ -22,6 +22,7 @@ class Scene:
 
         self.__chunks = self.load_world_from_json()
         # {(chunk_x, chunk_y): {(block_x, block_y): "block_type"}}  block_type is "grass", "dirt", "stone", ...
+        self.missing_tree_positions = {}
 
         self.__inventory = Inventory(game=game, screen=self.screen, textures=self.all_textures)
 
@@ -80,59 +81,155 @@ class Scene:
                 if self.lower_cave_threshold < cave_value < self.upper_cave_threshold:
                     air_in_cave = True
 
-                if real_y + height_noise == 0:
-                    self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "grass"
-                    # print("block: ", (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE)))
-                    if random.random() < 0.07:
-                        # for y_shift_up in range(1, 5):
-                        #     if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
-                        #         if y_shift_up == 4:
-                        #             self.__chunks[(key[0], key[1] - 1)][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
-                        #         else:
-                        #             self.__chunks[(key[0], key[1] - 1)][
-                        #                 (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
-                        #     else:
-                        #         if y_shift_up == 4:
-                        #             self.__chunks[(key[0], key[1])][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
-                        #         else:
-                        #             self.__chunks[(key[0], key[1])][
-                        #                 (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
-                        #
-                        # # TODO: fix code so it works for leaf blocks on top of tree, like a pyramid shape. should have 2 for loops
-                        # for x_shift in range(-1, 2):
-                        #     if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
-                        #         self.__chunks[(key[0] - 1, key[1])][
-                        #             (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
-                        #     elif int(real_x / BLOCK_SIZE) + x_shift > key[0] * CHUNK_WIDTH:
-                        #         self.__chunks[(key[0] + 1, key[1])][
-                        #             (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
-                        #     else:
-                        #         self.__chunks[key][(int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
+                if (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE)) not in self.__chunks[key]:
 
-                        for y_shift_up in range(1, 3):
-                            if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
-                                self.__chunks[(key[0], key[1] - 1)][
-                                    (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
-                            else:
-                                self.__chunks[(key[0], key[1])][
-                                    (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+                    if real_y + height_noise == 0:
+                        self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "grass"
+                        # print("block: ", (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE)))
+                        if random.random() < 0.07:
 
-                        for layer in range(1, 4):
-                            for x_shift in range(-1, 2):
-                                if layer == 2 and (x_shift == -1 or x_shift == 2):
-                                    continue
-                                if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
-                                    self.__chunks[(key[0] - 1, key[1])][(int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) + 4)] = "tree_leaf"
+                            # for y_shift_up in range(1, 5):
+                            #     if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
+                            #         if y_shift_up == 4:
+                            #             self.__chunks[(key[0], key[1] - 1)][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
+                            #         else:
+                            #             self.__chunks[(key[0], key[1] - 1)][
+                            #                 (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+                            #     else:
+                            #         if y_shift_up == 4:
+                            #             self.__chunks[(key[0], key[1])][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
+                            #         else:
+                            #             self.__chunks[(key[0], key[1])][
+                            #                 (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+                            #
+                            # # TODO: fix code so it works for leaf blocks on top of tree, like a pyramid shape. should have 2 for loops
+                            # for x_shift in range(-1, 2):
+                            #     if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
+                            #         self.__chunks[(key[0] - 1, key[1])][
+                            #             (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
+                            #     elif int(real_x / BLOCK_SIZE) + x_shift > key[0] * CHUNK_WIDTH:
+                            #         self.__chunks[(key[0] + 1, key[1])][
+                            #             (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
+                            #     else:
+                            #         self.__chunks[key][(int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE))] = "tree_leaf"
 
+                            # for y_shift_up in range(1, 4):
+                            #     # tree_key = (int(real_x / (BLOCK_SIZE * CHUNK_WIDTH)), int(((real_y / BLOCK_SIZE) - y_shift_up) / CHUNK_HEIGHT))
+                            #     if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
+                            #         tree_key = (key[0], key[1] - 1)
+                            #         if tree_key not in self.missing_tree_positions:
+                            #             self.missing_tree_positions[tree_key] = {}
+                            #         self.missing_tree_positions[tree_key][
+                            #             (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+                            #     else:
+                            #         self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+                            #
+                            # x_shift_start = -2
+                            # x_shift_end = 2
+                            # for layer in range(4, 7):  # Number of iterations
+                            #     all_x_shifts = range(x_shift_start, x_shift_end + 1)
+                            #     for x_shift in all_x_shifts:
+                            #         if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
+                            #             tree_key = (key[0] - 1, key[1])
+                            #             if tree_key not in self.missing_tree_positions:
+                            #                 self.missing_tree_positions[tree_key] = {}
+                            #             self.missing_tree_positions[tree_key][
+                            #                 (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) - layer)] = "tree_leaf"
+                            #         elif int(real_x / BLOCK_SIZE) + x_shift > key[0] * CHUNK_WIDTH:
+                            #             tree_key = (key[0] + 1, key[1])
+                            #             if tree_key not in self.missing_tree_positions:
+                            #                 self.missing_tree_positions[tree_key] = {}
+                            #             self.missing_tree_positions[tree_key][
+                            #                 (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) - layer)] = "tree_leaf"
+                            #         else:
+                            #             self.__chunks[key][
+                            #                 (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) - layer)] = "tree_leaf"
+                            #
+                            #     x_shift_start += 1
+                            #     x_shift_end -= 1
 
+                            x_shift_start = -2
+                            x_shift_end = 2
+                            for y_shift_up in range(1, 7):  # Number of layers of tree (bottom to top)
+                                if y_shift_up < 4:
+                                    if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
+                                        tree_key = (key[0], key[1] - 1)
+                                        if tree_key not in self.missing_tree_positions:
+                                            self.missing_tree_positions[tree_key] = {}
+                                        self.missing_tree_positions[tree_key][
+                                            (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+                                    else:
+                                        self.__chunks[key][
+                                            (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree"
+                                # else:  # TODO: fix leaves here
+                                #     for x_shift in range(x_shift_start, x_shift_end + 1):
+                                #         if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
+                                #             tree_key = (key[0] - 1, key[1])
+                                #             if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
+                                #                 tree_key = (key[0] - 1, key[1] - 1)
+                                #             if tree_key not in self.missing_tree_positions:
+                                #                 self.missing_tree_positions[tree_key] = {}
+                                #             self.missing_tree_positions[tree_key][
+                                #                 (int(real_x / BLOCK_SIZE) + x_shift,
+                                #                  int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
+                                #         elif int(real_x / BLOCK_SIZE) + x_shift > key[0] * CHUNK_WIDTH:
+                                #             tree_key = (key[0] + 1, key[1])
+                                #             if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
+                                #                 tree_key = (key[0] + 1, key[1] - 1)
+                                #             if tree_key not in self.missing_tree_positions:
+                                #                 self.missing_tree_positions[tree_key] = {}
+                                #             self.missing_tree_positions[tree_key][
+                                #                 (int(real_x / BLOCK_SIZE) + x_shift,
+                                #                  int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
+                                #         else:
+                                #             tree_key = key
+                                #             if int(real_y / BLOCK_SIZE) - y_shift_up < key[1] * CHUNK_HEIGHT:
+                                #                 tree_key = (key[0], key[1] - 1)
+                                #             self.__chunks[tree_key][
+                                #                 (int(real_x / BLOCK_SIZE) + x_shift,
+                                #                  int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_leaf"
+                                #     x_shift_start += 1
+                                #     x_shift_end -= 1
 
+                            # for layer in range(1, 4):
+                            #     for x_shift in range(-1, 2):
+                            #         if layer == 2 and (x_shift == -1 or x_shift == 2):
+                            #             continue
+                            #         if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
+                            #             self.__chunks[(key[0] - 1, key[1])][(int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) + 4)] = "tree_leaf"
 
+                            # start = -2
+                            # end = 3
+                            # for layer in range(4, 7):  # Number of iterations
+                            #     all_x_shifts = range(start, end)
+                            #     print(start, end)
+                            #     for x_shift in all_x_shifts:
+                            #         # print("Iteration:", layer, "x:", x_shift)
+                            #         if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
+                            #             try:
+                            #                 self.__chunks[(key[0] - 1, key[1])][
+                            #                     (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) - layer)] = "tree_leaf"
+                            #             except KeyError:
+                            #                 print(int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) - layer)
+                            #                 print("less")
+                            #         elif int(real_x / BLOCK_SIZE) + x_shift > key[0] * CHUNK_WIDTH:
+                            #             try:
+                            #                 self.__chunks[(key[0] + 1, key[1])][
+                            #                     (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) - layer)] = "tree_leaf"
+                            #             except KeyError:
+                            #                 print(int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) - layer)
+                            #                 print("more")
+                            #         else:
+                            #                 self.__chunks[key][
+                            #                     (int(real_x / BLOCK_SIZE) + x_shift, int(real_y / BLOCK_SIZE) - layer)] = "tree_leaf"
+                            #     start += 1
+                            #     end -= 1
 
-                elif 0 < (real_y + height_noise) <= 10 * BLOCK_SIZE:
-                    self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "dirt"
-                if 10 * BLOCK_SIZE < (real_y + height_noise):
-                    if not air_in_cave:
-                        self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "stone"
+                    elif 0 < (real_y + height_noise) <= 10 * BLOCK_SIZE:
+                        self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "dirt"
+                    if 10 * BLOCK_SIZE < (real_y + height_noise):
+                        if not air_in_cave:
+                            self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "stone"
 
         # # Generate trees
         # for _ in range(CHUNK_WIDTH):
@@ -268,12 +365,29 @@ class Scene:
                 surrounding_chunks[(offset[0], offset[1])] = []
             surrounding_chunks[(offset[0], offset[1])] = self.__chunks.get((offset[0], offset[1]), [])
 
+        for chunk_position, block_information in list(self.missing_tree_positions.items()):
+            for position, tree_block in list(block_information.items()):
+                offset = (int(position[0] // CHUNK_WIDTH), int(position[1] // CHUNK_HEIGHT))
+                print(position, offset)
+
+                if chunk_position in self.__chunks:
+                    self.__chunks[chunk_position][position] = tree_block
+                    surrounding_chunks[(chunk_position[0], chunk_position[1])] = self.__chunks.get((chunk_position[0], chunk_position[1]), [])
+                    self.screen.fblits([(self.all_textures[tree_block], (
+                    position[0] * BLOCK_SIZE - self.camera_offset[0],
+                    position[1] * BLOCK_SIZE - self.camera_offset[1]))])
+                    del self.missing_tree_positions[chunk_position][position]
+
+        for offset in neighbour_chunk_offsets:
             for block_position, block in surrounding_chunks[(offset[0], offset[1])].items():
                 self.screen.fblits([(self.all_textures[block],
                                      (block_position[0] * BLOCK_SIZE -
                                       self.camera_offset[0],
                                       block_position[1] * BLOCK_SIZE -
                                       self.camera_offset[1]))])
+
+
+        # self.missing_tree_positions = {}
 
         held_item = self.__inventory.get_selected_item()
 
