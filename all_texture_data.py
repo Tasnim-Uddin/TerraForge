@@ -2,8 +2,10 @@ all_texture_data = {
     "grass": {"item_type": "block", "size": (16, 16), "position": (48, 464)},  # Position: Pixel coordinates of top left of image on sprite sheet
     "dirt": {"item_type": "block", "size": (16, 16), "position": (48, 480)},
     "stone": {"item_type": "block", "size": (16, 16), "position": (0, 16)},
-    "tree": {"item_type": "block", "size": (16, 16), "position": (208, 192)},
-    "tree_leaf": {"item_type": "block", "size": (16, 16), "position": (0, 256)},
+    "tree_log": {"item_type": "tree", "size": (16, 16), "position": (208, 192)},
+    "wood_plank": {"item_type": "block", "size": (16, 16), "position": (0, 208)},
+    "tree_leaf": {"item_type": "tree", "size": (16, 16), "position": (0, 256)},
+    "leaf_block": {"item_type": "block", "size": (16, 16), "position": (0, 256)},
     "copper_sword": {"item_type": "sword", "size": (16, 16), "position": (16, 560)},
     "copper_pickaxe": {"item_type": "pickaxe", "size": (16, 16), "position": (0, 560)},
     "copper_axe": {"item_type": "axe", "size": (16, 16), "position": (64, 560)},

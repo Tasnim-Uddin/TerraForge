@@ -32,7 +32,9 @@ class Game:
         self.__clock = pygame.time.Clock()
         self.start_time = 0
         self.running = True
-        self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
+
+        # self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
+        self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
 
         self.__menu_state_stack = ["main menu"]  # TODO: change to "login or register"
 

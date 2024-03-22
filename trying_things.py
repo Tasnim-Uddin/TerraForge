@@ -13,3 +13,7 @@ chunks = {}
 chunks[1] = "dog"
 chunks[1] = "cat"
 print(chunks)
+
+breaking_item = "leaf_block"
+if breaking_item == ("wood_plank" or "leaf_block"):
+    print("YESSSS")
