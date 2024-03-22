@@ -218,7 +218,7 @@ class Inventory:
 
         for column_slot_number in range(1, COLUMN_SLOTS + 1):
             slot_text = self.slot_font.render(text=str(column_slot_number), antialias=True, color="#c0c2c0")
-            self.screen.fblits([(slot_text, ((BLOCK_SIZE * 2) * (column_slot_number - 1) + 5, 5))])
+            self.screen.fblits([(slot_text, ((BLOCK_SIZE * 2) * (column_slot_number - 1) + 5, + 5))])
 
     def save_inventory_to_json(self):
         inventory_path = os.path.join(PLAYER_SAVE_FOLDER, f"{self.__inventory_name}.json")
