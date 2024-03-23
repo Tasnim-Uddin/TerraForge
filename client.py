@@ -65,12 +65,12 @@ class Client:
             return False
 
     @staticmethod
-    def replace_previous_password(username, new_password):
+    def reset_password(username, new_password):
         print("Sending recovery code authentication request for username:", username)
 
         # Send plaintext username and password to the server
         data = {"username": username, "password": new_password}
-        url = SERVER_URL + "/forgot_password"
+        url = SERVER_URL + "/reset_password"
         response = requests.post(url, json=data)
 
         user_data = response.json()

@@ -7,7 +7,7 @@ from event_manager import EventManager
 
 class TextInput:
     def __init__(self):
-        self.all_valid_characters = string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation
+        self.all_valid_characters = string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation + " "
 
         self.input_rect = pygame.Rect(WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2, 200, 50)
         self.input_text = ""
@@ -23,10 +23,10 @@ class TextInput:
                 else:
                     entered_character = event.unicode
                     if entered_character in self.all_valid_characters:
-                        if validation_type in ["Username", "Create Username", "Create Player", "Create World"]:
+                        if validation_type == "short":
                             if len(self.input_text) <= 20:
                                 self.input_text += entered_character
-                        elif validation_type in ["Password", "Create Password"]:
+                        elif validation_type == "long":
                             if len(self.input_text) <= 64:
                                 self.input_text += entered_character
 

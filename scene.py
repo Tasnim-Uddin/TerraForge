@@ -251,10 +251,10 @@ class Scene:
 
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                block_sound = pygame.mixer.Sound("assets/sound/block.mp3")
+                block_sound = pygame.mixer.Sound(file="assets/sound/block.mp3")
                 if event.button == 1:  # left mouse click
                     if self.__inventory.get_item_type(item=held_item) == "sword":
-                        sword_swing_sound = pygame.mixer.Sound("assets/sound/sword_swing.mp3")
+                        sword_swing_sound = pygame.mixer.Sound(file="assets/sound/sword_swing.mp3")
                         sword_swing_sound.set_volume(0.2)
                         sword_swing_sound.play()
                     else:
@@ -268,7 +268,7 @@ class Scene:
                         block_sound.set_volume(0.5)
                         block_sound.play()
                     if self.__inventory.get_item_type(item=held_item) == "food" and self.__player.get_health() < 100:
-                        eat_sound = pygame.mixer.Sound("assets/sound/eat.mp3")
+                        eat_sound = pygame.mixer.Sound(file="assets/sound/eat.mp3")
                         eat_sound.set_volume(0.5)
                         eat_sound.play()
                         self.__player.set_health(health=self.__player.get_health() + 5)

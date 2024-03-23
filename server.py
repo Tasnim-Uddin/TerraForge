@@ -33,8 +33,8 @@ class Server:
                               methods=["POST"])
         self.app.add_url_rule(rule="/authenticate_recovery_code", endpoint="authenticate_recovery_code", view_func=self.authenticate_recovery_code,
                               methods=["POST"])
-        self.app.add_url_rule(rule="/forgot_password", endpoint="forgot_password",
-                              view_func=self.forgot_password,
+        self.app.add_url_rule(rule="/reset_password", endpoint="reset_password",
+                              view_func=self.reset_password,
                               methods=["POST"])
         self.app.add_url_rule(rule="/upload", endpoint="upload_files", view_func=self.upload_files,
                               methods=["POST"])
@@ -52,7 +52,7 @@ class Server:
         # Create the users table with ID and username as primary key
         cursor.execute("""CREATE TABLE IF NOT EXISTS users (      
                                         USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                        username TEXT UNIQUE,
+                                        username TEXT UNIQUE NOT NULL,
                                         hashed_password TEXT NOT NULL,
                                         password_salt TEXT NOT NULL,
                                         hashed_recovery_code TEXT NOT NULL,
@@ -168,7 +168,7 @@ class Server:
             return jsonify({"error": str(error)})
 
     @staticmethod
-    def forgot_password():
+    def reset_password():
         data = request.json
         username = data.get("username")
         password = data.get("password")
