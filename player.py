@@ -118,12 +118,9 @@ class Player(Entity):
             pygame.time.delay(20)
             alpha += 1
 
-        # Delay before rendering the "Wasted" text
         pygame.time.delay(500)
 
-        # Blit the text onto the screen after the delay
         screen.fblits([(text_surface, text_rect)])
         pygame.display.update()
 
-        # # After the text is rendered, wait for a while before game ends
         pygame.time.delay(2000)

@@ -51,8 +51,7 @@ class SlimeEnemy(Entity):
         self.__jump()
 
     def __jump(self):
-        # Implement jumping only when on the ground
-        if self._on_ground:  # Jumping allowed only when the player is on the ground
+        if self._on_ground:
             self._on_ground = False
             self._velocity[1] = -ENEMY_JUMP_HEIGHT
 

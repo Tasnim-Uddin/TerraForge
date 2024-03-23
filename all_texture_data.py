@@ -1,13 +1,14 @@
 all_texture_data = {
-    "grass": {"item_type": "block", "size": (16, 16), "position": (48, 464)},  # Position: Pixel coordinates of top left of image on sprite sheet
-    "dirt": {"item_type": "block", "size": (16, 16), "position": (48, 480)},
+    "grass": {"item_type": "block", "size": (16, 16), "position": (3*16, 29*16)},
+    "dirt": {"item_type": "block", "size": (16, 16), "position": (3*16, 30*16)},
     "stone": {"item_type": "block", "size": (16, 16), "position": (0, 16)},
-    "tree_log": {"item_type": "tree", "size": (16, 16), "position": (208, 192)},
-    "wood_plank": {"item_type": "block", "size": (16, 16), "position": (0, 208)},
-    "tree_leaf": {"item_type": "tree", "size": (16, 16), "position": (0, 256)},
-    "leaf_block": {"item_type": "block", "size": (16, 16), "position": (0, 256)},
-    "copper_sword": {"item_type": "sword", "size": (16, 16), "position": (16, 560)},
-    "copper_pickaxe": {"item_type": "pickaxe", "size": (16, 16), "position": (0, 560)},
-    "copper_axe": {"item_type": "axe", "size": (16, 16), "position": (64, 560)},
-    "slime": {"item_type": "utility", "size": (16, 16), "position": (64, 640)}
+    "tree_log": {"item_type": "tree", "size": (16, 16), "position": (13*16, 12*16)},
+    "wood_plank": {"item_type": "block", "size": (16, 16), "position": (0, 13*16)},
+    "tree_leaf": {"item_type": "tree", "size": (16, 16), "position": (0, 16*16)},
+    "leaf_block": {"item_type": "block", "size": (16, 16), "position": (0, 16*16)},
+    "apple": {"item_type": "food", "size": (16, 16), "position": (11*16, 35*16)},
+    "copper_sword": {"item_type": "sword", "size": (16, 16), "position": (1*16, 35*16)},
+    "copper_pickaxe": {"item_type": "pickaxe", "size": (16, 16), "position": (0, 35*16)},
+    "copper_axe": {"item_type": "axe", "size": (16, 16), "position": (4*16, 35*16)},
+    "slime": {"item_type": "utility", "size": (16, 16), "position": (4*16, 40*16)}
 }

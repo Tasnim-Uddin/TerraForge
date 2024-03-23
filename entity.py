@@ -7,8 +7,8 @@ from all_texture_data import all_texture_data
 class Entity:
     def __init__(self, idle_image, left_image, right_image):
         self.idle_image = idle_image
-        self.left_image = left_image
         self.right_image = right_image
+        self.left_image = left_image
 
         self._x = 0
         self._y = 0
@@ -135,3 +135,7 @@ class Entity:
 
     def set_health(self, health):
         self._health = health
+        if self._health > 100:
+            self._health = 100
+        elif self._health < 0:
+            self._health = 0

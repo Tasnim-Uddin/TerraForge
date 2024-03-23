@@ -22,6 +22,7 @@ class Scene:
 
         self.__chunks = self.load_world_from_json()
         # {(chunk_x, chunk_y): {(block_x, block_y): "block_type"}}  block_type is "grass", "dirt", "stone", ...
+
         self.missing_tree_positions = {}
 
         self.__inventory = Inventory(game=game, screen=self.screen, textures=self.all_textures)
@@ -159,6 +160,8 @@ class Scene:
                     self.__inventory.add_item(item=breaking_item)
                     del self.__chunks[break_chunk_position][break_block_position]
                 elif held_item_type == "axe" and (breaking_item_type == "tree" or breaking_item == "wood_plank" or breaking_item == "leaf_block"):
+                    if breaking_item == "tree_leaf" and random.random() < 0.05:
+                        self.__inventory.add_item(item="apple")
                     self.__inventory.add_item(item=breaking_item)
                     del self.__chunks[break_chunk_position][break_block_position]
         except KeyError:
@@ -244,21 +247,32 @@ class Scene:
                                       self.camera_offset[1]))])
 
 
-        # self.missing_tree_positions = {}
-
         held_item = self.__inventory.get_selected_item()
 
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:
+                block_sound = pygame.mixer.Sound("assets/sound/block.mp3")
                 if event.button == 1:  # left mouse click
-                    self.__break_block(held_item=held_item)
                     if self.__inventory.get_item_type(item=held_item) == "sword":
                         sword_swing_sound = pygame.mixer.Sound("assets/sound/sword_swing.mp3")
                         sword_swing_sound.set_volume(0.2)
                         sword_swing_sound.play()
+                    else:
+                        self.__break_block(held_item=held_item)
+                        block_sound.set_volume(0.5)
+                        block_sound.play()
+
                 if event.button == 3:  # right mouse click
                     if self.__inventory.get_item_type(item=held_item) == "block":
                         self.__place_block(held_item=held_item)
+                        block_sound.set_volume(0.5)
+                        block_sound.play()
+                    if self.__inventory.get_item_type(item=held_item) == "food" and self.__player.get_health() < 100:
+                        eat_sound = pygame.mixer.Sound("assets/sound/eat.mp3")
+                        eat_sound.set_volume(0.5)
+                        eat_sound.play()
+                        self.__player.set_health(health=self.__player.get_health() + 5)
+                        self.__inventory.remove_item(item=held_item)
 
         for enemy in self.__enemies:
             relative_chunk_position = (

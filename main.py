@@ -37,7 +37,7 @@ class Game:
         # TODO: uncomment code
         # self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
 
-        self.__menu_state_stack = ["login or register"]  # TODO: change to "login or register"
+        self.__menu_state_stack = ["main menu"]  # TODO: change to "login or register"
 
         self.__world_name = None
         self.__player_name = None
@@ -96,7 +96,7 @@ class Game:
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
             self.__scene.save_world_to_json()
-            self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
+            # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
         shutil.rmtree(WORLD_SAVE_FOLDER)
         shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
@@ -201,6 +201,38 @@ class Game:
                 self.screen.fblits([(text, text_rect)])
         pygame.display.flip()
 
+    def validate_username_text_input(self):
+        if 5 <= len(self.__username) <= 20:
+            return True
+
+    @staticmethod
+    def validate_password_text_input(password):
+        create_password_lower = False
+        create_password_upper = False
+        create_password_number = False
+        create_password_special = False
+        if 5 <= len(password) <= 64:
+            for character in password:
+                if character in "abcdefghijklmnopqrstuvwxyz":
+                    create_password_lower = True
+                if character in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+                    create_password_upper = True
+                if character in "0123456789":
+                    create_password_number = True
+                if character in " -_!@#$%^&*()[]{};:',.`~+=":
+                    create_password_special = True
+        if create_password_lower and create_password_upper and create_password_number and create_password_special:
+            return True
+
+    def validate_player_text_input(self):
+        if self.__player_name is not None:
+            if 5 <= len(self.__player_name) <= 20:
+                return True
+
+    def validate_world_text_input(self):
+        if self.__world_name is not None:
+            if 5 <= len(self.__world_name) <= 20:
+                return True
     def login_register_selection(self):
         menu_options = ["Login", "Register", "Quit"]
         selected_option = 0
@@ -223,38 +255,6 @@ class Game:
                             return
                         elif selected_option == 2:  # Quit
                             self.__quit_game()
-
-    def validate_username_text_input(self):
-        if 5 <= len(self.__username) <= 20:
-            return True
-
-    def validate_password_text_input(self, password):
-        create_password_lower = False
-        create_password_upper = False
-        create_password_number = False
-        create_password_special = False
-        if 5 <= len(password) <= 64:
-            for character in password:
-                if character in "abcdefghijklmnopqrstuvwxyz":
-                    create_password_lower = True
-                if character in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                    create_password_upper = True
-                if character in "0123456789":
-                    create_password_number = True
-                if character in " -_!@#$%^&*()[]{};:',.<>/\|`~+=":
-                    create_password_special = True
-        if create_password_lower and create_password_upper and create_password_number and create_password_special:
-            return True
-
-    def validate_player_text_input(self):
-        if self.__player_name is not None:
-            if 5 <= len(self.__player_name) <= 20:
-                return True
-
-    def validate_world_text_input(self):
-        if self.__world_name is not None:
-            if 5 <= len(self.__world_name) <= 20:
-                return True
 
     def login_username_menu(self):
         menu_options = ["Text Box", "Back"]
@@ -320,7 +320,7 @@ class Game:
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(success_text, success_rect)])
                                 pygame.display.flip()
-                                pygame.time.wait(2000)
+                                pygame.time.delay(2000)
 
                                 self.__menu_state_stack.append("main menu")
                                 return
@@ -334,7 +334,7 @@ class Game:
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(success_text, success_rect)])
                                 pygame.display.flip()
-                                pygame.time.wait(2000)
+                                pygame.time.delay(2000)
 
                                 self.__menu_state_stack.pop()  # removes "login password"
                                 self.__menu_state_stack.pop()  # removes "login username"
@@ -367,6 +367,7 @@ class Game:
                             self.__username = self.text_input.input_text
                             if self.validate_username_text_input():
                                 self.__menu_state_stack.append("register password")
+                                return
                             else:
                                 criteria_fail_text = self.menu_font.render(
                                     text="Username does not meet the following criteria:",
@@ -385,10 +386,10 @@ class Game:
                                 self.screen.fblits([(criteria_fail_text, criteria_fail_rect)])
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
-                                pygame.time.wait(2000)
+                                pygame.time.delay(2000)
 
                                 self.__menu_state_stack.pop()
-                            return
+                                return
 
             self.text_input.update(validation_type="Create Username")
 
@@ -427,7 +428,7 @@ class Game:
                                     self.screen.fill(color="black")
                                     self.screen.fblits([(success_text, success_rect)])
                                     pygame.display.flip()
-                                    pygame.time.wait(2000)
+                                    pygame.time.delay(2000)
 
                                     self.__menu_state_stack.append("login or register")
                                 else:
@@ -440,7 +441,7 @@ class Game:
                                     self.screen.fill(color="black")
                                     self.screen.fblits([(success_text, success_rect)])
                                     pygame.display.flip()
-                                    pygame.time.wait(2000)
+                                    pygame.time.delay(2000)
 
                                     self.__menu_state_stack.pop()  # removes "register password"
                                     self.__menu_state_stack.pop()  # removes "register username"
@@ -462,7 +463,7 @@ class Game:
                                                  criteria_fail_rect)])  # Blit criteria_fail_text directly
                                 self.screen.fblits([(criteria_text, criteria_rect)])  # Blit criteria_text directly
                                 pygame.display.flip()
-                                pygame.time.wait(2000)
+                                pygame.time.delay(2000)
 
                                 self.__menu_state_stack.pop()  # removes "register password"
                                 self.__menu_state_stack.pop()  # removes "register username"
@@ -525,10 +526,11 @@ class Game:
             "Break Block": "Left Mouse Button",
             "Place Block": "Right Mouse Button",
             "Attack": "Right Mouse Button",
-            "Open / Close Inventory": "E",
+            "Eat": "Right Mouse Button",
+            "Toggle Inventory": "E",
             "Navigate Inventory": "Scroll Wheel / 1-9",
             "Swap Items": "Right Mouse Button",
-            "Quit Game": "ESCAPE",
+            "Quit Game": "ESCAPE"
         }
 
         # Calculate the maximum width of the action texts
@@ -635,7 +637,7 @@ class Game:
                                 self.screen.fblits([(criteria_fail_text, criteria_fail_rect)])
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
-                                pygame.time.wait(2000)
+                                pygame.time.delay(2000)
 
                                 self.__menu_state_stack.pop()
                             return
@@ -692,6 +694,7 @@ class Game:
                             self.__menu_state_stack.pop()  # Remove the last menu state from the stack
                             return
                         elif selected_option == 0:  # Text Box
+                            self.__world_name = self.text_input.input_text
                             if self.validate_world_text_input():
                                 self.__menu_state_stack.append("game")
                             else:
@@ -712,7 +715,7 @@ class Game:
                                 self.screen.fblits([(criteria_fail_text, criteria_fail_rect)])
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
-                                pygame.time.wait(2000)
+                                pygame.time.delay(2000)
 
                                 self.__menu_state_stack.pop()
                             return
