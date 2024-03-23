@@ -21,7 +21,12 @@ class Client:
         response = requests.post(url, json=data)
 
         print("Response:", response.text)
-        return response.json()
+        user_data = response.json()
+
+        if "success" in user_data and user_data["success"]:
+            return True
+        else:
+            return False
 
     @staticmethod
     def authenticate_user(username, password):

@@ -113,7 +113,7 @@ class Entity:
         # Draw the background health bar (green)
         health_bar_rect = pygame.Rect(self._rect.x - camera_offset[0], self._y - camera_offset[1] - 10, health_bar_width,
                                       health_bar_height)
-        pygame.draw.rect(surface=screen, color=(0, 255, 0), rect=health_bar_rect)
+        pygame.draw.rect(surface=screen, color="green", rect=health_bar_rect)
 
         # Calculate the width of the lost health bar (red)
         lost_health_width = ((100 - self._health) / 100) * health_bar_width

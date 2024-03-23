@@ -99,7 +99,7 @@ class Scene:
                                     else:
                                         self.__chunks[key][
                                             (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_log"
-                                else:  # TODO: fix leaves here
+                                else:
                                     for x_shift in range(x_shift_start, x_shift_end + 1):
                                         if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
                                             tree_key = (key[0] - 1, key[1])

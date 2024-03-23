@@ -60,8 +60,6 @@ class Player(Entity):
         # Display health
         health_bar_width = 300
         health_bar_height = 50
-        health_bar_colour = (0, 255, 0)  # Green
-        lost_health_colour = (255, 0, 0)  # Red
 
         # Draw the background health bar (green) at the very top right of the screen
         health_bar_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width, 0, health_bar_width, health_bar_height)
@@ -72,13 +70,13 @@ class Player(Entity):
                                        0, lost_health_width, health_bar_height)
 
         if 0 <= self._health <= MAX_HEALTH:
-            pygame.draw.rect(screen, health_bar_colour, health_bar_rect)
-            pygame.draw.rect(screen, lost_health_colour, lost_health_rect)
+            pygame.draw.rect(surface=screen, color="green", rect=health_bar_rect)
+            pygame.draw.rect(surface=screen, color="red", rect=lost_health_rect)
         else:
             lost_health_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width,
                                            0, health_bar_width, health_bar_height)
 
-            pygame.draw.rect(screen, lost_health_colour, lost_health_rect)
+            pygame.draw.rect(surface=screen, color="red", rect=lost_health_rect)
 
     def attack(self, enemy, camera_offset, dt):
         for event in EventManager.events:
@@ -102,13 +100,13 @@ class Player(Entity):
 
     @staticmethod
     def death_screen(screen):
-        font = pygame.font.Font(None, 100)  # Choose font and size
-        text_surface = font.render("wasted", True, (255, 0, 0))  # Render the text with red colour
+        font = pygame.font.Font(filename=None, size=100)  # Choose font and size
+        text_surface = font.render(text="wasted", antialias=True, color="black")  # Render the text with red colour
         text_rect = text_surface.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))  # Position the text
         death_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))  # Create a surface for death screen
         death_surface.fill((0, 0, 0))  # Fill the surface with black
         alpha = 0
-        player_death = pygame.mixer.Sound("assets/sound/player_death.mp3")
+        player_death = pygame.mixer.Sound(file="assets/sound/player_death.mp3")
         player_death.set_volume(0.3)
         player_death.play()
 
