@@ -22,11 +22,10 @@ class Client:
 
         print("Response:", response.text)
         user_data = response.json()
-
         if "success" in user_data and user_data["success"]:
-            return True
+            return True, user_data["recovery code"]
         else:
-            return False
+            return False, None
 
     @staticmethod
     def authenticate_user(username, password):
@@ -37,7 +36,6 @@ class Client:
         url = SERVER_URL + "/authenticate"
         response = requests.post(url, json=data)
 
-        print("Response:", response.text)
         user_data = response.json()
 
         if "authenticated" in user_data and user_data["authenticated"]:
@@ -46,6 +44,43 @@ class Client:
         else:
             print("Authentication failed:", user_data.get("error", "Unknown error"))
             return False
+
+    @staticmethod
+    def authenticate_recovery_code(username, recovery_code):
+        print("Sending recovery code authentication request for username:", username)
+
+        # Send plaintext username and recovery code to the server
+        print(username, recovery_code)
+        data = {"username": username, "recovery code": recovery_code}
+        url = SERVER_URL + "/authenticate_recovery_code"
+        response = requests.post(url, json=data)
+
+        user_data = response.json()
+
+        if "authenticated" in user_data and user_data["authenticated"]:
+            print("User authenticated successfully:", username)
+            return True
+        else:
+            print("Authentication failed:", user_data.get("error", "Unknown error"))
+            return False
+
+    @staticmethod
+    def replace_previous_password(username, new_password):
+        print("Sending recovery code authentication request for username:", username)
+
+        # Send plaintext username and password to the server
+        data = {"username": username, "password": new_password}
+        url = SERVER_URL + "/forgot_password"
+        response = requests.post(url, json=data)
+
+        user_data = response.json()
+        print(user_data["success"], user_data["recovery code"])
+        if "success" in user_data and user_data["success"]:
+            print("New password set successfully:", username)
+            return True, user_data["recovery code"]
+        else:
+            print("Setting new password failed:", user_data.get("error", "Unknown error"))
+            return False, None
 
     @staticmethod
     def upload_files(username, player_file_path, world_file_path):

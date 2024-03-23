@@ -1,5 +1,6 @@
 import base64
 import os
+import string
 
 from flask import Flask, request, jsonify
 import hashlib
@@ -30,6 +31,11 @@ class Server:
                               methods=["POST"])
         self.app.add_url_rule(rule="/authenticate", endpoint="authenticate_user", view_func=self.authenticate_user,
                               methods=["POST"])
+        self.app.add_url_rule(rule="/authenticate_recovery_code", endpoint="authenticate_recovery_code", view_func=self.authenticate_recovery_code,
+                              methods=["POST"])
+        self.app.add_url_rule(rule="/forgot_password", endpoint="forgot_password",
+                              view_func=self.forgot_password,
+                              methods=["POST"])
         self.app.add_url_rule(rule="/upload", endpoint="upload_files", view_func=self.upload_files,
                               methods=["POST"])
         self.app.add_url_rule(rule="/download", endpoint="download_files", view_func=self.download_files,
@@ -48,7 +54,9 @@ class Server:
                                         USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                                         username TEXT UNIQUE,
                                         hashed_password TEXT NOT NULL,
-                                        salt TEXT NOT NULL
+                                        password_salt TEXT NOT NULL,
+                                        hashed_recovery_code TEXT NOT NULL,
+                                        recovery_code_salt TEXT NOT NULL
                                     )""")
 
         # Create the save_files table with username as foreign key
@@ -72,19 +80,26 @@ class Server:
         print("Received registration request for username:", username)
 
         # Generate salt and hash the password
-        salt = secrets.token_hex(16)
-        salted_password = password + salt
+        password_salt = secrets.token_hex(16)
+        salted_password = password + password_salt
         hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
+
+        # Generate password_salt and hash the recovery code
+        recovery_code_length = 6
+        recovery_code = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(recovery_code_length))
+        recovery_code_salt = secrets.token_hex(16)
+        salted_recovery_code = recovery_code + recovery_code_salt
+        hashed_recovery_code = hashlib.sha256(salted_recovery_code.encode()).hexdigest()
 
         try:
             # Insert user data into the database
             with sqlite3.connect(database=DATABASE_NAME) as connection:
                 cursor = connection.cursor()
-                cursor.execute("INSERT INTO users (username, hashed_password, salt) VALUES (?, ?, ?)",
-                               (username, hashed_password, salt))
+                cursor.execute("INSERT INTO users (username, hashed_password, password_salt, hashed_recovery_code, recovery_code_salt) VALUES (?, ?, ?, ?, ?)",
+                               (username, hashed_password, password_salt, hashed_recovery_code, recovery_code_salt))
                 connection.commit()
             print("User registered successfully:", username)
-            return jsonify({"success": True})
+            return jsonify({"success": True, "recovery code": recovery_code})
         except sqlite3.IntegrityError:
             # Return error if username already exists
             print("Registration failed. Username already exists:", username)
@@ -102,13 +117,13 @@ class Server:
             # Retrieve user data from the database
             with sqlite3.connect(database=DATABASE_NAME) as connection:
                 cursor = connection.cursor()
-                cursor.execute("SELECT hashed_password, salt FROM users WHERE username=?", (username,))
+                cursor.execute("SELECT hashed_password, password_salt FROM users WHERE username=?", (username,))
                 user = cursor.fetchone()
 
                 if user:
-                    stored_hashed_password, stored_salt = user
+                    stored_hashed_password, stored_password_salt = user
                     # Hash the input password with the stored salt
-                    hashed_password_with_salt = hashlib.sha256((password + stored_salt).encode()).hexdigest()
+                    hashed_password_with_salt = hashlib.sha256((password + stored_password_salt).encode()).hexdigest()
 
                     # Check if the hashed input password with stored salt matches the stored hashed password with salt
                     if hashed_password_with_salt == stored_hashed_password:
@@ -119,6 +134,72 @@ class Server:
                 return jsonify({"authenticated": False, "error": "Invalid username or password."})
         except Exception as error:
             print("Error during authentication:", str(error))
+            return jsonify({"error": str(error)})
+
+    @staticmethod
+    def authenticate_recovery_code():
+        data = request.json
+        username = data.get("username")
+        recovery_code = data.get("recovery code")
+
+        print("Received recovery code authentication request for username:", username, "and code:", recovery_code)
+
+        try:
+            # Retrieve user data from the database
+            with sqlite3.connect(database=DATABASE_NAME) as connection:
+                cursor = connection.cursor()
+                cursor.execute("SELECT hashed_recovery_code, recovery_code_salt FROM users WHERE username=?", (username,))
+                user = cursor.fetchone()
+
+                if user:
+                    stored_hashed_recovery_code, stored_recovery_code_salt = user
+                    # Hash the input recovery code with the stored salt
+                    hashed_recovery_code_with_salt = hashlib.sha256((recovery_code + stored_recovery_code_salt).encode()).hexdigest()
+
+                    # Check if the hashed input recovery code with stored salt matches the stored hashed recovery code with salt
+                    if hashed_recovery_code_with_salt == stored_hashed_recovery_code:
+                        print("User recovery code authenticated successfully:", username)
+                        return jsonify({"authenticated": True})
+
+                print("Authentication failed. Invalid username or recovery code:", username)
+                return jsonify({"authenticated": False, "error": "Invalid username or recovery code."})
+        except Exception as error:
+            print("Error during authentication:", str(error))
+            return jsonify({"error": str(error)})
+
+    @staticmethod
+    def forgot_password():
+        data = request.json
+        username = data.get("username")
+        password = data.get("password")
+
+        print("Received new password request for username:", username)
+
+        # Generate salt and hash the password
+        password_salt = secrets.token_hex(16)
+        salted_password = password + password_salt
+        hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
+
+        # Generate password_salt and hash the recovery code
+        recovery_code_length = 6
+        recovery_code = ''.join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(recovery_code_length))
+        recovery_code_salt = secrets.token_hex(16)
+        salted_recovery_code = recovery_code + recovery_code_salt
+        hashed_recovery_code = hashlib.sha256(salted_recovery_code.encode()).hexdigest()
+
+        try:
+            # Insert user data into the database
+            with sqlite3.connect(database=DATABASE_NAME) as connection:
+                cursor = connection.cursor()
+                cursor.execute(
+                    "UPDATE users SET hashed_password = ?, password_salt = ?, hashed_recovery_code = ?, recovery_code_salt = ? WHERE username = ?",
+                    (hashed_password, password_salt, hashed_recovery_code, recovery_code_salt, username))
+                connection.commit()
+            print("New password set successfully:", username)
+            return jsonify({"success": True, "recovery code": recovery_code})
+        except Exception as error:
+            print("Error when setting new password:", str(error))
             return jsonify({"error": str(error)})
 
     # Client requesting to upload a file to server

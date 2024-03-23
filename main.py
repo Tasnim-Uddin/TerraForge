@@ -1,5 +1,7 @@
 # import ez_profile
 import shutil
+import string
+
 import pygame
 import sys
 import re
@@ -37,7 +39,7 @@ class Game:
         # TODO: uncomment code
         # self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
 
-        self.__menu_state_stack = ["main menu"]  # TODO: change to "login or register"
+        self.__menu_state_stack = ["login or register"]  # TODO: change to "login or register"
 
         self.__world_name = None
         self.__player_name = None
@@ -96,7 +98,7 @@ class Game:
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
             self.__scene.save_world_to_json()
-            # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
+            self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
         shutil.rmtree(WORLD_SAVE_FOLDER)
         shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
@@ -104,6 +106,7 @@ class Game:
 
     def __menu_events(self):
         while self.menu_active:
+            print(self.__menu_state_stack)
             if not self.playing_menu_music:
                 menu_music = pygame.mixer.Sound(file="assets/sound/menu.mp3")
                 menu_music.play(loops=-1)
@@ -114,21 +117,20 @@ class Game:
 
             elif self.__menu_state_stack[-1] == "login username":
                 self.login_username_menu()
-                if self.__menu_state_stack[-1] == "login password":
-                    self.login_password_menu()
-                    if "login username" in self.__menu_state_stack:
-                        self.__menu_state_stack.remove("login username")
-                    if "login password" in self.__menu_state_stack:
-                        self.__menu_state_stack.remove("login password")
+            elif self.__menu_state_stack[-1] == "login password":
+                self.login_password_menu()
 
             elif self.__menu_state_stack[-1] == "register username":
                 self.register_username_menu()
-                if self.__menu_state_stack[-1] == "register password":
-                    self.register_password_menu()
-                    if "register username" in self.__menu_state_stack:
-                        self.__menu_state_stack.remove("register username")
-                    if "register password" in self.__menu_state_stack:
-                        self.__menu_state_stack.remove("register password")
+            elif self.__menu_state_stack[-1] == "register password":
+                self.register_password_menu()
+
+            elif self.__menu_state_stack[-1] == "forgot password username":
+                self.forgot_password_username_menu()
+            elif self.__menu_state_stack[-1] == "forgot password recovery code":
+                self.forgot_password_recovery_code_menu()
+            elif self.__menu_state_stack[-1] == "forgot password new password":
+                self.forgot_password_new_password_menu()
 
             elif self.__menu_state_stack[-1] == "main menu":
                 self.main_menu_selection()
@@ -138,17 +140,13 @@ class Game:
 
             elif self.__menu_state_stack[-1] == "player selection":
                 self.player_menu_selection()
-                if self.__menu_state_stack[-1] == "create new player":
-                    self.new_player_menu_creation()
-                    if "create new player" in self.__menu_state_stack:
-                        self.__menu_state_stack.remove("create new player")
+            elif self.__menu_state_stack[-1] == "create new player":
+                self.new_player_menu_creation()
 
             elif self.__menu_state_stack[-1] == "world selection":
                 self.world_menu_selection()
-                if self.__menu_state_stack[-1] == "create new world":
-                    self.new_world_menu_creation()
-                    if "create new world" in self.__menu_state_stack:
-                        self.__menu_state_stack.remove("create new world")
+            elif self.__menu_state_stack[-1] == "create new world":
+                self.new_world_menu_creation()
 
             elif self.__menu_state_stack[-1] == "game":
                 self.menu_active = False
@@ -213,13 +211,13 @@ class Game:
         create_password_special = False
         if 5 <= len(password) <= 64:
             for character in password:
-                if character in "abcdefghijklmnopqrstuvwxyz":
+                if character in string.ascii_lowercase:
                     create_password_lower = True
-                if character in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+                if character in string.ascii_uppercase:
                     create_password_upper = True
-                if character in "0123456789":
+                if character in string.digits:
                     create_password_number = True
-                if character in " -_!@#$%^&*()[]{};:',.`~+=":
+                if character in string.punctuation:
                     create_password_special = True
         if create_password_lower and create_password_upper and create_password_number and create_password_special:
             return True
@@ -234,7 +232,7 @@ class Game:
             if 5 <= len(self.__world_name) <= 20:
                 return True
     def login_register_selection(self):
-        menu_options = ["Login", "Register", "Quit"]
+        menu_options = ["Login", "Register", "Forgot Password", "Quit"]
         selected_option = 0
 
         while True:
@@ -253,7 +251,10 @@ class Game:
                         elif selected_option == 1:  # Register
                             self.__menu_state_stack.append("register username")
                             return
-                        elif selected_option == 2:  # Quit
+                        elif selected_option == 2:
+                            self.__menu_state_stack.append("forgot password username")
+                            return
+                        elif selected_option == 3:  # Quit
                             self.__quit_game()
 
     def login_username_menu(self):
@@ -336,8 +337,8 @@ class Game:
                                 pygame.display.flip()
                                 pygame.time.delay(2000)
 
-                                self.__menu_state_stack.pop()  # removes "login password"
-                                self.__menu_state_stack.pop()  # removes "login username"
+                                self.__menu_state_stack.pop()  # Removes "login password"
+                                self.__menu_state_stack.pop()  # Removes "login username"
                                 return
 
             self.text_input.update(validation_type="Password")
@@ -388,7 +389,7 @@ class Game:
                                 pygame.display.flip()
                                 pygame.time.delay(2000)
 
-                                self.__menu_state_stack.pop()
+                                self.__menu_state_stack.pop()  # Removes "register username"
                                 return
 
             self.text_input.update(validation_type="Create Username")
@@ -417,20 +418,30 @@ class Game:
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text
                             if self.validate_password_text_input(password=password):
-                                if self.__client.register_user(username=self.__username, password=password):
-
+                                registration_successful, recovery_code = self.__client.register_user(username=self.__username, password=password)
+                                if registration_successful and recovery_code is not None:
                                     success_text = self.menu_font.render(
                                         text="Registration successful",
                                         antialias=True,
                                         color="green")
                                     success_rect = success_text.get_rect(
-                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 40))
+
+                                    recovery_code_text = self.menu_font.render(
+                                        text=f"Your recovery code is: {recovery_code}",
+                                        antialias=True,
+                                        color="green")
+                                    recovery_code_rect = recovery_code_text.get_rect(
+                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 40))
+
                                     self.screen.fill(color="black")
                                     self.screen.fblits([(success_text, success_rect)])
+                                    self.screen.fblits([(recovery_code_text, recovery_code_rect)])
                                     pygame.display.flip()
-                                    pygame.time.delay(2000)
+                                    pygame.time.delay(8000)
 
-                                    self.__menu_state_stack.append("login or register")
+                                    self.__menu_state_stack.pop()  # Removes "register password"
+                                    self.__menu_state_stack.pop()  # Removes "register username"
                                 else:
                                     success_text = self.menu_font.render(
                                         text="Username already exists",
@@ -443,8 +454,166 @@ class Game:
                                     pygame.display.flip()
                                     pygame.time.delay(2000)
 
-                                    self.__menu_state_stack.pop()  # removes "register password"
-                                    self.__menu_state_stack.pop()  # removes "register username"
+                                    self.__menu_state_stack.pop()  # Removes "register password"
+                                    self.__menu_state_stack.pop()  # Removes "register username"
+                            else:
+                                criteria_fail_text = self.menu_font.render(
+                                    text="Password does not meet the following criteria:",
+                                    antialias=True,
+                                    color="red")
+                                criteria_fail_rect = criteria_fail_text.get_rect(
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100))
+                                criteria_text = self.menu_font.render(
+                                    text="Between 5 and 64 characters\nLowercase letter\nUppercase letter\nNumber\nSpecial character",
+                                    antialias=True, color="red")
+                                criteria_rect = criteria_text.get_rect(
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20))
+                                self.screen.fill(color="black")
+                                self.screen.fblits([(criteria_fail_text,
+                                                 criteria_fail_rect)])
+                                self.screen.fblits([(criteria_text, criteria_rect)])
+                                pygame.display.flip()
+                                pygame.time.delay(5000)
+
+                                self.__menu_state_stack.pop()  # Removes "register password"
+                                self.__menu_state_stack.pop()  # Removes "register username"
+                            return
+
+            self.text_input.update(validation_type="Create Password")
+
+    def forgot_password_username_menu(self):
+        menu_options = ["Text Box", "Back"]
+        selected_option = 0
+
+        self.text_input.input_text = ""
+        self.text_input.active = True
+
+        while True:
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
+                               menu_type="Forgot Password", detail_type="Username")
+            EventManager.queue_events()
+            for event in EventManager.events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected_option = abs((selected_option - 1)) % len(menu_options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = abs((selected_option + 1)) % len(menu_options)
+                    elif event.key == pygame.K_RETURN:
+                        if selected_option == 1:  # Back
+                            self.__menu_state_stack.pop()  # Remove the last menu state from the stack
+                            return
+                        elif selected_option == 0:  # Text Box
+                            self.__username = self.text_input.input_text
+                            self.__menu_state_stack.append("forgot password recovery code")
+                            return
+
+            self.text_input.update(validation_type="Username")
+
+    def forgot_password_recovery_code_menu(self):
+        menu_options = ["Text Box", "Back"]
+        selected_option = 0
+
+        self.text_input.input_text = ""
+        self.text_input.active = True
+
+        while True:
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
+                               menu_type="Forgot Password", detail_type="Recovery Code")
+            EventManager.queue_events()
+            for event in EventManager.events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected_option = abs((selected_option - 1)) % len(menu_options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = abs((selected_option + 1)) % len(menu_options)
+                    elif event.key == pygame.K_RETURN:
+                        if selected_option == 1:  # Back
+                            self.__menu_state_stack.pop()  # Remove the last menu state from the stack
+                            return
+                        elif selected_option == 0:  # Text Box
+                            recovery_code = self.text_input.input_text
+                            if self.__client.authenticate_recovery_code(username=self.__username, recovery_code=recovery_code):
+
+                                success_text = self.menu_font.render(
+                                    text="Recovery code valid",
+                                    antialias=True,
+                                    color="green")
+                                success_rect = success_text.get_rect(
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                self.screen.fill(color="black")
+                                self.screen.fblits([(success_text, success_rect)])
+                                pygame.display.flip()
+                                pygame.time.delay(2000)
+
+                                self.__menu_state_stack.append("forgot password new password")
+                            else:
+                                success_text = self.menu_font.render(
+                                    text="Recovery code invalid",
+                                    antialias=True,
+                                    color="red")
+                                success_rect = success_text.get_rect(
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                self.screen.fill(color="black")
+                                self.screen.fblits([(success_text, success_rect)])
+                                pygame.display.flip()
+                                pygame.time.delay(2000)
+
+                                self.__menu_state_stack.pop()  # Removes "forgot password recovery code"
+                                self.__menu_state_stack.pop()  # Removes "forgot password username"
+                            return
+
+            self.text_input.update(validation_type="Password")
+
+    def forgot_password_new_password_menu(self):
+        menu_options = ["Text Box", "Back"]
+        selected_option = 0
+
+        self.text_input.input_text = ""
+        self.text_input.active = True
+
+        while True:
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
+                               menu_type="Forgot Password", detail_type="New Password")
+            EventManager.queue_events()
+            for event in EventManager.events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected_option = abs((selected_option - 1)) % len(menu_options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = abs((selected_option + 1)) % len(menu_options)
+                    elif event.key == pygame.K_RETURN:
+                        if selected_option == 1:  # Back
+                            self.__menu_state_stack.pop()  # Remove the last menu state from the stack
+                            return
+                        elif selected_option == 0:  # Text Box
+                            new_password = self.text_input.input_text
+                            if self.validate_password_text_input(password=new_password):
+                                new_password_successful, recovery_code = self.__client.replace_previous_password(username=self.__username, new_password=new_password)
+                                if new_password_successful and recovery_code is not None:
+                                    success_text = self.menu_font.render(
+                                        text="New password set successfully",
+                                        antialias=True,
+                                        color="green")
+                                    success_rect = success_text.get_rect(
+                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 40))
+
+                                    recovery_code_text = self.menu_font.render(
+                                        text=f"Your new recovery code is: {recovery_code}",
+                                        antialias=True,
+                                        color="green")
+                                    recovery_code_rect = recovery_code_text.get_rect(
+                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 40))
+
+                                    self.screen.fill(color="black")
+                                    self.screen.fblits([(success_text, success_rect)])
+                                    self.screen.fblits([(recovery_code_text, recovery_code_rect)])
+                                    pygame.display.flip()
+                                    pygame.time.delay(8000)
+
+                                    self.__menu_state_stack.pop()  # Removes "forgot password new password"
+                                    self.__menu_state_stack.pop()  # Removes "forgot password recovery code"
+                                    self.__menu_state_stack.pop()  # Removes "forgot password username"
+                                return
                             else:
                                 criteria_fail_text = self.menu_font.render(
                                     text="Password does not meet the following criteria:",
@@ -460,14 +629,11 @@ class Game:
                                     center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20))
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(criteria_fail_text,
-                                                 criteria_fail_rect)])  # Blit criteria_fail_text directly
-                                self.screen.fblits([(criteria_text, criteria_rect)])  # Blit criteria_text directly
+                                                     criteria_fail_rect)])
+                                self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
-                                pygame.time.delay(2000)
-
-                                self.__menu_state_stack.pop()  # removes "register password"
-                                self.__menu_state_stack.pop()  # removes "register username"
-                            return
+                                pygame.time.delay(5000)
+                                return
 
             self.text_input.update(validation_type="Create Password")
 
