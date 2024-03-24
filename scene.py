@@ -38,7 +38,6 @@ class Scene:
         self.__player = Player()
 
         self.__enemies = []
-        self.__spawn_enemy()
 
     def get_player(self):
         return self.__player
@@ -47,8 +46,34 @@ class Scene:
         return self.__inventory
 
     def __spawn_enemy(self):
-        new_enemy = SlimeEnemy()
-        self.__enemies.append(new_enemy)
+        enemies_around_player = random.randint(1, 4)
+        player_chunk_x = int(self.__player.get_x() // (CHUNK_WIDTH * BLOCK_SIZE))
+        # for _ in range(enemies_around_player):
+        chunk_x_random = random.choice([-1, 1])
+        for chunk in self.__chunks:
+            if chunk[0] == chunk_x_random + player_chunk_x:
+                possible_enemy_positions = []
+                for block_position in self.__chunks[chunk]:
+                    if self.__chunks[chunk][block_position] == "grass":
+                        possible_enemy_positions.append((block_position[0] * BLOCK_SIZE, (block_position[1] - 1) * BLOCK_SIZE))
+                if len(possible_enemy_positions) != 0:
+                    enemy_position = random.choice(possible_enemy_positions)
+                    enemy = SlimeEnemy()
+                    enemy.set_x(x=enemy_position[0])
+                    enemy.set_y(y=enemy_position[1])
+                    self.__enemies.append(enemy)
+                    return
+
+
+                    # for block_position in self.__chunks[chunk]:
+                    #     if self.__chunks[chunk][block_position] == "grass":
+                    #         enemy_x = block_position[0] * BLOCK_SIZE
+                    #         enemy_y = (block_position[1] - 1) * BLOCK_SIZE
+                    #         enemy = SlimeEnemy()
+                    #         enemy.set_x(x=enemy_x)
+                    #         enemy.set_y(y=enemy_y)
+                    #         self.__enemies.append(enemy)
+                    #         return
 
     @staticmethod
     def load_textures():
@@ -213,10 +238,18 @@ class Scene:
         neighbour_chunk_offsets = []
         for chunk_y_offset in range(-1, 2):
             for chunk_x_offset in range(-1, 2):
-                neighbour_chunk_offsets.append((
-                    int(self.__player.get_x() // (CHUNK_WIDTH * BLOCK_SIZE) + chunk_x_offset),
-                    int(self.__player.get_y() // (CHUNK_HEIGHT * BLOCK_SIZE) + chunk_y_offset)
-                ))
+                if chunk_x_offset==0 and chunk_y_offset==0:
+                    continue
+                else:
+                    neighbour_chunk_offsets.append((
+                        int(self.__player.get_x() // (CHUNK_WIDTH * BLOCK_SIZE) + chunk_x_offset),
+                        int(self.__player.get_y() // (CHUNK_HEIGHT * BLOCK_SIZE) + chunk_y_offset)
+                    ))
+
+        neighbour_chunk_offsets.append((
+            int(self.__player.get_x() // (CHUNK_WIDTH * BLOCK_SIZE)),
+            int(self.__player.get_y() // (CHUNK_HEIGHT * BLOCK_SIZE))
+        ))
 
         surrounding_chunks = {}
         for offset in neighbour_chunk_offsets:
@@ -273,6 +306,9 @@ class Scene:
                         eat_sound.play()
                         self.__player.set_health(health=self.__player.get_health() + 5)
                         self.__inventory.remove_item(item=held_item)
+
+        if random.random() < 0.01 and len(self.__enemies) < 2:
+            self.__spawn_enemy()
 
         for enemy in self.__enemies:
             relative_chunk_position = (

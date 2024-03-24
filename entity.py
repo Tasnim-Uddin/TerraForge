@@ -127,6 +127,12 @@ class Entity:
     def get_y(self):
         return self._y
 
+    def set_x(self, x):
+        self._x = x
+
+    def set_y(self, y):
+        self._y = y
+
     def get_rect(self):
         return self._rect
 

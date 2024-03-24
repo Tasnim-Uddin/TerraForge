@@ -22,7 +22,8 @@ class Game:
 
         self.playing_menu_music = False
         self.playing_game_music = False
-        self.game_music = None
+        self.menu_music = pygame.mixer.Sound(file="assets/sound/menu.mp3")
+        self.game_music = pygame.mixer.Sound(file="assets/sound/background.mp3")
 
         self.menu_active = True
         self.menu_font = pygame.font.Font(filename=None, size=40)
@@ -35,9 +36,9 @@ class Game:
         self.start_time = 0
         self.running = True
 
-        self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
+        # self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
         # TODO: uncomment code
-        # self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
+        self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
 
         self.__menu_state_stack = ["login or register"]  # TODO: change to "login or register"
 
@@ -75,21 +76,21 @@ class Game:
             if current_time <= invincibility_end_time:
                 player.set_health(health=MAX_HEALTH)
 
-            EventManager.queue_events()
-            for event in EventManager.events:
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                    self.running = False
-                    self.__quit_game()
-
-            if player.get_health() <= 0:
-                self.game_music.stop()
-                player.death_screen(screen=self.screen)
-                self.__quit_game()
-
             self.__scene.update_draw(dt=dt)
             self.screen.fblits([(self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True, color="white"), (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))])
             pygame.display.update()
             self.__clock.tick()
+
+            EventManager.queue_events()
+            for event in EventManager.events:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    # self.running = False
+                    # self.__quit_game()
+                    self.return_to_main_menu()
+
+            if player.get_health() <= 0:
+                player.death_screen(screen=self.screen)
+                self.return_to_main_menu()
 
     def __quit_game(self):
         # TODO: uncomment code
@@ -98,18 +99,33 @@ class Game:
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
             self.__scene.save_world_to_json()
-            self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
+            # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
         shutil.rmtree(WORLD_SAVE_FOLDER)
         shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
         sys.exit()
 
+    def return_to_main_menu(self):
+        self.playing_game_music = False
+        self.game_music.stop()
+
+        self.__menu_state_stack.clear()
+        self.__menu_state_stack.append("main menu")
+
+        inventory = self.__scene.get_inventory()
+        inventory.save_inventory_to_json()
+        self.__scene.save_world_to_json()
+        self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
+                                   world_file_path=self.__world_name)
+
+        self.__scene = None
+        self.start_time = 0
+        self.menu_active = True
+
     def __menu_events(self):
         while self.menu_active:
-            print(self.__menu_state_stack)
             if not self.playing_menu_music:
-                menu_music = pygame.mixer.Sound(file="assets/sound/menu.mp3")
-                menu_music.play(loops=-1)
+                self.menu_music.play(loops=-1)
                 self.playing_menu_music = True
 
             if self.__menu_state_stack[-1] == "login or register":
@@ -139,21 +155,21 @@ class Game:
                 self.controls_menu()
 
             elif self.__menu_state_stack[-1] == "player selection":
-                self.player_menu_selection()
+                self.player_menu()
             elif self.__menu_state_stack[-1] == "create new player":
-                self.new_player_menu_creation()
+                self.new_player_menu()
 
             elif self.__menu_state_stack[-1] == "world selection":
-                self.world_menu_selection()
+                self.world_menu()
             elif self.__menu_state_stack[-1] == "create new world":
-                self.new_world_menu_creation()
+                self.new_world_menu()
 
             elif self.__menu_state_stack[-1] == "game":
                 self.menu_active = False
                 self.__scene = Scene(game=self)
                 if not self.playing_game_music:
-                    menu_music.stop()
-                    self.game_music = pygame.mixer.Sound(file="assets/sound/background.mp3")
+                    self.playing_menu_music = False
+                    self.menu_music.stop()
                     self.game_music.play(loops=-1)
                     self.playing_game_music = True
 
@@ -327,6 +343,7 @@ class Game:
                                 pygame.display.flip()
                                 pygame.time.delay(2000)
 
+                                self.__menu_state_stack.clear()
                                 self.__menu_state_stack.append("main menu")
                                 return
                             else:
@@ -484,7 +501,7 @@ class Game:
                                 self.__menu_state_stack.pop()  # Removes "register username"
                             return
 
-            self.text_input.update(validation_type="short")
+            self.text_input.update(validation_type="long")
 
     def reset_password_username_menu(self):
         menu_options = ["Text Box", "Back"]
@@ -737,7 +754,7 @@ class Game:
 
         pygame.display.flip()
 
-    def player_menu_selection(self):
+    def player_menu(self):
         inventory_files = os.listdir(path=PLAYER_SAVE_FOLDER)
         inventory_files.append("Create New Player")
         inventory_files.append("Back")
@@ -766,7 +783,7 @@ class Game:
                             self.__menu_state_stack.append("world selection")
                             return
 
-    def new_player_menu_creation(self):
+    def new_player_menu(self):
         menu_options = ["Text Box", "Back"]
         selected_option = 0
 
@@ -815,7 +832,7 @@ class Game:
 
             self.text_input.update(validation_type="short")
 
-    def world_menu_selection(self):
+    def world_menu(self):
         world_files = os.listdir(path=WORLD_SAVE_FOLDER)
         world_files.append("Create New World")
         world_files.append("Back")
@@ -844,7 +861,7 @@ class Game:
                             self.__menu_state_stack.append("game")
                             return
 
-    def new_world_menu_creation(self):
+    def new_world_menu(self):
         menu_options = ["Text Box", "Back"]
         selected_option = 0
 
