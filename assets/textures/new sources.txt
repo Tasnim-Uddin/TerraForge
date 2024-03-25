@@ -1,0 +1,9 @@
+player: https://vilrink.itch.io/animated-pixel-art-player
+
+slime enemy: https://ivess.itch.io/slime-animations-pack
+
+block textures: https://minecraft.fandom.com/wiki/List_of_block_textures
+
+torch: https://opengameart.org/content/simple-torch-animation-16x16
+
+tools: https://dantepixels.itch.io/tools-asset-16x16

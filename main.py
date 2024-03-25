@@ -40,7 +40,7 @@ class Game:
         # TODO: uncomment code
         self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
 
-        self.__menu_state_stack = ["login or register"]  # TODO: change to "login or register"
+        self.__menu_state_stack = ["main menu"]  # TODO: change to "login or register"
 
         self.__world_name = None
         self.__player_name = None
@@ -84,8 +84,6 @@ class Game:
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    # self.running = False
-                    # self.__quit_game()
                     self.return_to_main_menu()
 
             if player.get_health() <= 0:
@@ -106,6 +104,7 @@ class Game:
         sys.exit()
 
     def return_to_main_menu(self):
+        # TODO: uncomment code
         self.playing_game_music = False
         self.game_music.stop()
 
@@ -115,8 +114,8 @@ class Game:
         inventory = self.__scene.get_inventory()
         inventory.save_inventory_to_json()
         self.__scene.save_world_to_json()
-        self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
-                                   world_file_path=self.__world_name)
+        # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
+        #                            world_file_path=self.__world_name)
 
         self.__scene = None
         self.start_time = 0
@@ -330,7 +329,8 @@ class Game:
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text
                             if self.__client.authenticate_user(username=self.__username, password=password):
-                                self.__client.download_files(username=self.__username)
+                                # TODO: uncomment code
+                                # self.__client.download_files(username=self.__username)
 
                                 success_text = self.menu_font.render(
                                     text="Login successful",

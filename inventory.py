@@ -40,7 +40,7 @@ class Inventory:
         if item == "tree_log":
             item = "wood_plank"
         elif item == "tree_leaf":
-            item = "leaf_block"
+            item = "packed_leaf"
 
         for item_data in self.__inventory_items.values():
             if item_data["item"] == item:
