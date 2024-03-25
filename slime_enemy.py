@@ -81,9 +81,9 @@ class SlimeEnemy(Entity):
             self.__jump()
             if self._rect.colliderect(player.get_rect()):
                 if self.__attack_cooldown <= 0:
-                    player.set_health(health=player.get_health() - 10)
+                    player.set_health(health=player.get_health() - 5)
                     player_damage = pygame.mixer.Sound(file="assets/sound/player_damage.mp3")
                     player_damage.set_volume(0.1)
                     player_damage.play()
                     self.__attack_cooldown = SLIME_ATTACK_INTERVAL
-        self.__attack_cooldown -= dt * 10
+        self.__attack_cooldown -= dt * 0.1

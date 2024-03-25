@@ -40,7 +40,7 @@ class Game:
         # TODO: uncomment code
         self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
 
-        self.__menu_state_stack = ["main menu"]  # TODO: change to "login or register"
+        self.__menu_state_stack = ["login or register"]  # TODO: change to "login or register"
 
         self.__world_name = None
         self.__player_name = None
@@ -68,18 +68,19 @@ class Game:
 
             buffer_time = 100  # To ensure player starts off above ground
 
-            if elapsed_time >= buffer_time:
-                dt = self.__clock.tick(FRAMES_PER_SECOND) / 1000
+            # if elapsed_time >= buffer_time:
+            #     dt = self.__clock.tick(FRAMES_PER_SECOND) / 1000
 
             player = self.__scene.get_player()
 
             if current_time <= invincibility_end_time:
                 player.set_health(health=MAX_HEALTH)
 
+            dt = 1
             self.__scene.update_draw(dt=dt)
             self.screen.fblits([(self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True, color="white"), (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))])
             pygame.display.update()
-            self.__clock.tick()
+            self.__clock.tick(FRAMES_PER_SECOND)
 
             EventManager.queue_events()
             for event in EventManager.events:
@@ -97,7 +98,7 @@ class Game:
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
             self.__scene.save_world_to_json()
-            # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
+            self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
         shutil.rmtree(WORLD_SAVE_FOLDER)
         shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
@@ -114,8 +115,8 @@ class Game:
         inventory = self.__scene.get_inventory()
         inventory.save_inventory_to_json()
         self.__scene.save_world_to_json()
-        # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
-        #                            world_file_path=self.__world_name)
+        self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
+                                   world_file_path=self.__world_name)
 
         self.__scene = None
         self.start_time = 0
@@ -330,7 +331,7 @@ class Game:
                             password = self.text_input.input_text
                             if self.__client.authenticate_user(username=self.__username, password=password):
                                 # TODO: uncomment code
-                                # self.__client.download_files(username=self.__username)
+                                self.__client.download_files(username=self.__username)
 
                                 success_text = self.menu_font.render(
                                     text="Login successful",

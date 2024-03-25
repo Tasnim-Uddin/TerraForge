@@ -96,7 +96,7 @@ class Player(Entity):
                             self.__attack_cooldown = PLAYER_ATTACK_INTERVAL
                         else:
                             # Reduce the cooldown timer
-                            self.__attack_cooldown -= dt * 10
+                            self.__attack_cooldown -= dt * 0.05
 
     @staticmethod
     def death_screen(screen):

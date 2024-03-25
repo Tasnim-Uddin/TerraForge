@@ -24,6 +24,7 @@ class Scene:
         # {(chunk_x, chunk_y): {(block_x, block_y): "block_type"}}  block_type is "grass", "dirt", "stone", ...
 
         self.missing_tree_positions = {}
+        self.torch_positions = {}
 
         self.__inventory = Inventory(game=game, screen=self.screen, textures=self.all_textures)
 
@@ -171,13 +172,12 @@ class Scene:
                         if not air_in_cave:
                             if random.random() < COAL_SPAWN_RATE:
                                 self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_coal_ore"
-                            # TODO: uncomment once deepslate ore variant textures added
-                            # elif random.random() < IRON_SPAWN_RATE:
-                            #     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_iron_ore"
-                            # elif random.random() < GOLD_SPAWN_RATE:
-                            #     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_gold_ore"
-                            # elif random.random() < DIAMOND_SPAWN_RATE:
-                            #     self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_diamond_ore"
+                            elif random.random() < IRON_SPAWN_RATE:
+                                self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_iron_ore"
+                            elif random.random() < GOLD_SPAWN_RATE:
+                                self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_gold_ore"
+                            elif random.random() < DIAMOND_SPAWN_RATE:
+                                self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_diamond_ore"
                             else:
                                 self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate"
 
@@ -207,6 +207,8 @@ class Scene:
                     del self.__chunks[break_chunk_position][break_block_position]
                     self.block_sound.set_volume(0.5)
                     self.block_sound.play()
+                    if breaking_item == "torch":
+                        self.torch_positions[break_chunk_position].remove(break_block_position)
                 elif held_item_type == "axe" and (breaking_item_type == "tree" or breaking_item == "wood_plank" or breaking_item == "leaf_block"):
                     if breaking_item == "tree_leaf" and random.random() < 0.05:
                         self.__inventory.add_item(item="apple")
@@ -249,6 +251,10 @@ class Scene:
             self.block_sound.play()
             self.__chunks[place_chunk_position][place_block_position] = held_item
             self.__inventory.remove_item(item=held_item)
+            if held_item == "torch":
+                if place_chunk_position not in self.torch_positions:
+                    self.torch_positions[place_chunk_position] = []
+                self.torch_positions[place_chunk_position].append(place_block_position)
 
     def update_draw(self, dt):
         self.precise_camera_offset[0] += (self.__player.get_rect().centerx - self.precise_camera_offset[
@@ -259,14 +265,24 @@ class Scene:
         self.camera_offset[0] = int(self.precise_camera_offset[0])
         self.camera_offset[1] = int(self.precise_camera_offset[1])
 
+        # # Sky colour
+        # if int(self.__player.get_y()) <= 30 * BLOCK_SIZE:
+        #     self.screen.fill("skyblue")
+        # elif 30 * BLOCK_SIZE < int(self.__player.get_y()) <= 60 * BLOCK_SIZE:
+        #     self.screen.fill("#474763")
+        # elif 60 * BLOCK_SIZE < int(self.__player.get_y()) <= 150 * BLOCK_SIZE:
+        #     self.screen.fill("#2c2c3c")
+        # elif 150 * BLOCK_SIZE < int(self.__player.get_y()) <= 300 * BLOCK_SIZE:
+        #     self.screen.fill("#0c0c1c")
+        # else:
+        #     self.screen.fill("black")
+
         # Sky colour
-        if int(self.__player.get_y()) <= 30 * BLOCK_SIZE:
+        if int(self.__player.get_y()) <= 60 * BLOCK_SIZE:
             self.screen.fill("skyblue")
-        elif 30 * BLOCK_SIZE < int(self.__player.get_y()) <= 60 * BLOCK_SIZE:
-            self.screen.fill("#474763")
-        elif 60 * BLOCK_SIZE < int(self.__player.get_y()) <= 150 * BLOCK_SIZE:
+        elif 60 * BLOCK_SIZE < int(self.__player.get_y()) <= 200 * BLOCK_SIZE:
             self.screen.fill("#2c2c3c")
-        elif 150 * BLOCK_SIZE < int(self.__player.get_y()) <= 300 * BLOCK_SIZE:
+        elif 200 * BLOCK_SIZE < int(self.__player.get_y()) <= DEEP_CAVE_LEVEL * BLOCK_SIZE:
             self.screen.fill("#0c0c1c")
         else:
             self.screen.fill("black")
@@ -300,37 +316,91 @@ class Scene:
 
         for offset in neighbour_chunk_offsets:
             for block_position, block in surrounding_chunks[(offset[0], offset[1])].items():
-                distance = int(((block_position[0] * BLOCK_SIZE - int(self.__player.get_x()))**2 + (block_position[1] * BLOCK_SIZE - int(self.__player.get_y()))**2)**0.5)
-                if int(self.__player.get_y()) <= 60 * BLOCK_SIZE:
+                if block == "torch":
+                    if offset not in self.torch_positions:
+                        self.torch_positions[offset] = []
+                    if block_position not in self.torch_positions[offset]:
+                        self.torch_positions[offset].append(block_position)
                     self.screen.fblits([(self.all_textures[block],
                                          (block_position[0] * BLOCK_SIZE -
                                           self.camera_offset[0],
                                           block_position[1] * BLOCK_SIZE -
                                           self.camera_offset[1]))])
-                elif 60 * BLOCK_SIZE < int(self.__player.get_y()) <= 150 * BLOCK_SIZE and (distance <= 15 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 18 * BLOCK_SIZE)):
-                    visibility_distance = 15
-                    torch_distance = 18
-                    self.screen.fblits([(self.all_textures[block],
-                                         (block_position[0] * BLOCK_SIZE -
-                                          self.camera_offset[0],
-                                          block_position[1] * BLOCK_SIZE -
-                                          self.camera_offset[1]))])
-                elif 150 * BLOCK_SIZE < int(self.__player.get_y()) <= DEEP_CAVE_LEVEL * BLOCK_SIZE and (distance <= 11 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 14 * BLOCK_SIZE)):
-                    visibility_distance = 11
-                    torch_distance = 14
-                    self.screen.fblits([(self.all_textures[block],
-                                         (block_position[0] * BLOCK_SIZE -
-                                          self.camera_offset[0],
-                                          block_position[1] * BLOCK_SIZE -
-                                          self.camera_offset[1]))])
-                elif DEEP_CAVE_LEVEL * BLOCK_SIZE < int(self.__player.get_y()) and (distance <= 7 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 10 * BLOCK_SIZE)):
-                    visibility_distance = 7
-                    torch_distance = 10
-                    self.screen.fblits([(self.all_textures[block],
-                                         (block_position[0] * BLOCK_SIZE -
-                                          self.camera_offset[0],
-                                          block_position[1] * BLOCK_SIZE -
-                                          self.camera_offset[1]))])
+                else:
+                    distance = int(((block_position[0] * BLOCK_SIZE - int(self.__player.get_x()))**2 + (block_position[1] * BLOCK_SIZE - int(self.__player.get_y()))**2)**0.5)
+                    # if int(self.__player.get_y()) <= 60 * BLOCK_SIZE:
+                    #     self.screen.fblits([(self.all_textures[block],
+                    #                          (block_position[0] * BLOCK_SIZE -
+                    #                           self.camera_offset[0],
+                    #                           block_position[1] * BLOCK_SIZE -
+                    #                           self.camera_offset[1]))])
+                    # elif 60 * BLOCK_SIZE < int(self.__player.get_y()) <= 150 * BLOCK_SIZE and (distance <= 15 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 18 * BLOCK_SIZE)):
+                    #     visibility_distance = 15
+                    #     torch_distance = 18
+                    #     self.screen.fblits([(self.all_textures[block],
+                    #                          (block_position[0] * BLOCK_SIZE -
+                    #                           self.camera_offset[0],
+                    #                           block_position[1] * BLOCK_SIZE -
+                    #                           self.camera_offset[1]))])
+                    # elif 150 * BLOCK_SIZE < int(self.__player.get_y()) <= DEEP_CAVE_LEVEL * BLOCK_SIZE and (distance <= 11 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 14 * BLOCK_SIZE)):
+                    #     visibility_distance = 11
+                    #     torch_distance = 14
+                    #     self.screen.fblits([(self.all_textures[block],
+                    #                          (block_position[0] * BLOCK_SIZE -
+                    #                           self.camera_offset[0],
+                    #                           block_position[1] * BLOCK_SIZE -
+                    #                           self.camera_offset[1]))])
+                    # elif DEEP_CAVE_LEVEL * BLOCK_SIZE < int(self.__player.get_y()) and (distance <= 7 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 10 * BLOCK_SIZE)):
+                    #     visibility_distance = 7
+                    #     torch_distance = 10
+                    #     self.screen.fblits([(self.all_textures[block],
+                    #                          (block_position[0] * BLOCK_SIZE -
+                    #                           self.camera_offset[0],
+                    #                           block_position[1] * BLOCK_SIZE -
+                    #                           self.camera_offset[1]))])
+                    if int(self.__player.get_y()) <= 200 * BLOCK_SIZE:
+                        self.screen.fblits([(self.all_textures[block],
+                                             (block_position[0] * BLOCK_SIZE -
+                                              self.camera_offset[0],
+                                              block_position[1] * BLOCK_SIZE -
+                                              self.camera_offset[1]))])
+                    # elif 60 * BLOCK_SIZE < int(self.__player.get_y()) <= 150 * BLOCK_SIZE and (distance <= 15 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 18 * BLOCK_SIZE)):
+                    #     visibility_distance = 15
+                    #     torch_distance = 18
+                    #     self.screen.fblits([(self.all_textures[block],
+                    #                          (block_position[0] * BLOCK_SIZE -
+                    #                           self.camera_offset[0],
+                    #                           block_position[1] * BLOCK_SIZE -
+                    #                           self.camera_offset[1]))])
+                    else:
+                        if offset in self.torch_positions:
+                            for torch_position in self.torch_positions[offset]:
+                                torch_distance = int(((torch_position[0] * BLOCK_SIZE - block_position[0] * BLOCK_SIZE)**2 + (torch_position[1] * BLOCK_SIZE - block_position[1] * BLOCK_SIZE)**2)**0.5)
+                                if torch_distance <= 7 * BLOCK_SIZE:
+                                    self.screen.fblits([(self.all_textures[block],
+                                                         (block_position[0] * BLOCK_SIZE -
+                                                          self.camera_offset[0],
+                                                          block_position[1] * BLOCK_SIZE -
+                                                          self.camera_offset[1]))])
+
+
+
+                        if 200 * BLOCK_SIZE < int(self.__player.get_y()) <= DEEP_CAVE_LEVEL * BLOCK_SIZE and (distance <= 11 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 14 * BLOCK_SIZE)):
+                            visibility_distance = 11
+                            torch_distance = 14
+                            self.screen.fblits([(self.all_textures[block],
+                                                 (block_position[0] * BLOCK_SIZE -
+                                                  self.camera_offset[0],
+                                                  block_position[1] * BLOCK_SIZE -
+                                                  self.camera_offset[1]))])
+                        elif DEEP_CAVE_LEVEL * BLOCK_SIZE < int(self.__player.get_y()) and (distance <= 7 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 10 * BLOCK_SIZE)):
+                            visibility_distance = 7
+                            torch_distance = 10
+                            self.screen.fblits([(self.all_textures[block],
+                                                 (block_position[0] * BLOCK_SIZE -
+                                                  self.camera_offset[0],
+                                                  block_position[1] * BLOCK_SIZE -
+                                                  self.camera_offset[1]))])
 
 
 
@@ -357,7 +427,7 @@ class Scene:
                         self.__player.set_health(health=self.__player.get_health() + 5)
                         self.__inventory.remove_item(item=held_item)
 
-        if random.random() < 0.01 and len(self.__enemies) < 2:
+        if random.random() < 0.01 and len(self.__enemies) < 1:
             self.__spawn_enemy()
 
         for enemy in self.__enemies:

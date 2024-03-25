@@ -44,7 +44,7 @@ class Entity:
                     surrounding_chunks[(int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT))]:
                 current_block = surrounding_chunks[(int(block[0] // CHUNK_WIDTH), int(block[1] // CHUNK_HEIGHT))][(int(block[0]), int(block[1]))]
 
-                if "tree" not in current_block:
+                if "tree" not in current_block and current_block != "torch":
                     block_rect = pygame.Rect(block[0] * BLOCK_SIZE, block[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
                     self._surrounding_block_rects.append(block_rect)
 

@@ -37,10 +37,13 @@ class Inventory:
             return None
 
     def add_item(self, item):
-        if item == "tree_log":
-            item = "wood_plank"
-        elif item == "tree_leaf":
-            item = "packed_leaf"
+        # if item == "tree_log":
+        #     item = "wood_plank"
+        # elif item == "tree_leaf":
+        #     item = "packed_leaf"
+
+        if all_texture_data[item]["inventory_item"] != "default":
+            item = all_texture_data[item]["inventory_item"]
 
         for item_data in self.__inventory_items.values():
             if item_data["item"] == item:
