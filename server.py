@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 
 DATABASE_NAME = "user_database.db"
 
-SERVER_IP = "10.192.41.216"
+SERVER_IP = "192.168.0.82"
 
 
 class Server:
