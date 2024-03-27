@@ -36,11 +36,11 @@ class Game:
         self.start_time = 0
         self.running = True
 
-        # self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
+        self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
         # TODO: uncomment code
-        self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
+        # self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
 
-        self.__menu_state_stack = ["login or register"]  # TODO: change to "login or register"
+        self.__menu_state_stack = ["main menu"]  # TODO: change to "login or register"
 
         self.__world_name = None
         self.__player_name = None
@@ -98,9 +98,9 @@ class Game:
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
             self.__scene.save_world_to_json()
-            self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
-        shutil.rmtree(WORLD_SAVE_FOLDER)
-        shutil.rmtree(PLAYER_SAVE_FOLDER)
+            # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
+        # shutil.rmtree(WORLD_SAVE_FOLDER)
+        # shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
         sys.exit()
 
@@ -115,8 +115,8 @@ class Game:
         inventory = self.__scene.get_inventory()
         inventory.save_inventory_to_json()
         self.__scene.save_world_to_json()
-        self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
-                                   world_file_path=self.__world_name)
+        # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
+        #                            world_file_path=self.__world_name)
 
         self.__scene = None
         self.start_time = 0
