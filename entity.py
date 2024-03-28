@@ -133,6 +133,9 @@ class Entity:
     def set_y(self, y):
         self._y = y
 
+    def get_velocity(self):
+        return self._velocity
+
     def get_rect(self):
         return self._rect
 

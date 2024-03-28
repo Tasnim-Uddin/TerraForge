@@ -249,6 +249,17 @@ class Scene:
         block_exists = bool(
             place_chunk_position in self.__chunks and place_block_position in self.__chunks[place_chunk_position])
 
+        # block_exists = True
+        # if place_chunk_position in self.__chunks:
+        #     if place_block_position in self.__chunks[place_chunk_position]:
+        #         if self.__inventory.get_item_type(item=self.__chunks[place_chunk_position][place_block_position]) == "wallpaper":
+        #             block_exists = False
+        #     else:
+        #         block_exists = False
+        # else:
+        #     block_exists = False
+
+
         # To make sure that the block cannot be placed within the block grid a player is on
         player_max_right = math.ceil(self.__player.get_rect().right / BLOCK_SIZE) * BLOCK_SIZE
         player_min_left = (self.__player.get_rect().left // BLOCK_SIZE) * BLOCK_SIZE
@@ -257,7 +268,7 @@ class Scene:
         player_block_rect = pygame.Rect(player_min_left, player_min_top, player_max_right - player_min_left,
                                         player_max_bottom - player_min_top)
 
-        if not block_exists and within_reach and not player_block_rect.collidepoint(mouse_position[0] + self.camera_offset[0],mouse_position[1] + self.camera_offset[1]):
+        if not block_exists  and within_reach and not player_block_rect.collidepoint(mouse_position[0] + self.camera_offset[0],mouse_position[1] + self.camera_offset[1]):
             self.block_sound.set_volume(0.5)
             self.block_sound.play()
             self.__chunks[place_chunk_position][place_block_position] = held_item
@@ -418,7 +429,7 @@ class Scene:
 
         self.__player.update(chunks=surrounding_chunks, dt=dt)
         self.__player.draw(screen=self.screen, camera_offset=self.camera_offset)
-        self.__inventory.update(player_rect=self.__player.get_rect(), neighbour_chunk_offsets=neighbour_chunk_offsets, crafting_table_positions=self.crafting_table_positions, furnace_positions=self.furnace_positions)
+        self.__inventory.update(player=self.__player, neighbour_chunk_offsets=neighbour_chunk_offsets, crafting_table_positions=self.crafting_table_positions, furnace_positions=self.furnace_positions)
         self.__inventory.draw()
         # self.__inventory.update_crafting()
         self.__inventory.draw_crafting()

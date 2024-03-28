@@ -67,29 +67,29 @@ class Inventory:
                     item_data["quantity"] = None
                     return
 
-    def determine_crafting_table(self, player_rect, neighbour_chunk_offsets, crafting_table_positions):
+    def determine_crafting_table(self, player, neighbour_chunk_offsets, crafting_table_positions):
         for offset in neighbour_chunk_offsets:
             if offset in crafting_table_positions:
                 for position in crafting_table_positions[offset]:
-                    distance = int(((position[0] * BLOCK_SIZE - player_rect.x) ** 2 + (
-                            position[1] * BLOCK_SIZE - player_rect.y) ** 2) ** 0.5)
+                    distance = int(((position[0] * BLOCK_SIZE - player.get_x()) ** 2 + (
+                            position[1] * BLOCK_SIZE - player.get_y()) ** 2) ** 0.5)
                     if distance <= 5 * BLOCK_SIZE:
                         self.crafting_table = True
                         return
         self.crafting_table = False
 
-    def determine_furnace(self, neighbour_chunk_offsets, player_rect, furnace_positions):
+    def determine_furnace(self, player, neighbour_chunk_offsets, furnace_positions):
         for offset in neighbour_chunk_offsets:
             if offset in furnace_positions:
                 for position in furnace_positions[offset]:
-                    distance = int(((position[0] * BLOCK_SIZE - player_rect.x) ** 2 + (
-                            position[1] * BLOCK_SIZE - player_rect.y) ** 2) ** 0.5)
+                    distance = int(((position[0] * BLOCK_SIZE - player.get_x()) ** 2 + (
+                            position[1] * BLOCK_SIZE - player.get_y()) ** 2) ** 0.5)
                     if distance <= 5 * BLOCK_SIZE:
                         self.furnace = True
                         return
         self.furnace = False
 
-    def update(self, player_rect, neighbour_chunk_offsets, crafting_table_positions, furnace_positions):
+    def update(self, player, neighbour_chunk_offsets, crafting_table_positions, furnace_positions):
         max_num_recipes_per_page = (WINDOW_HEIGHT - 10) // 60
         total_recipes = len(self.current_available_recipes)
         total_pages = (total_recipes + max_num_recipes_per_page - 1) // max_num_recipes_per_page
@@ -108,6 +108,9 @@ class Inventory:
 
                 if event.key == pygame.K_c:
                     self.crafting_menu_opened = not self.crafting_menu_opened
+                    player_velocity = player.get_velocity()
+                    # if player_velocity[0] != 0 or player_velocity[1] != 0:
+                    #     self.crafting_menu_opened = False
 
                     if not self.crafting_menu_opened:
                         self.crafting_selected_index = 0
@@ -117,9 +120,13 @@ class Inventory:
                         self.active_row = 0
                         self.active_column = key - 1
 
+                player_velocity = player.get_velocity()
+                if player_velocity[0] != 0 or player_velocity[1] != 0:
+                    self.crafting_menu_opened = False
+
                 if self.crafting_menu_opened:
-                    self.determine_crafting_table(player_rect=player_rect, neighbour_chunk_offsets=neighbour_chunk_offsets, crafting_table_positions=crafting_table_positions)
-                    self.determine_furnace(player_rect=player_rect, neighbour_chunk_offsets=neighbour_chunk_offsets, furnace_positions=furnace_positions)
+                    self.determine_crafting_table(player=player, neighbour_chunk_offsets=neighbour_chunk_offsets, crafting_table_positions=crafting_table_positions)
+                    self.determine_furnace(player=player, neighbour_chunk_offsets=neighbour_chunk_offsets, furnace_positions=furnace_positions)
 
                     if self.crafting_table and not self.furnace:
                         self.current_available_recipes = crafting_table_recipes
