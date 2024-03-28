@@ -31,6 +31,7 @@ class Inventory:
         self.current_available_recipes = base_crafting_recipes
         self.crafting_menu_opened = False
         self.crafting_selected_index = 0
+        self.current_page = 0
 
     def get_selected_item(self):
         return self.__selected_item
@@ -89,6 +90,9 @@ class Inventory:
         self.furnace = False
 
     def update(self, player_rect, neighbour_chunk_offsets, crafting_table_positions, furnace_positions):
+        max_num_recipes_per_page = (WINDOW_HEIGHT - 10) // 60
+        total_recipes = len(self.current_available_recipes)
+        total_pages = (total_recipes + max_num_recipes_per_page - 1) // max_num_recipes_per_page
         for event in EventManager.events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
@@ -126,10 +130,29 @@ class Inventory:
                     else:
                         self.current_available_recipes = base_crafting_recipes
 
+                    if event.key == pygame.K_LEFT:
+                        self.current_page = max(0, self.current_page - 1)
+                        self.crafting_selected_index = self.current_page * max_num_recipes_per_page
+
+                    elif event.key == pygame.K_RIGHT:
+                        self.current_page = min(total_pages - 1, self.current_page + 1)
+                        self.crafting_selected_index = self.current_page * max_num_recipes_per_page
+
                     if event.key == pygame.K_UP:
-                        self.crafting_selected_index = (self.crafting_selected_index - 1) % len(self.current_available_recipes)
+                        if self.crafting_selected_index == self.current_page * max_num_recipes_per_page:
+                            self.crafting_selected_index = min(len(self.current_available_recipes) - 1,
+                                                               (self.current_page + 1) * max_num_recipes_per_page - 1)
+                        else:
+                            self.crafting_selected_index -= 1
                     elif event.key == pygame.K_DOWN:
-                        self.crafting_selected_index = (self.crafting_selected_index + 1) % len(self.current_available_recipes)
+                        start_index = self.current_page * max_num_recipes_per_page
+                        end_index = min(start_index + max_num_recipes_per_page, total_recipes)
+                        num_recipes_current_page = len(
+                            list(self.current_available_recipes.keys())[start_index:end_index])
+                        if self.crafting_selected_index == self.current_page * max_num_recipes_per_page + num_recipes_current_page - 1:
+                            self.crafting_selected_index = self.current_page * max_num_recipes_per_page
+                        else:
+                            self.crafting_selected_index += 1
 
                     if event.key == pygame.K_RETURN:
                         selected_recipe = list(self.current_available_recipes.keys())[self.crafting_selected_index]
@@ -148,9 +171,10 @@ class Inventory:
                                 topleft=(menu_x + 20, menu_y + 50 + index * (
                                         recipe_image.get_height() + 10)))
                             if recipe_image_rect.collidepoint(mouse_position):
-                                self.crafting_selected_index = index
+                                max_num_recipes_per_page = (WINDOW_HEIGHT - 10) // 60
+                                self.crafting_selected_index = index + self.current_page * max_num_recipes_per_page
                                 break
-                    if event.button == 3:
+                    elif event.button == 3:
                         mouse_position = pygame.mouse.get_pos()
                         for index, (recipe_name, recipe) in enumerate(self.current_available_recipes.items()):
                             recipe_image = self.textures[recipe["output"]["item"]]
@@ -161,22 +185,40 @@ class Inventory:
                                 topleft=(menu_x + 20, menu_y + 50 + index * (
                                         recipe_image.get_height() + 10)))
                             if recipe_image_rect.collidepoint(mouse_position):
-                                self.crafting_selected_index = index
+                                max_num_recipes_per_page = (WINDOW_HEIGHT - 10) // 60
+                                self.crafting_selected_index = index + self.current_page * max_num_recipes_per_page
                                 selected_recipe = list(self.current_available_recipes.keys())[self.crafting_selected_index]
                                 self.craft_item(selected_recipe)
                                 break
+                    elif event.button == 4:  # Scroll wheel up
+                        if self.crafting_selected_index == self.current_page * max_num_recipes_per_page:
+                            self.crafting_selected_index = min(len(self.current_available_recipes) - 1,
+                                                               (self.current_page + 1) * max_num_recipes_per_page - 1)
+                        else:
+                            self.crafting_selected_index -= 1
+                    elif event.button == 5:  # Scroll wheel down
+                        start_index = self.current_page * max_num_recipes_per_page
+                        end_index = min(start_index + max_num_recipes_per_page, total_recipes)
+                        num_recipes_current_page = len(
+                            list(self.current_available_recipes.keys())[start_index:end_index])
+                        if self.crafting_selected_index == self.current_page * max_num_recipes_per_page + num_recipes_current_page - 1:
+                            self.crafting_selected_index = self.current_page * max_num_recipes_per_page
+                        else:
+                            self.crafting_selected_index += 1
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 4:  # Scroll wheel up
-                    self.active_column -= 1
-                elif event.button == 5:  # Scroll wheel down
-                    self.active_column += 1
+                if not self.crafting_menu_opened:
+                    if event.button == 4:  # Scroll wheel up
+                        self.active_column -= 1
+                    elif event.button == 5:  # Scroll wheel down
+                        self.active_column += 1
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    self.active_column -= 1
-                elif event.key == pygame.K_RIGHT:
-                    self.active_column += 1
+                if not self.crafting_menu_opened:
+                    if event.key == pygame.K_LEFT:
+                        self.active_column -= 1
+                    elif event.key == pygame.K_RIGHT:
+                        self.active_column += 1
 
             if not self.inventory_expanded:
                 if self.active_column > COLUMN_SLOTS - 1:
@@ -297,14 +339,25 @@ class Inventory:
             title_text_rect = title_text.get_rect(center=(menu_x + menu_width // 2, menu_y + 20))
             self.screen.fblits([(title_text, title_text_rect)])
 
+            # Determine the current page and the range of recipes to display
+            max_num_recipes_per_page = (WINDOW_HEIGHT - 10) // 60
+            total_recipes = len(self.current_available_recipes)
+            total_pages = (total_recipes + max_num_recipes_per_page - 1) // max_num_recipes_per_page
+            self.current_page = min(self.current_page, total_pages - 1)
+            start_index = self.current_page * max_num_recipes_per_page
+            end_index = min(start_index + max_num_recipes_per_page, total_recipes)
+            current_page_recipes = list(self.current_available_recipes.keys())[start_index:end_index]
+
             # Draw available recipes with images and required items
             recipe_y = menu_y + 50
-            for index, (recipe_name, recipe) in enumerate(self.current_available_recipes.items()):
+            for index, recipe_name in enumerate(current_page_recipes):
+                recipe = self.current_available_recipes[recipe_name]
                 recipe_image = self.textures[recipe["output"]["item"]]
                 recipe_image_rect = recipe_image.get_rect(topleft=(menu_x + 20, recipe_y))
                 self.screen.fblits([(recipe_image, recipe_image_rect)])
 
-                if index == self.crafting_selected_index:
+                # Highlight the selected recipe
+                if index == self.crafting_selected_index - start_index:
                     highlight_rect = pygame.Rect(recipe_image_rect.left - 2, recipe_image_rect.top - 2,
                                                  recipe_image_rect.width + 4, recipe_image_rect.height + 4)
                     pygame.draw.rect(self.screen, (255, 255, 255), highlight_rect, 2)
@@ -330,6 +383,19 @@ class Inventory:
                     item_x = item_image_rect.right + 10
 
                 recipe_y += recipe_image.get_height() + 10
+
+            # Draw navigation indicators for multiple pages
+            prev_page_text = self.slot_font.render("<", True, (255, 255, 255))
+            prev_page_rect = prev_page_text.get_rect(
+                center=(menu_x + 15, menu_y + menu_height // 2 + 250))  # Adjusted position
+            pygame.draw.rect(self.screen, (100, 100, 100), prev_page_rect)
+            self.screen.fblits([(prev_page_text, prev_page_rect)])
+
+            next_page_text = self.slot_font.render(">", True, (255, 255, 255))
+            next_page_rect = next_page_text.get_rect(
+                center=(menu_x + menu_width - 15, menu_y + menu_height // 2 + 250))  # Adjusted position
+            pygame.draw.rect(self.screen, (100, 100, 100), next_page_rect)
+            self.screen.fblits([(next_page_text, next_page_rect)])
 
     def draw(self):
         pygame.draw.rect(surface=self.screen, color="#4444a4",

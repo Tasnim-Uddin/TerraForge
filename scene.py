@@ -211,7 +211,7 @@ class Scene:
                     self.block_sound.play()
                     if random.random() < 0.05:
                         self.__inventory.add_item(item="apple")
-                if held_item_type == "pickaxe" and breaking_item_type == "block" and breaking_item != "tree_log" and breaking_item != "leaf_block":
+                if held_item_type == "pickaxe" and (breaking_item_type == "block" or breaking_item_type == "wallpaper") and breaking_item != "tree_log" and breaking_item != "leaf_block":
                     self.__inventory.add_item(item=breaking_item)
                     del self.__chunks[break_chunk_position][break_block_position]
                     self.block_sound.set_volume(0.5)
@@ -333,56 +333,44 @@ class Scene:
                                           self.camera_offset[0],
                                           block_position[1] * BLOCK_SIZE -
                                           self.camera_offset[1]))])
-                elif block == "crafting_table":
+                if block == "crafting_table":
                     if offset not in self.crafting_table_positions:
                         self.crafting_table_positions[offset] = []
                     if block_position not in self.crafting_table_positions[offset]:
                         self.crafting_table_positions[offset].append(block_position)
-                    self.screen.fblits([(self.all_textures[block],
-                                         (block_position[0] * BLOCK_SIZE -
-                                          self.camera_offset[0],
-                                          block_position[1] * BLOCK_SIZE -
-                                          self.camera_offset[1]))])
-                elif block == "furnace":
+                if block == "furnace":
                     if offset not in self.furnace_positions:
                         self.furnace_positions[offset] = []
                     if block_position not in self.furnace_positions[offset]:
                         self.furnace_positions[offset].append(block_position)
+                distance = int(((block_position[0] * BLOCK_SIZE - int(self.__player.get_x()))**2 + (block_position[1] * BLOCK_SIZE - int(self.__player.get_y()))**2)**0.5)
+                if int(self.__player.get_y()) <= 200 * BLOCK_SIZE:
                     self.screen.fblits([(self.all_textures[block],
                                          (block_position[0] * BLOCK_SIZE -
                                           self.camera_offset[0],
                                           block_position[1] * BLOCK_SIZE -
                                           self.camera_offset[1]))])
-                else:
-                    distance = int(((block_position[0] * BLOCK_SIZE - int(self.__player.get_x()))**2 + (block_position[1] * BLOCK_SIZE - int(self.__player.get_y()))**2)**0.5)
-                    if int(self.__player.get_y()) <= 200 * BLOCK_SIZE:
-                        self.screen.fblits([(self.all_textures[block],
-                                             (block_position[0] * BLOCK_SIZE -
-                                              self.camera_offset[0],
-                                              block_position[1] * BLOCK_SIZE -
-                                              self.camera_offset[1]))])
-                    else:
-                        if offset in self.torch_positions:
-                            for torch_position in self.torch_positions[offset]:
-                                torch_distance = int(((torch_position[0] * BLOCK_SIZE - block_position[0] * BLOCK_SIZE)**2 + (torch_position[1] * BLOCK_SIZE - block_position[1] * BLOCK_SIZE)**2)**0.5)
-                                if torch_distance <= 7 * BLOCK_SIZE:
-                                    self.screen.fblits([(self.all_textures[block],
-                                                         (block_position[0] * BLOCK_SIZE -
-                                                          self.camera_offset[0],
-                                                          block_position[1] * BLOCK_SIZE -
-                                                          self.camera_offset[1]))])
-                        if 200 * BLOCK_SIZE < int(self.__player.get_y()) <= DEEP_CAVE_LEVEL * BLOCK_SIZE and (distance <= 11 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 14 * BLOCK_SIZE)):
+                if offset in self.torch_positions:
+                    for torch_position in self.torch_positions[offset]:
+                        torch_distance = int(((torch_position[0] * BLOCK_SIZE - block_position[0] * BLOCK_SIZE)**2 + (torch_position[1] * BLOCK_SIZE - block_position[1] * BLOCK_SIZE)**2)**0.5)
+                        if torch_distance <= 7 * BLOCK_SIZE:
                             self.screen.fblits([(self.all_textures[block],
                                                  (block_position[0] * BLOCK_SIZE -
                                                   self.camera_offset[0],
                                                   block_position[1] * BLOCK_SIZE -
                                                   self.camera_offset[1]))])
-                        elif DEEP_CAVE_LEVEL * BLOCK_SIZE < int(self.__player.get_y()) and (distance <= 7 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 10 * BLOCK_SIZE)):
-                            self.screen.fblits([(self.all_textures[block],
-                                                 (block_position[0] * BLOCK_SIZE -
-                                                  self.camera_offset[0],
-                                                  block_position[1] * BLOCK_SIZE -
-                                                  self.camera_offset[1]))])
+                if 200 * BLOCK_SIZE < int(self.__player.get_y()) <= DEEP_CAVE_LEVEL * BLOCK_SIZE and (distance <= 11 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 14 * BLOCK_SIZE)):
+                    self.screen.fblits([(self.all_textures[block],
+                                         (block_position[0] * BLOCK_SIZE -
+                                          self.camera_offset[0],
+                                          block_position[1] * BLOCK_SIZE -
+                                          self.camera_offset[1]))])
+                elif DEEP_CAVE_LEVEL * BLOCK_SIZE < int(self.__player.get_y()) and (distance <= 7 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 10 * BLOCK_SIZE)):
+                    self.screen.fblits([(self.all_textures[block],
+                                         (block_position[0] * BLOCK_SIZE -
+                                          self.camera_offset[0],
+                                          block_position[1] * BLOCK_SIZE -
+                                          self.camera_offset[1]))])
 
         held_item = self.__inventory.get_selected_item()
 
@@ -397,7 +385,7 @@ class Scene:
                         self.__break_block(held_item=held_item)
 
                 if event.button == 3:  # right mouse click
-                    if self.__inventory.get_item_type(item=held_item) == "block":
+                    if self.__inventory.get_item_type(item=held_item) == "block" or self.__inventory.get_item_type(item=held_item) == "wallpaper":
                         self.__place_block(held_item=held_item)
                     if self.__inventory.get_item_type(item=held_item) == "food" and self.__player.get_health() < 100:
                         eat_sound = pygame.mixer.Sound(file="assets/sound/eat.mp3")
