@@ -36,11 +36,11 @@ class Game:
         self.start_time = 0
         self.running = True
 
-        self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
+        # self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
         # TODO: uncomment code
-        # self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
+        self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
 
-        self.__menu_state_stack = ["main menu"]  # TODO: change to "login or register"
+        self.__menu_state_stack = ["server ip"]  # TODO: change to "server ip"
 
         self.__world_name = None
         self.__player_name = None
@@ -78,7 +78,9 @@ class Game:
 
             dt = 1
             self.__scene.update_draw(dt=dt)
-            self.screen.fblits([(self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True, color="white"), (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))])
+            self.screen.fblits([(
+                                self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True,
+                                                      color="white"), (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))])
             pygame.display.update()
             self.__clock.tick(FRAMES_PER_SECOND)
 
@@ -98,9 +100,9 @@ class Game:
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
             self.__scene.save_world_to_json()
-            # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
-        # shutil.rmtree(WORLD_SAVE_FOLDER)
-        # shutil.rmtree(PLAYER_SAVE_FOLDER)
+            self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
+        shutil.rmtree(WORLD_SAVE_FOLDER)
+        shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
         sys.exit()
 
@@ -115,9 +117,8 @@ class Game:
         inventory = self.__scene.get_inventory()
         inventory.save_inventory_to_json()
         self.__scene.save_world_to_json()
-        # self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
-        #                            world_file_path=self.__world_name)
-
+        self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
+                                   world_file_path=self.__world_name)
         self.__scene = None
         self.start_time = 0
         self.menu_active = True
@@ -128,7 +129,10 @@ class Game:
                 self.menu_music.play(loops=-1)
                 self.playing_menu_music = True
 
-            if self.__menu_state_stack[-1] == "login or register":
+            if self.__menu_state_stack[-1] == "server ip":
+                self.server_ip_menu()
+
+            elif self.__menu_state_stack[-1] == "login or register":
                 self.login_register_selection()
 
             elif self.__menu_state_stack[-1] == "login username":
@@ -212,7 +216,7 @@ class Game:
         for number, option in enumerate(menu_options):
             if option == "Text Box":
                 self.text_input.draw(screen=self.screen)
-            elif option == "Back":
+            elif option == "Back" or option == "Quit":
                 colour = "white" if number == selected_option else "#808080"
                 text = self.menu_font.render(text=option, antialias=True, color=colour)
                 text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
@@ -251,6 +255,57 @@ class Game:
         if self.__world_name is not None:
             if 5 <= len(self.__world_name) <= 20:
                 return True
+
+    def server_ip_menu(self):
+        menu_options = ["Text Box", "Quit"]
+        selected_option = 0
+
+        self.text_input.input_text = ""
+        self.text_input.active = True
+
+        while True:
+            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
+                               menu_type="Server", detail_type="IP")
+            EventManager.queue_events()
+            for event in EventManager.events:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected_option = abs((selected_option - 1)) % len(menu_options)
+                    elif event.key == pygame.K_DOWN:
+                        selected_option = abs((selected_option + 1)) % len(menu_options)
+                    elif event.key == pygame.K_RETURN:
+                        if selected_option == 0:  # Text Box
+                            server_ip = self.text_input.input_text
+                            self.__client.set_server(server_ip=server_ip)
+                            if server_ip != "" and self.__client.verify_server():
+                                success_text = self.menu_font.render(
+                                    text="Valid Server IP",
+                                    antialias=True,
+                                    color="green")
+                                success_rect = success_text.get_rect(
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                self.screen.fill(color="black")
+                                self.screen.fblits([(success_text, success_rect)])
+                                pygame.display.flip()
+                                pygame.time.delay(2000)
+                                self.__menu_state_stack.append("login or register")
+                            else:
+                                fail_text = self.menu_font.render(
+                                    text="Invalid Server IP",
+                                    antialias=True,
+                                    color="red")
+                                success_rect = fail_text.get_rect(
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                self.screen.fill(color="black")
+                                self.screen.fblits([(fail_text, success_rect)])
+                                pygame.display.flip()
+                                pygame.time.delay(2000)
+                            return
+                        elif selected_option == 1:  # Quit
+                            self.__quit_game()
+
+            self.text_input.update(validation_type="long")
+
     def login_register_selection(self):
         menu_options = ["Login", "Register", "Forgot Password", "Quit"]
         selected_option = 0
@@ -440,7 +495,8 @@ class Game:
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text
                             if self.validate_password_text_input(password=password):
-                                registration_successful, recovery_code = self.__client.register_user(username=self.__username, password=password)
+                                registration_successful, recovery_code = self.__client.register_user(
+                                    username=self.__username, password=password)
                                 if registration_successful and recovery_code is not None:
                                     success_text = self.menu_font.render(
                                         text="Registration successful",
@@ -493,7 +549,7 @@ class Game:
                                     center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20))
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(criteria_fail_text,
-                                                 criteria_fail_rect)])
+                                                     criteria_fail_rect)])
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
                                 pygame.time.delay(5000)
@@ -555,7 +611,8 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             recovery_code = self.text_input.input_text
-                            if self.__client.authenticate_recovery_code(username=self.__username, recovery_code=recovery_code):
+                            if self.__client.authenticate_recovery_code(username=self.__username,
+                                                                        recovery_code=recovery_code):
 
                                 success_text = self.menu_font.render(
                                     text="Recovery code valid",
@@ -611,7 +668,8 @@ class Game:
                         elif selected_option == 0:  # Text Box
                             new_password = self.text_input.input_text
                             if self.validate_password_text_input(password=new_password):
-                                new_password_successful, recovery_code = self.__client.reset_password(username=self.__username, new_password=new_password)
+                                new_password_successful, recovery_code = self.__client.reset_password(
+                                    username=self.__username, new_password=new_password)
                                 if new_password_successful and recovery_code is not None:
                                     success_text = self.menu_font.render(
                                         text="Password reset",

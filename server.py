@@ -1,6 +1,7 @@
 import base64
 import os
 import string
+import socket
 
 from flask import Flask, request, jsonify
 import hashlib
@@ -11,12 +12,9 @@ from werkzeug.utils import secure_filename
 
 DATABASE_NAME = "user_database.db"
 
-SERVER_IP = "192.168.0.82"
-
 
 class Server:
     def __init__(self):
-
         self.app = Flask(__name__)
         self.app.config["PLAYER_SAVE_FOLDER"] = "player_save_files"
         self.app.config["WORLD_SAVE_FOLDER"] = "world_save_files"
@@ -26,12 +24,16 @@ class Server:
         if not os.path.exists(path=self.app.config["WORLD_SAVE_FOLDER"]):
             os.makedirs(name=self.app.config["WORLD_SAVE_FOLDER"])
 
+        # Get local IPv4 address dynamically
+        self.SERVER_IP = socket.gethostbyname(socket.gethostname())
+
         # Define routes
         self.app.add_url_rule(rule="/register", endpoint="register_user", view_func=self.register_user,
                               methods=["POST"])
         self.app.add_url_rule(rule="/authenticate", endpoint="authenticate_user", view_func=self.authenticate_user,
                               methods=["POST"])
-        self.app.add_url_rule(rule="/authenticate_recovery_code", endpoint="authenticate_recovery_code", view_func=self.authenticate_recovery_code,
+        self.app.add_url_rule(rule="/authenticate_recovery_code", endpoint="authenticate_recovery_code",
+                              view_func=self.authenticate_recovery_code,
                               methods=["POST"])
         self.app.add_url_rule(rule="/reset_password", endpoint="reset_password",
                               view_func=self.reset_password,
@@ -43,7 +45,24 @@ class Server:
 
     def run(self):
         self.create_tables()
-        self.app.run(host=SERVER_IP, port=5000)
+        self.app.run(host=self.SERVER_IP, port=5000)
+
+    def verify_client_connection(self):
+        try:
+            # Create a socket object
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+                # Bind the socket to the server IP address and port
+                server_socket.bind((self.SERVER_IP, 5000))
+
+                server_socket.listen()
+
+                print(f"Server is listening on {self.SERVER_IP}:5000")
+
+                # Accept incoming connection
+                conn, addr = server_socket.accept()
+                print(f"Connection established with {addr}")
+        except Exception as e:
+            print("Error verifying connection:", e)
 
     @staticmethod
     def create_tables():
@@ -86,7 +105,8 @@ class Server:
 
         # Generate password_salt and hash the recovery code
         recovery_code_length = 6
-        recovery_code = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(recovery_code_length))
+        recovery_code = ''.join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(recovery_code_length))
         recovery_code_salt = secrets.token_hex(16)
         salted_recovery_code = recovery_code + recovery_code_salt
         hashed_recovery_code = hashlib.sha256(salted_recovery_code.encode()).hexdigest()
@@ -95,8 +115,9 @@ class Server:
             # Insert user data into the database
             with sqlite3.connect(database=DATABASE_NAME) as connection:
                 cursor = connection.cursor()
-                cursor.execute("INSERT INTO users (username, hashed_password, password_salt, hashed_recovery_code, recovery_code_salt) VALUES (?, ?, ?, ?, ?)",
-                               (username, hashed_password, password_salt, hashed_recovery_code, recovery_code_salt))
+                cursor.execute(
+                    "INSERT INTO users (username, hashed_password, password_salt, hashed_recovery_code, recovery_code_salt) VALUES (?, ?, ?, ?, ?)",
+                    (username, hashed_password, password_salt, hashed_recovery_code, recovery_code_salt))
                 connection.commit()
             print("User registered successfully:", username)
             return jsonify({"success": True, "recovery code": recovery_code})
@@ -148,13 +169,15 @@ class Server:
             # Retrieve user data from the database
             with sqlite3.connect(database=DATABASE_NAME) as connection:
                 cursor = connection.cursor()
-                cursor.execute("SELECT hashed_recovery_code, recovery_code_salt FROM users WHERE username=?", (username,))
+                cursor.execute("SELECT hashed_recovery_code, recovery_code_salt FROM users WHERE username=?",
+                               (username,))
                 user = cursor.fetchone()
 
                 if user:
                     stored_hashed_recovery_code, stored_recovery_code_salt = user
                     # Hash the input recovery code with the stored salt
-                    hashed_recovery_code_with_salt = hashlib.sha256((recovery_code + stored_recovery_code_salt).encode()).hexdigest()
+                    hashed_recovery_code_with_salt = hashlib.sha256(
+                        (recovery_code + stored_recovery_code_salt).encode()).hexdigest()
 
                     # Check if the hashed input recovery code with stored salt matches the stored hashed recovery code with salt
                     if hashed_recovery_code_with_salt == stored_hashed_recovery_code:

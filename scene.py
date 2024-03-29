@@ -44,7 +44,6 @@ class Scene:
 
         self.block_sound = pygame.mixer.Sound(file="assets/sound/block.mp3")
 
-
     def get_player(self):
         return self.__player
 
@@ -61,7 +60,8 @@ class Scene:
                 possible_enemy_positions = []
                 for block_position in self.__chunks[chunk]:
                     if self.__chunks[chunk][block_position] == "grass":
-                        possible_enemy_positions.append((block_position[0] * BLOCK_SIZE, (block_position[1] - 1) * BLOCK_SIZE))
+                        possible_enemy_positions.append(
+                            (block_position[0] * BLOCK_SIZE, (block_position[1] - 1) * BLOCK_SIZE))
                 if len(possible_enemy_positions) != 0:
                     enemy_position = random.choice(possible_enemy_positions)
                     enemy = SlimeEnemy()
@@ -69,6 +69,7 @@ class Scene:
                     enemy.set_y(y=enemy_position[1])
                     self.__enemies.append(enemy)
                     return
+
     @staticmethod
     def load_textures():
         textures = {}
@@ -115,10 +116,12 @@ class Scene:
                                         if tree_key not in self.missing_tree_positions:
                                             self.missing_tree_positions[tree_key] = {}
                                         self.missing_tree_positions[tree_key][
-                                            (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_log"
+                                            (int(real_x / BLOCK_SIZE),
+                                             int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_log"
                                     else:
                                         self.__chunks[key][
-                                            (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_log"
+                                            (int(real_x / BLOCK_SIZE),
+                                             int(real_y / BLOCK_SIZE) - y_shift_up)] = "tree_log"
                                 else:
                                     for x_shift in range(x_shift_start, x_shift_end + 1):
                                         if int(real_x / BLOCK_SIZE) + x_shift < key[0] * CHUNK_WIDTH:
@@ -162,26 +165,90 @@ class Scene:
                         if not air_in_cave:
                             if COAL_LEVEL * BLOCK_SIZE < (real_y + height_noise) and random.random() < COAL_SPAWN_RATE:
                                 self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "coal_ore"
-                            elif IRON_LEVEL * BLOCK_SIZE < (real_y + height_noise) and random.random() < IRON_SPAWN_RATE:
+                            elif IRON_LEVEL * BLOCK_SIZE < (
+                                    real_y + height_noise) and random.random() < IRON_SPAWN_RATE:
                                 self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "iron_ore"
-                            elif GOLD_LEVEL * BLOCK_SIZE < (real_y + height_noise) and random.random() < GOLD_SPAWN_RATE:
+                            elif GOLD_LEVEL * BLOCK_SIZE < (
+                                    real_y + height_noise) and random.random() < GOLD_SPAWN_RATE:
                                 self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "gold_ore"
-                            elif DIAMOND_LEVEL * BLOCK_SIZE < (real_y + height_noise) and random.random() < DIAMOND_SPAWN_RATE:
+                            elif DIAMOND_LEVEL * BLOCK_SIZE < (
+                                    real_y + height_noise) and random.random() < DIAMOND_SPAWN_RATE:
                                 self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "diamond_ore"
                             else:
                                 self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "stone"
                     elif DEEP_CAVE_LEVEL * BLOCK_SIZE < (real_y + height_noise):
                         if not air_in_cave:
                             if random.random() < COAL_SPAWN_RATE:
-                                self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_coal_ore"
+                                self.__chunks[key][
+                                    (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_coal_ore"
                             elif random.random() < IRON_SPAWN_RATE:
-                                self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_iron_ore"
+                                self.__chunks[key][
+                                    (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_iron_ore"
                             elif random.random() < GOLD_SPAWN_RATE:
-                                self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_gold_ore"
+                                self.__chunks[key][
+                                    (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_gold_ore"
                             elif random.random() < DIAMOND_SPAWN_RATE:
-                                self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_diamond_ore"
+                                self.__chunks[key][
+                                    (int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate_diamond_ore"
                             else:
                                 self.__chunks[key][(int(real_x / BLOCK_SIZE), int(real_y / BLOCK_SIZE))] = "deepslate"
+
+    def check_door(self):
+        mouse_position = pygame.mouse.get_pos()
+
+        within_reach = False
+        distance = int((((mouse_position[0] + self.camera_offset[0] - self.__player.get_rect().centerx) ** 2 + (
+                mouse_position[1] + self.camera_offset[
+            1] - self.__player.get_rect().centery) ** 2) ** 0.5) / BLOCK_SIZE)
+        if distance <= REACH:
+            within_reach = True
+
+        chunk_position = (int((mouse_position[0] + self.camera_offset[0]) // (CHUNK_WIDTH * BLOCK_SIZE)),
+                                int((mouse_position[1] + self.camera_offset[1]) // (CHUNK_WIDTH * BLOCK_SIZE)))
+
+        door_position = (int((mouse_position[0] + self.camera_offset[0]) // BLOCK_SIZE),
+                                int((mouse_position[1] + self.camera_offset[1]) // BLOCK_SIZE))
+
+        # To make sure that the block cannot be placed within the block grid a player is on
+        player_max_right = math.ceil(self.__player.get_rect().right / BLOCK_SIZE) * BLOCK_SIZE
+        player_min_left = (self.__player.get_rect().left // BLOCK_SIZE) * BLOCK_SIZE
+        player_min_top = (self.__player.get_rect().top // BLOCK_SIZE) * BLOCK_SIZE
+        player_max_bottom = math.ceil(self.__player.get_rect().bottom / BLOCK_SIZE) * BLOCK_SIZE
+        player_block_rect = pygame.Rect(player_min_left, player_min_top, player_max_right - player_min_left,
+                                        player_max_bottom - player_min_top)
+
+        try:
+            if within_reach and not player_block_rect.collidepoint(
+                mouse_position[0] + self.camera_offset[0], mouse_position[1] + self.camera_offset[1]):
+                if self.__chunks[chunk_position][door_position] == "top_oak_door_open":
+                    block_below_position = (door_position[0], door_position[1] + 1)
+                    block_below_chunk = (
+                        block_below_position[0] // CHUNK_WIDTH, block_below_position[1] // CHUNK_HEIGHT)
+                    self.__chunks[chunk_position][door_position] = "top_oak_door_closed"
+                    self.__chunks[block_below_chunk][block_below_position] = "bottom_oak_door_closed"
+
+                elif self.__chunks[chunk_position][door_position] == "bottom_oak_door_open":
+                    block_above_position = (door_position[0], door_position[1] - 1)
+                    block_above_chunk = (
+                        block_above_position[0] // CHUNK_WIDTH, block_above_position[1] // CHUNK_HEIGHT)
+                    self.__chunks[chunk_position][door_position] = "bottom_oak_door_closed"
+                    self.__chunks[block_above_chunk][block_above_position] = "top_oak_door_closed"
+
+                elif self.__chunks[chunk_position][door_position] == "top_oak_door_closed":
+                    block_below_position = (door_position[0], door_position[1] + 1)
+                    block_below_chunk = (
+                        block_below_position[0] // CHUNK_WIDTH, block_below_position[1] // CHUNK_HEIGHT)
+                    self.__chunks[chunk_position][door_position] = "top_oak_door_open"
+                    self.__chunks[block_below_chunk][block_below_position] = "bottom_oak_door_open"
+
+                elif self.__chunks[chunk_position][door_position] == "bottom_oak_door_closed":
+                    block_above_position = (door_position[0], door_position[1] - 1)
+                    block_above_chunk = (
+                        block_above_position[0] // CHUNK_WIDTH, block_above_position[1] // CHUNK_HEIGHT)
+                    self.__chunks[chunk_position][door_position] = "bottom_oak_door_open"
+                    self.__chunks[block_above_chunk][block_above_position] = "top_oak_door_open"
+        except KeyError:
+            pass
 
     def __break_block(self, held_item):
         mouse_position = pygame.mouse.get_pos()
@@ -204,17 +271,34 @@ class Scene:
             breaking_item_type = self.__inventory.get_item_type(item=breaking_item)
             held_item_type = self.__inventory.get_item_type(item=held_item)
             if within_reach:
+                if held_item_type == "pickaxe" and breaking_item in ["top_oak_door_open", "bottom_oak_door_open"]:
+                    if breaking_item == "top_oak_door_open":
+                        block_below_position = (break_block_position[0], break_block_position[1] + 1)
+                        block_below_chunk = (
+                            block_below_position[0] // CHUNK_WIDTH, block_below_position[1] // CHUNK_HEIGHT)
+                        del self.__chunks[block_below_chunk][block_below_position]
+                        self.block_sound.set_volume(1.5)
+                        self.block_sound.play()
+                    elif breaking_item == "bottom_oak_door_open":
+                        block_above_position = (break_block_position[0], break_block_position[1] - 1)
+                        block_above_chunk = (
+                            block_above_position[0] // CHUNK_WIDTH, block_above_position[1] // CHUNK_HEIGHT)
+                        del self.__chunks[block_above_chunk][block_above_position]
+                        self.block_sound.set_volume(1.5)
+                        self.block_sound.play()
+                    self.__inventory.add_item(item="oak_door_inventory")
                 if breaking_item == "tree_leaf":
                     self.__inventory.add_item(item=breaking_item)
                     del self.__chunks[break_chunk_position][break_block_position]
-                    self.block_sound.set_volume(0.5)
+                    self.block_sound.set_volume(1.5)
                     self.block_sound.play()
                     if random.random() < 0.05:
                         self.__inventory.add_item(item="apple")
-                if held_item_type == "pickaxe" and (breaking_item_type == "block" or breaking_item_type == "wallpaper") and breaking_item != "tree_log" and breaking_item != "leaf_block":
+                if held_item_type == "pickaxe" and (
+                        breaking_item_type == "block" or breaking_item_type == "wallpaper") and breaking_item != "tree_log" and breaking_item != "leaf_block":
                     self.__inventory.add_item(item=breaking_item)
                     del self.__chunks[break_chunk_position][break_block_position]
-                    self.block_sound.set_volume(0.5)
+                    self.block_sound.set_volume(1.5)
                     self.block_sound.play()
                     if breaking_item == "torch":
                         self.torch_positions[break_chunk_position].remove(break_block_position)
@@ -225,7 +309,7 @@ class Scene:
                 elif held_item_type == "axe" and breaking_item == "tree_log":
                     self.__inventory.add_item(item=breaking_item)
                     del self.__chunks[break_chunk_position][break_block_position]
-                    self.block_sound.set_volume(0.5)
+                    self.block_sound.set_volume(1.5)
                     self.block_sound.play()
         except KeyError:
             pass
@@ -259,7 +343,6 @@ class Scene:
         # else:
         #     block_exists = False
 
-
         # To make sure that the block cannot be placed within the block grid a player is on
         player_max_right = math.ceil(self.__player.get_rect().right / BLOCK_SIZE) * BLOCK_SIZE
         player_min_left = (self.__player.get_rect().left // BLOCK_SIZE) * BLOCK_SIZE
@@ -268,23 +351,35 @@ class Scene:
         player_block_rect = pygame.Rect(player_min_left, player_min_top, player_max_right - player_min_left,
                                         player_max_bottom - player_min_top)
 
-        if not block_exists  and within_reach and not player_block_rect.collidepoint(mouse_position[0] + self.camera_offset[0],mouse_position[1] + self.camera_offset[1]):
-            self.block_sound.set_volume(0.5)
+        if not block_exists and within_reach and not player_block_rect.collidepoint(
+                mouse_position[0] + self.camera_offset[0], mouse_position[1] + self.camera_offset[1]):
+            self.block_sound.set_volume(1.5)
             self.block_sound.play()
-            self.__chunks[place_chunk_position][place_block_position] = held_item
-            self.__inventory.remove_item(item=held_item)
-            if held_item == "torch":
-                if place_chunk_position not in self.torch_positions:
-                    self.torch_positions[place_chunk_position] = []
-                self.torch_positions[place_chunk_position].append(place_block_position)
-            elif held_item == "crafting_table":
-                if place_chunk_position not in self.crafting_table_positions:
-                    self.crafting_table_positions[place_chunk_position] = []
-                self.crafting_table_positions[place_chunk_position].append(place_block_position)
-            elif held_item == "furnace":
-                if place_chunk_position not in self.furnace_positions:
-                    self.furnace_positions[place_chunk_position] = []
-                self.furnace_positions[place_chunk_position].append(place_block_position)
+            if held_item == "oak_door_inventory":
+                block_above_position = (place_block_position[0], place_block_position[1] - 1)
+                block_above_chunk = (block_above_position[0] // CHUNK_WIDTH, block_above_position[1] // CHUNK_HEIGHT)
+                block_above_exists = bool(
+                    block_above_chunk in self.__chunks and block_above_position in self.__chunks[
+                        block_above_chunk])
+                if not block_above_exists:
+                    self.__chunks[place_chunk_position][place_block_position] = "bottom_oak_door_open"
+                    self.__chunks[block_above_chunk][block_above_position] = "top_oak_door_open"
+                    self.__inventory.remove_item(item=held_item)
+            else:
+                self.__chunks[place_chunk_position][place_block_position] = held_item
+                self.__inventory.remove_item(item=held_item)
+                if held_item == "torch":
+                    if place_chunk_position not in self.torch_positions:
+                        self.torch_positions[place_chunk_position] = []
+                    self.torch_positions[place_chunk_position].append(place_block_position)
+                elif held_item == "crafting_table":
+                    if place_chunk_position not in self.crafting_table_positions:
+                        self.crafting_table_positions[place_chunk_position] = []
+                    self.crafting_table_positions[place_chunk_position].append(place_block_position)
+                elif held_item == "furnace":
+                    if place_chunk_position not in self.furnace_positions:
+                        self.furnace_positions[place_chunk_position] = []
+                    self.furnace_positions[place_chunk_position].append(place_block_position)
 
     def update_draw(self, dt):
         self.precise_camera_offset[0] += (self.__player.get_rect().centerx - self.precise_camera_offset[
@@ -326,10 +421,11 @@ class Scene:
             for position, tree_block in list(block_information.items()):
                 if chunk_position in self.__chunks:
                     self.__chunks[chunk_position][position] = tree_block
-                    surrounding_chunks[(chunk_position[0], chunk_position[1])] = self.__chunks.get((chunk_position[0], chunk_position[1]), [])
+                    surrounding_chunks[(chunk_position[0], chunk_position[1])] = self.__chunks.get(
+                        (chunk_position[0], chunk_position[1]), [])
                     self.screen.fblits([(self.all_textures[tree_block], (
-                    position[0] * BLOCK_SIZE - self.camera_offset[0],
-                    position[1] * BLOCK_SIZE - self.camera_offset[1]))])
+                        position[0] * BLOCK_SIZE - self.camera_offset[0],
+                        position[1] * BLOCK_SIZE - self.camera_offset[1]))])
                     del self.missing_tree_positions[chunk_position][position]
 
         for offset in neighbour_chunk_offsets:
@@ -354,7 +450,8 @@ class Scene:
                         self.furnace_positions[offset] = []
                     if block_position not in self.furnace_positions[offset]:
                         self.furnace_positions[offset].append(block_position)
-                distance = int(((block_position[0] * BLOCK_SIZE - int(self.__player.get_x()))**2 + (block_position[1] * BLOCK_SIZE - int(self.__player.get_y()))**2)**0.5)
+                distance = int(((block_position[0] * BLOCK_SIZE - int(self.__player.get_x())) ** 2 + (
+                            block_position[1] * BLOCK_SIZE - int(self.__player.get_y())) ** 2) ** 0.5)
                 if int(self.__player.get_y()) <= 200 * BLOCK_SIZE:
                     self.screen.fblits([(self.all_textures[block],
                                          (block_position[0] * BLOCK_SIZE -
@@ -363,20 +460,24 @@ class Scene:
                                           self.camera_offset[1]))])
                 if offset in self.torch_positions:
                     for torch_position in self.torch_positions[offset]:
-                        torch_distance = int(((torch_position[0] * BLOCK_SIZE - block_position[0] * BLOCK_SIZE)**2 + (torch_position[1] * BLOCK_SIZE - block_position[1] * BLOCK_SIZE)**2)**0.5)
+                        torch_distance = int(((torch_position[0] * BLOCK_SIZE - block_position[0] * BLOCK_SIZE) ** 2 + (
+                                    torch_position[1] * BLOCK_SIZE - block_position[1] * BLOCK_SIZE) ** 2) ** 0.5)
                         if torch_distance <= 7 * BLOCK_SIZE:
                             self.screen.fblits([(self.all_textures[block],
                                                  (block_position[0] * BLOCK_SIZE -
                                                   self.camera_offset[0],
                                                   block_position[1] * BLOCK_SIZE -
                                                   self.camera_offset[1]))])
-                if 200 * BLOCK_SIZE < int(self.__player.get_y()) <= DEEP_CAVE_LEVEL * BLOCK_SIZE and (distance <= 11 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 14 * BLOCK_SIZE)):
+                if 200 * BLOCK_SIZE < int(self.__player.get_y()) <= DEEP_CAVE_LEVEL * BLOCK_SIZE and (
+                        distance <= 11 * BLOCK_SIZE or (
+                        self.__inventory.get_selected_item() == "torch" and distance <= 14 * BLOCK_SIZE)):
                     self.screen.fblits([(self.all_textures[block],
                                          (block_position[0] * BLOCK_SIZE -
                                           self.camera_offset[0],
                                           block_position[1] * BLOCK_SIZE -
                                           self.camera_offset[1]))])
-                elif DEEP_CAVE_LEVEL * BLOCK_SIZE < int(self.__player.get_y()) and (distance <= 7 * BLOCK_SIZE or (self.__inventory.get_selected_item() == "torch" and distance <= 10 * BLOCK_SIZE)):
+                elif DEEP_CAVE_LEVEL * BLOCK_SIZE < int(self.__player.get_y()) and (distance <= 7 * BLOCK_SIZE or (
+                        self.__inventory.get_selected_item() == "torch" and distance <= 10 * BLOCK_SIZE)):
                     self.screen.fblits([(self.all_textures[block],
                                          (block_position[0] * BLOCK_SIZE -
                                           self.camera_offset[0],
@@ -394,9 +495,9 @@ class Scene:
                         sword_swing_sound.play()
                     else:
                         self.__break_block(held_item=held_item)
-
                 if event.button == 3:  # right mouse click
-                    if self.__inventory.get_item_type(item=held_item) == "block" or self.__inventory.get_item_type(item=held_item) == "wallpaper":
+                    if self.__inventory.get_item_type(item=held_item) == "block" or self.__inventory.get_item_type(
+                            item=held_item) == "wallpaper":
                         self.__place_block(held_item=held_item)
                     if self.__inventory.get_item_type(item=held_item) == "food" and self.__player.get_health() < 100:
                         eat_sound = pygame.mixer.Sound(file="assets/sound/eat.mp3")
@@ -404,8 +505,9 @@ class Scene:
                         eat_sound.play()
                         self.__player.set_health(health=self.__player.get_health() + 5)
                         self.__inventory.remove_item(item=held_item)
+                    self.check_door()
 
-        if random.random() < 0.01 and len(self.__enemies) < 1:
+        if random.random() < 0.01 and len(self.__enemies) < 2:
             self.__spawn_enemy()
 
         for enemy in self.__enemies:
@@ -429,7 +531,9 @@ class Scene:
 
         self.__player.update(chunks=surrounding_chunks, dt=dt)
         self.__player.draw(screen=self.screen, camera_offset=self.camera_offset)
-        self.__inventory.update(player=self.__player, neighbour_chunk_offsets=neighbour_chunk_offsets, crafting_table_positions=self.crafting_table_positions, furnace_positions=self.furnace_positions)
+        self.__inventory.update(player=self.__player, neighbour_chunk_offsets=neighbour_chunk_offsets,
+                                crafting_table_positions=self.crafting_table_positions,
+                                furnace_positions=self.furnace_positions)
         self.__inventory.draw()
         # self.__inventory.update_crafting()
         self.__inventory.draw_crafting()

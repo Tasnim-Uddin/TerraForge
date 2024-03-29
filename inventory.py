@@ -19,8 +19,8 @@ class Inventory:
         self.active_column = 0
         self.__selected_item = self.__inventory_items[(self.active_row, self.active_column)]["item"]
 
-        self.slot_font = pygame.font.Font(filename=None, size=20)
-        self.quantity_font = pygame.font.Font(filename=None, size=30)
+        self.inventory_slot_font = pygame.font.Font(filename=None, size=20)
+        self.inventory_quantity_font = pygame.font.Font(filename=None, size=30)
 
         self.inventory_expanded = False
         self.clicked_slot_position = None
@@ -32,6 +32,14 @@ class Inventory:
         self.crafting_menu_opened = False
         self.crafting_selected_index = 0
         self.current_page = 0
+        
+        self.menu_surface = pygame.Surface((300, WINDOW_HEIGHT), pygame.SRCALPHA)
+        self.menu_surface.fill((100, 100, 100, 128))
+
+        # Create font objects outside the method
+        self.title_font = pygame.font.Font(None, 36)
+        self.crafting_quantity_font = pygame.font.Font(None, 24)
+        self.crafting_sound = pygame.mixer.Sound(file="assets/sound/crafting.mp3")
 
     def get_selected_item(self):
         return self.__selected_item
@@ -120,9 +128,9 @@ class Inventory:
                         self.active_row = 0
                         self.active_column = key - 1
 
-                player_velocity = player.get_velocity()
-                if player_velocity[0] != 0 or player_velocity[1] != 0:
-                    self.crafting_menu_opened = False
+                # player_velocity = player.get_velocity()
+                # if player_velocity[0] != 0 or player_velocity[1] != 0:
+                #     self.crafting_menu_opened = False
 
                 if self.crafting_menu_opened:
                     self.determine_crafting_table(player=player, neighbour_chunk_offsets=neighbour_chunk_offsets, crafting_table_positions=crafting_table_positions)
@@ -138,12 +146,14 @@ class Inventory:
                         self.current_available_recipes = base_crafting_recipes
 
                     if event.key == pygame.K_LEFT:
-                        self.current_page = max(0, self.current_page - 1)
-                        self.crafting_selected_index = self.current_page * max_num_recipes_per_page
+                        if self.current_page != 0:
+                            self.current_page = self.current_page - 1
+                            self.crafting_selected_index = self.current_page * max_num_recipes_per_page
 
                     elif event.key == pygame.K_RIGHT:
-                        self.current_page = min(total_pages - 1, self.current_page + 1)
-                        self.crafting_selected_index = self.current_page * max_num_recipes_per_page
+                        if self.current_page != total_pages - 1:
+                            self.current_page = self.current_page + 1
+                            self.crafting_selected_index = self.current_page * max_num_recipes_per_page
 
                     if event.key == pygame.K_UP:
                         if self.crafting_selected_index == self.current_page * max_num_recipes_per_page:
@@ -160,6 +170,14 @@ class Inventory:
                             self.crafting_selected_index = self.current_page * max_num_recipes_per_page
                         else:
                             self.crafting_selected_index += 1
+
+                    start_index = self.current_page * max_num_recipes_per_page
+                    end_index = min(start_index + max_num_recipes_per_page, total_recipes)
+                    num_recipes_current_page = len(
+                        list(self.current_available_recipes.keys())[start_index:end_index])
+
+                    if self.crafting_selected_index > self.current_page * max_num_recipes_per_page + num_recipes_current_page - 1:
+                        self.crafting_selected_index = self.current_page * max_num_recipes_per_page
 
                     if event.key == pygame.K_RETURN:
                         selected_recipe = list(self.current_available_recipes.keys())[self.crafting_selected_index]
@@ -212,6 +230,13 @@ class Inventory:
                             self.crafting_selected_index = self.current_page * max_num_recipes_per_page
                         else:
                             self.crafting_selected_index += 1
+
+                    start_index = self.current_page * max_num_recipes_per_page
+                    end_index = min(start_index + max_num_recipes_per_page, total_recipes)
+                    num_recipes_current_page = len(
+                        list(self.current_available_recipes.keys())[start_index:end_index])
+                    if self.crafting_selected_index > self.current_page * max_num_recipes_per_page + num_recipes_current_page - 1:
+                        self.crafting_selected_index = self.current_page * max_num_recipes_per_page
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if not self.crafting_menu_opened:
@@ -325,28 +350,22 @@ class Inventory:
 
             # Add output items to inventory
             self.add_item(item=output_information["item"], quantity=output_information["quantity"])
+            self.crafting_sound.play()
 
             print(f"{recipe_name} crafted successfully!")
         else:
             print("Recipe not found")
 
     def draw_crafting(self):
-        menu_width = 300
-        menu_height = WINDOW_HEIGHT
-        menu_x = WINDOW_WIDTH - menu_width
+        menu_x = WINDOW_WIDTH - 300
         menu_y = 60
-        if self.crafting_menu_opened:
-            # Create a transparent surface for the crafting menu
-            menu_surface = pygame.Surface((menu_width, menu_height), pygame.SRCALPHA)
-            menu_surface.fill((100, 100, 100, 128))
-            self.screen.fblits([(menu_surface, (menu_x, menu_y))])
 
-            title_font = pygame.font.Font(None, 36)
-            title_text = title_font.render("Crafting Menu", True, (255, 255, 255))
-            title_text_rect = title_text.get_rect(center=(menu_x + menu_width // 2, menu_y + 20))
+        if self.crafting_menu_opened:
+            self.screen.fblits([(self.menu_surface, (menu_x, menu_y))])
+            title_text = self.title_font.render("Crafting Menu", True, (255, 255, 255))
+            title_text_rect = title_text.get_rect(center=(menu_x + 150, menu_y + 20))
             self.screen.fblits([(title_text, title_text_rect)])
 
-            # Determine the current page and the range of recipes to display
             max_num_recipes_per_page = (WINDOW_HEIGHT - 10) // 60
             total_recipes = len(self.current_available_recipes)
             total_pages = (total_recipes + max_num_recipes_per_page - 1) // max_num_recipes_per_page
@@ -355,7 +374,6 @@ class Inventory:
             end_index = min(start_index + max_num_recipes_per_page, total_recipes)
             current_page_recipes = list(self.current_available_recipes.keys())[start_index:end_index]
 
-            # Draw available recipes with images and required items
             recipe_y = menu_y + 50
             for index, recipe_name in enumerate(current_page_recipes):
                 recipe = self.current_available_recipes[recipe_name]
@@ -363,44 +381,37 @@ class Inventory:
                 recipe_image_rect = recipe_image.get_rect(topleft=(menu_x + 20, recipe_y))
                 self.screen.fblits([(recipe_image, recipe_image_rect)])
 
-                # Highlight the selected recipe
                 if index == self.crafting_selected_index - start_index:
                     highlight_rect = pygame.Rect(recipe_image_rect.left - 2, recipe_image_rect.top - 2,
                                                  recipe_image_rect.width + 4, recipe_image_rect.height + 4)
                     pygame.draw.rect(self.screen, (255, 255, 255), highlight_rect, 2)
 
                 required_items = recipe["input"]
-                item_x = recipe_image_rect.right + 20  # Start drawing items to the right of the recipe image
+                item_x = recipe_image_rect.right + 20
 
                 for items, quantities in zip(required_items["item"], required_items["quantity"]):
-                    quantity_font = pygame.font.Font(None, 24)
-                    quantity_text = quantity_font.render(f"{quantities}", True, (255, 255, 255))
+                    quantity_text = self.crafting_quantity_font.render(f"{quantities}", True, (255, 255, 255))
                     quantity_text_rect = quantity_text.get_rect(left=item_x, centery=recipe_image_rect.centery)
-
                     self.screen.fblits([(quantity_text, quantity_text_rect)])
 
                     item_image_surface = self.textures[items]
                     item_image_rect = item_image_surface.get_rect(left=quantity_text_rect.right + 8,
                                                                   centery=recipe_image_rect.centery)
-
                     item_image_surface = pygame.transform.scale(item_image_surface,
-                                                                (item_image_rect.height // 1.5, item_image_rect.height // 1.5))
+                                                                (item_image_rect.height // 1.5,
+                                                                 item_image_rect.height // 1.5))
                     self.screen.fblits([(item_image_surface, item_image_rect)])
-
                     item_x = item_image_rect.right + 10
 
                 recipe_y += recipe_image.get_height() + 10
 
-            # Draw navigation indicators for multiple pages
-            prev_page_text = self.slot_font.render("<", True, (255, 255, 255))
-            prev_page_rect = prev_page_text.get_rect(
-                center=(menu_x + 15, menu_y + menu_height // 2 + 250))  # Adjusted position
+            prev_page_text = self.inventory_slot_font.render("<", True, (255, 255, 255))
+            prev_page_rect = prev_page_text.get_rect(center=(menu_x + 15, menu_y + WINDOW_HEIGHT // 2 + 250))
             pygame.draw.rect(self.screen, (100, 100, 100), prev_page_rect)
             self.screen.fblits([(prev_page_text, prev_page_rect)])
 
-            next_page_text = self.slot_font.render(">", True, (255, 255, 255))
-            next_page_rect = next_page_text.get_rect(
-                center=(menu_x + menu_width - 15, menu_y + menu_height // 2 + 250))  # Adjusted position
+            next_page_text = self.inventory_slot_font.render(">", True, (255, 255, 255))
+            next_page_rect = next_page_text.get_rect(center=(menu_x + 285, menu_y + WINDOW_HEIGHT // 2 + 250))
             pygame.draw.rect(self.screen, (100, 100, 100), next_page_rect)
             self.screen.fblits([(next_page_text, next_page_rect)])
 
@@ -454,7 +465,7 @@ class Inventory:
                         (padding_x + (BLOCK_SIZE * 2) * column_slot_number,
                          padding_y + (BLOCK_SIZE * 2) * true_item_row_slot_number))])
 
-                    quantity_text = self.quantity_font.render(text=str(item_data["quantity"]), antialias=True,
+                    quantity_text = self.inventory_quantity_font.render(text=str(item_data["quantity"]), antialias=True,
                                                               color="white")
                     self.screen.fblits([(quantity_text, (
                         (BLOCK_SIZE * 2) * column_slot_number + 10,
@@ -471,7 +482,7 @@ class Inventory:
                              width=2)
 
         for column_slot_number in range(1, COLUMN_SLOTS + 1):
-            slot_text = self.slot_font.render(text=str(column_slot_number), antialias=True, color="#c0c2c0")
+            slot_text = self.inventory_slot_font.render(text=str(column_slot_number), antialias=True, color="#c0c2c0")
             self.screen.fblits([(slot_text, ((BLOCK_SIZE * 2) * (column_slot_number - 1) + 5, 5))])
 
     def get_item_quantity(self, item):

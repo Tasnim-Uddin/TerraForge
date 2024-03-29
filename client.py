@@ -2,14 +2,31 @@ import base64
 import os
 
 import requests
+import socket
 from global_constants import PLAYER_SAVE_FOLDER, WORLD_SAVE_FOLDER
-
-SERVER_URL = "http://192.168.0.82:5000"
 
 
 class Client:
-    @staticmethod
-    def register_user(username, password):
+
+    def __init__(self):
+        self.server_ip = None
+        self.server_url = None
+
+    def set_server(self, server_ip):
+        self.server_ip = server_ip
+        self.server_url = f"http://{server_ip}:5000"
+
+    def verify_server(self):
+        try:
+            # Attempt to connect to the server
+            with socket.create_connection(address=(self.server_ip, 5000), timeout=5) as sock:
+                # If connection successful, return True
+                return True
+        except socket.error:
+            # If connection fails, return False
+            return False
+
+    def register_user(self, username, password):
         print("Sending registration request for username:", username)
 
         """Send plaintext username and password to the server. 
@@ -17,7 +34,7 @@ class Client:
         but I am not due to lack of digital certificate/self-signed certificates"""
 
         data = {"username": username, "password": password}
-        url = SERVER_URL + "/register"
+        url = self.server_url + "/register"
         response = requests.post(url, json=data)
 
         print("Response:", response.text)
@@ -27,13 +44,12 @@ class Client:
         else:
             return False, None
 
-    @staticmethod
-    def authenticate_user(username, password):
+    def authenticate_user(self, username, password):
         print("Sending authentication request for username:", username)
 
         # Send plaintext username and password to the server
         data = {"username": username, "password": password}
-        url = SERVER_URL + "/authenticate"
+        url = self.server_url + "/authenticate"
         response = requests.post(url, json=data)
 
         user_data = response.json()
@@ -45,14 +61,13 @@ class Client:
             print("Authentication failed:", user_data.get("error", "Unknown error"))
             return False
 
-    @staticmethod
-    def authenticate_recovery_code(username, recovery_code):
+    def authenticate_recovery_code(self, username, recovery_code):
         print("Sending recovery code authentication request for username:", username)
 
         # Send plaintext username and recovery code to the server
         print(username, recovery_code)
         data = {"username": username, "recovery code": recovery_code}
-        url = SERVER_URL + "/authenticate_recovery_code"
+        url = self.server_url + "/authenticate_recovery_code"
         response = requests.post(url, json=data)
 
         user_data = response.json()
@@ -64,13 +79,12 @@ class Client:
             print("Authentication failed:", user_data.get("error", "Unknown error"))
             return False
 
-    @staticmethod
-    def reset_password(username, new_password):
+    def reset_password(self, username, new_password):
         print("Sending recovery code authentication request for username:", username)
 
         # Send plaintext username and password to the server
         data = {"username": username, "password": new_password}
-        url = SERVER_URL + "/reset_password"
+        url = self.server_url + "/reset_password"
         response = requests.post(url, json=data)
 
         user_data = response.json()
@@ -82,10 +96,9 @@ class Client:
             print("Setting new password failed:", user_data.get("error", "Unknown error"))
             return False, None
 
-    @staticmethod
-    def upload_files(username, player_file_path, world_file_path):
+    def upload_files(self, username, player_file_path, world_file_path):
         print("Uploading files for username:", username)
-        url = SERVER_URL + "/upload"
+        url = self.server_url + "/upload"
 
         player_file = open(os.path.join(PLAYER_SAVE_FOLDER, f"{player_file_path}.json"), "rb")
         world_file = open(os.path.join(WORLD_SAVE_FOLDER, f"{world_file_path}.json"), "rb")
@@ -98,15 +111,14 @@ class Client:
         else:
             print("Failed to upload files:", response.text)
 
-    @staticmethod
-    def download_files(username):
+    def download_files(self, username):
         if not os.path.exists(path=PLAYER_SAVE_FOLDER):
             os.makedirs(name=PLAYER_SAVE_FOLDER)
         if not os.path.exists(path=WORLD_SAVE_FOLDER):
             os.makedirs(name=WORLD_SAVE_FOLDER)
 
         print("Downloading files for username:", username)
-        url = SERVER_URL + "/download"
+        url = self.server_url + "/download"
         response = requests.get(url, params={"username": username})
 
         if response.status_code == 200:
