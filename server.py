@@ -10,8 +10,6 @@ import sqlite3
 
 from werkzeug.utils import secure_filename
 
-DATABASE_NAME = "user_database.db"
-
 
 class Server:
     def __init__(self):
@@ -43,6 +41,8 @@ class Server:
         self.app.add_url_rule(rule="/download", endpoint="download_files", view_func=self.download_files,
                               methods=["GET"])
 
+        self.DATABASE_NAME = "user_database.db"
+        
     def run(self):
         self.create_tables()
         self.app.run(host=self.SERVER_IP, port=5000)
@@ -64,9 +64,8 @@ class Server:
         except Exception as e:
             print("Error verifying connection:", e)
 
-    @staticmethod
-    def create_tables():
-        connection = sqlite3.connect(DATABASE_NAME)
+    def create_tables(self):
+        connection = sqlite3.connect(self.DATABASE_NAME)
         cursor = connection.cursor()
         # Create the users table with ID and username as primary key
         cursor.execute("""CREATE TABLE IF NOT EXISTS users (      
@@ -90,8 +89,7 @@ class Server:
         connection.commit()
         connection.close()
 
-    @staticmethod
-    def register_user():
+    def register_user(self):
         data = request.json
         username = data.get("username")
         password = data.get("password")
@@ -113,7 +111,7 @@ class Server:
 
         try:
             # Insert user data into the database
-            with sqlite3.connect(database=DATABASE_NAME) as connection:
+            with sqlite3.connect(database=self.DATABASE_NAME) as connection:
                 cursor = connection.cursor()
                 cursor.execute(
                     "INSERT INTO users (username, hashed_password, password_salt, hashed_recovery_code, recovery_code_salt) VALUES (?, ?, ?, ?, ?)",
@@ -126,8 +124,7 @@ class Server:
             print("Registration failed. Username already exists:", username)
             return jsonify({"error": "Registration failed. Username already exists."})
 
-    @staticmethod
-    def authenticate_user():
+    def authenticate_user(self):
         data = request.json
         username = data.get("username")
         password = data.get("password")
@@ -136,7 +133,7 @@ class Server:
 
         try:
             # Retrieve user data from the database
-            with sqlite3.connect(database=DATABASE_NAME) as connection:
+            with sqlite3.connect(database=self.DATABASE_NAME) as connection:
                 cursor = connection.cursor()
                 cursor.execute("SELECT hashed_password, password_salt FROM users WHERE username=?", (username,))
                 user = cursor.fetchone()
@@ -157,8 +154,7 @@ class Server:
             print("Error during authentication:", str(error))
             return jsonify({"error": str(error)})
 
-    @staticmethod
-    def authenticate_recovery_code():
+    def authenticate_recovery_code(self):
         data = request.json
         username = data.get("username")
         recovery_code = data.get("recovery code")
@@ -167,7 +163,7 @@ class Server:
 
         try:
             # Retrieve user data from the database
-            with sqlite3.connect(database=DATABASE_NAME) as connection:
+            with sqlite3.connect(database=self.DATABASE_NAME) as connection:
                 cursor = connection.cursor()
                 cursor.execute("SELECT hashed_recovery_code, recovery_code_salt FROM users WHERE username=?",
                                (username,))
@@ -190,8 +186,7 @@ class Server:
             print("Error during authentication:", str(error))
             return jsonify({"error": str(error)})
 
-    @staticmethod
-    def reset_password():
+    def reset_password(self):
         data = request.json
         username = data.get("username")
         password = data.get("password")
@@ -213,7 +208,7 @@ class Server:
 
         try:
             # Insert user data into the database
-            with sqlite3.connect(database=DATABASE_NAME) as connection:
+            with sqlite3.connect(database=self.DATABASE_NAME) as connection:
                 cursor = connection.cursor()
                 cursor.execute(
                     "UPDATE users SET hashed_password = ?, password_salt = ?, hashed_recovery_code = ?, recovery_code_salt = ? WHERE username = ?",
@@ -242,7 +237,7 @@ class Server:
 
             print("Files uploaded by user:", username)
 
-            with sqlite3.connect(database=DATABASE_NAME) as connection:
+            with sqlite3.connect(database=self.DATABASE_NAME) as connection:
                 cursor = connection.cursor()
                 try:
                     cursor.execute("INSERT INTO save_files (username, file_path, file_type) VALUES (?, ? ,?)",
@@ -263,7 +258,7 @@ class Server:
     def download_files(self):
         username = request.args.get("username")
         try:
-            with sqlite3.connect(database=DATABASE_NAME) as connection:
+            with sqlite3.connect(database=self.DATABASE_NAME) as connection:
                 cursor = connection.cursor()
                 cursor.execute("SELECT file_path, file_type FROM save_files WHERE username=?", (username,))
                 paths = cursor.fetchall()

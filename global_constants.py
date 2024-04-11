@@ -6,8 +6,7 @@ WORLD_SAVE_FOLDER = "local_world_save_files"
 pygame.init()
 WINDOW_WIDTH = pygame.display.Info().current_w
 WINDOW_HEIGHT = pygame.display.Info().current_h
-# WINDOW_WIDTH = 1280
-# WINDOW_HEIGHT = 720
+
 FRAMES_PER_SECOND = 60
 
 

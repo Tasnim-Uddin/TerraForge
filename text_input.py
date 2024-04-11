@@ -7,7 +7,7 @@ from event_manager import EventManager
 
 class TextInput:
     def __init__(self):
-        self.all_valid_characters = string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation + " "
+        self.all_valid_characters = string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation
 
         self.input_rect = pygame.Rect(WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2, 200, 50)
         self.input_text = ""

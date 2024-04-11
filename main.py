@@ -13,10 +13,6 @@ from client import Client
 
 class Game:
     def __init__(self):
-        if not os.path.exists(path=PLAYER_SAVE_FOLDER):
-            os.makedirs(name=PLAYER_SAVE_FOLDER)
-        if not os.path.exists(path=WORLD_SAVE_FOLDER):
-            os.makedirs(name=WORLD_SAVE_FOLDER)
         pygame.init()
         pygame.mixer.init()
 
@@ -96,6 +92,10 @@ class Game:
     def __quit_game(self):
         # TODO: uncomment code
         self.running = False
+        if not os.path.exists(path=PLAYER_SAVE_FOLDER):
+            os.makedirs(name=PLAYER_SAVE_FOLDER)
+        if not os.path.exists(path=WORLD_SAVE_FOLDER):
+            os.makedirs(name=WORLD_SAVE_FOLDER)
         if self.__menu_state_stack[-1] == "game":
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
@@ -103,6 +103,7 @@ class Game:
             self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
         shutil.rmtree(WORLD_SAVE_FOLDER)
         shutil.rmtree(PLAYER_SAVE_FOLDER)
+        self.__client.close_connection()
         pygame.quit()
         sys.exit()
 
@@ -226,35 +227,43 @@ class Game:
     def validate_username_text_input(self):
         if 5 <= len(self.__username) <= 20:
             return True
+        return False
 
     @staticmethod
     def validate_password_text_input(password):
-        create_password_lower = False
-        create_password_upper = False
-        create_password_number = False
-        create_password_special = False
-        if 5 <= len(password) <= 64:
-            for character in password:
-                if character in string.ascii_lowercase:
-                    create_password_lower = True
-                if character in string.ascii_uppercase:
-                    create_password_upper = True
-                if character in string.digits:
-                    create_password_number = True
-                if character in string.punctuation + " ":
-                    create_password_special = True
-        if create_password_lower and create_password_upper and create_password_number and create_password_special:
+        # create_password_lower = False
+        # create_password_upper = False
+        # create_password_number = False
+        # create_password_special = False
+        # if 5 <= len(password) <= 64:
+        #     for character in password:
+        #         if character in string.ascii_lowercase:
+        #             create_password_lower = True
+        #         if character in string.ascii_uppercase:
+        #             create_password_upper = True
+        #         if character in string.digits:
+        #             create_password_number = True
+        #         if character in string.punctuation:
+        #             create_password_special = True
+        # if create_password_lower and create_password_upper and create_password_number and create_password_special:
+        #     return True
+        # return False
+        password_criteria = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[' + re.escape(string.punctuation) + r']).{5,64}$'
+        if re.match(password_criteria, password):
             return True
+        return False
 
     def validate_player_text_input(self):
-        if self.__player_name is not None:
-            if 5 <= len(self.__player_name) <= 20:
-                return True
+        criteria = r'^.{5,20}$'
+        if re.match(criteria, self.__player_name):
+            return True
+        return False
 
     def validate_world_text_input(self):
-        if self.__world_name is not None:
-            if 5 <= len(self.__world_name) <= 20:
-                return True
+        criteria = r'^.{5,20}$'
+        if re.match(criteria, self.__world_name):
+            return True
+        return False
 
     def server_ip_menu(self):
         menu_options = ["Text Box", "Quit"]
@@ -279,7 +288,7 @@ class Game:
                             self.__client.set_server(server_ip=server_ip)
                             if server_ip != "" and self.__client.verify_server():
                                 success_text = self.menu_font.render(
-                                    text="Valid Server IP",
+                                    text="Valid server IP address",
                                     antialias=True,
                                     color="green")
                                 success_rect = success_text.get_rect(
@@ -291,7 +300,7 @@ class Game:
                                 self.__menu_state_stack.append("login or register")
                             else:
                                 fail_text = self.menu_font.render(
-                                    text="Invalid Server IP",
+                                    text="Invalid server IP address",
                                     antialias=True,
                                     color="red")
                                 success_rect = fail_text.get_rect(
@@ -628,7 +637,7 @@ class Game:
                                 self.__menu_state_stack.append("reset password new password")
                             else:
                                 success_text = self.menu_font.render(
-                                    text="Username and/or recovery code invalid",
+                                    text="Invalid username and/or recovery code",
                                     antialias=True,
                                     color="red")
                                 success_rect = success_text.get_rect(
@@ -770,12 +779,11 @@ class Game:
             "Move Left": "A",
             "Move Right": "D",
             "Jump": "SPACE",
-            "Break Block": "Left Mouse Button",
-            "Place Block": "Right Mouse Button",
-            "Attack": "Right Mouse Button",
-            "Eat": "Right Mouse Button",
             "Toggle Inventory": "E",
-            "Navigate Inventory": "Scroll Wheel / 1-9",
+            "Toggle Crafting": "C",
+            "Break/Place Block": "Left/Right Mouse Button",
+            "Attack": "Left Mouse Button",
+            "Eat": "Right Mouse Button",
             "Swap Items": "Right Mouse Button",
             "Quit Game": "ESCAPE"
         }

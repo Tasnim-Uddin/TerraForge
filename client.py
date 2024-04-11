@@ -26,6 +26,16 @@ class Client:
             # If connection fails, return False
             return False
 
+    def close_connection(self):
+        # Send a request to the server indicating that the connection is closed
+        data = {"message": "Closing connection"}
+        url = self.server_url + "/close_connection"
+        response = requests.post(url, json=data)
+        if response.status_code == 200:
+            print("Connection closed successfully.")
+        else:
+            print("Failed to close connection:", response.text)
+
     def register_user(self, username, password):
         print("Sending registration request for username:", username)
 

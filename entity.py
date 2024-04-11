@@ -148,3 +148,4 @@ class Entity:
             self._health = 100
         elif self._health < 0:
             self._health = 0
+
