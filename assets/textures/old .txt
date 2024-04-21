@@ -1,7 +1,0 @@
-textures: https://piiixl.itch.io/textures
-
-tools: https://dantepixels.itch.io/tools-asset-16x16
-
-player: https://vilrink.itch.io/animated-pixel-art-player
-
-slime enemy: https://ivess.itch.io/slime-animations-pack
