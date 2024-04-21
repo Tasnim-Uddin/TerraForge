@@ -118,17 +118,17 @@ class TestScene(unittest.TestCase):
         # Initialize the Game object
         self.game = Game()
         # Initialize the Scene object
-        self.scene = Scene(self.game)
+        self.scene = Scene(game=self.game)
 
     def test_get_player(self):
         # Test get_player method
         player = self.scene.get_player()
-        self.assertIsNotNone(player)
+        self.assertTrue(isinstance(player, Player))
 
     def test_get_inventory(self):
         # Test get_inventory method
         inventory = self.scene.get_inventory()
-        self.assertIsNotNone(inventory)
+        self.assertTrue(isinstance(inventory, Inventory))
 
     def test_spawn_enemy(self):
         # Test __spawn_enemy method
@@ -151,7 +151,7 @@ class TestScene(unittest.TestCase):
         # Call the method
         chunk_offset = (0, 0)
         key = (0, 0)
-        self.scene._Scene__generate_chunk(chunk_offset, key)
+        self.scene._Scene__generate_chunk(chunk_offset)
 
         # Assertions based on the expected behavior of __generate_chunk
 
@@ -173,7 +173,8 @@ class TestScene(unittest.TestCase):
             elif CAVE_LEVEL * BLOCK_SIZE < (real_y + height_noise) <= DEEP_CAVE_LEVEL * BLOCK_SIZE:
                 # Determine the expected block type based on probabilities and thresholds
                 if self.scene.lower_cave_threshold < cave_value < self.scene.upper_cave_threshold:
-                    self.assertIn(block_type, ["stone", "coal_ore", "iron_ore", "gold_ore", "diamond_ore"])
+                    self.assertIn(block_type,
+                                  ["stone", "coal_ore", "iron_ore", "gold_ore", "emerald_ore", "diamond_ore"])
                 else:
                     self.assertEqual(block_type, "stone")
             elif DEEP_CAVE_LEVEL * BLOCK_SIZE < (real_y + height_noise):
@@ -184,6 +185,8 @@ class TestScene(unittest.TestCase):
                     self.assertEqual(block_type, "deepslate_iron_ore")
                 elif random.random() < GOLD_SPAWN_RATE:
                     self.assertEqual(block_type, "deepslate_gold_ore")
+                elif random.random() < EMERALD_SPAWN_RATE:
+                    self.assertEqual(block_type, "deepslate_emerald_ore")
                 elif random.random() < DIAMOND_SPAWN_RATE:
                     self.assertEqual(block_type, "deepslate_diamond_ore")
                 else:
@@ -282,11 +285,17 @@ class TestScene(unittest.TestCase):
         self.assertNotIn((10, 11), self.scene._Scene__chunks[(0, 0)])
 
         # Scenario 6: Breaking a tree leaf with a pickaxe
-        self.scene._Scene__chunks[(0, 0)][(10, 10)] = "tree_leaf"
+        self.scene._Scene__chunks = {
+            (0, 0): {(10, 10): "tree_leaf"}
+        }
+        self.scene._Scene__inventory._Inventory__inventory_items = {(0, 0): {"item": "copper_pickaxe", "quantity": 1},
+                                                                    (0, 1): {"item": None, "quantity": None}}
         self.scene._Scene__break_block(held_item="copper_pickaxe")
         self.assertNotIn((10, 10), self.scene._Scene__chunks[(0, 0)])
-        if random.random() < 0.05:
-            self.assertIn("apple", self.scene._Scene__inventory._Inventory__items)
+
+        with patch('random.random', return_value=0.03):
+            self.assertTrue("apple", self.scene._Scene__inventory._Inventory__inventory_items[(0, 1)]["item"])
+            self.assertTrue("1", self.scene._Scene__inventory._Inventory__inventory_items[(0, 1)]["quantity"])
 
         # Scenario 7: Breaking a crafting table with a pickaxe
         self.scene._Scene__chunks[(0, 0)][(10, 10)] = "crafting_table"
@@ -297,8 +306,6 @@ class TestScene(unittest.TestCase):
         self.scene._Scene__chunks[(0, 0)][(10, 10)] = "furnace"
         self.scene._Scene__break_block(held_item="copper_pickaxe")
         self.assertNotIn((10, 10), self.scene._Scene__chunks[(0, 0)])
-
-        # Add more test cases for different scenarios as needed
 
     def test___place_block(self):
         # Scenario 1: Placing a block where no block exists
@@ -359,6 +366,7 @@ class TestScene(unittest.TestCase):
     def test_save_world_to_json(self):
         # Mock world name and chunk data
         self.scene._Scene__world_name = "test_world"
+        self.scene.world_seed_value = 12345
         self.scene._Scene__chunks = {
             (0, 0): {(0, 0): "stone", (1, 1): "dirt"},
             (1, 0): {(35, 0): "grass", (49, 2): "tree_log"}
@@ -375,7 +383,7 @@ class TestScene(unittest.TestCase):
 
             # Verify write calls
             handle = mock_file()
-            assert handle.write.call_count == 25
+            assert handle.write.call_count == 33
 
             # Capture the content written to the file
             written_content_parts = [call_args[0][0] for call_args in mock_file().write.call_args_list]
@@ -384,10 +392,10 @@ class TestScene(unittest.TestCase):
             written_content = "".join(written_content_parts)
 
             # Check if the written content matches the expected content
-            expected_content = json.dumps({
+            expected_content = json.dumps({"world_seed_value": 12345, "chunks": {
                 "0;0": {"0;0": "stone", "1;1": "dirt"},
                 "1;0": {"35;0": "grass", "49;2": "tree_log"}
-            })
+            }})
             assert written_content == expected_content
 
     def test_load_world_from_json(self):
@@ -395,16 +403,16 @@ class TestScene(unittest.TestCase):
         self.scene._Scene__world_name = "test_world"
 
         # Prepare mock serialized chunk data
-        mock_serialized_chunks = {
-            "0;0": {"0;0": "stone", "1;1": "dirt"},
-            "1;0": {"35;0": "grass", "49;2": "tree_log"}
-        }
+        mock_serialized_world_data = {"world_seed_value": 12345, "chunks": {
+                "0;0": {"0;0": "stone", "1;1": "dirt"},
+                "1;0": {"35;0": "grass", "49;2": "tree_log"}
+            }}
 
         # Mock the existence of the JSON file and its content
         with patch("os.path.exists", return_value=True):
-            with patch("builtins.open", mock_open(read_data=json.dumps(mock_serialized_chunks))) as mock_file:
+            with patch("builtins.open", mock_open(read_data=json.dumps(mock_serialized_world_data))) as mock_file:
                 # Call the method
-                chunks = self.scene.load_world_from_json()
+                world_seed_value, chunks = self.scene.load_world_from_json()
 
                 # Check if the file path is constructed correctly
                 world_path = os.path.join(WORLD_SAVE_FOLDER, "test_world.json")
@@ -415,10 +423,12 @@ class TestScene(unittest.TestCase):
                 mock_file().read.assert_called_once()
 
                 # Verify the loaded chunk data
+                expected_world_seed_value = 12345
                 expected_chunks = {
                     (0, 0): {(0, 0): "stone", (1, 1): "dirt"},
                     (1, 0): {(35, 0): "grass", (49, 2): "tree_log"}
                 }
+                assert world_seed_value == expected_world_seed_value, "Loaded world seed value does not match expected data"
                 assert chunks == expected_chunks, "Loaded chunks do not match expected data"
 
 
@@ -806,24 +816,24 @@ class TestSlimeEnemy(unittest.TestCase):
         player_mock = Mock()
         player_mock.get_rect.return_value = pygame.Rect(0, 0, 32, 32)
         player_mock.get_health.return_value = 100
-        self.slime_enemy.attack_update(player_mock, 1)
+        self.slime_enemy.attack_update(player_mock)
         self.assertGreaterEqual(player_mock.set_health.call_count, 0)
 
         # Test changes in direction and velocity
         initial_directions = self.slime_enemy._directions.copy()
         initial_velocity = self.slime_enemy._velocity.copy()
         self.slime_enemy._on_ground = True
-        self.slime_enemy.attack_update(player_mock, 1)
+        self.slime_enemy.attack_update(player_mock)
         self.assertNotEqual(self.slime_enemy._velocity, initial_velocity)
 
         # Test cooldown reduction
         initial_cooldown = self.slime_enemy._SlimeEnemy__attack_cooldown
-        self.slime_enemy.attack_update(player_mock, 1)
+        self.slime_enemy.attack_update(player_mock)
         self.assertLessEqual(self.slime_enemy._SlimeEnemy__attack_cooldown, initial_cooldown)
 
         # Test behavior when player is within attack range
         player_mock.get_rect.return_value = pygame.Rect(50, 0, 32, 32)
-        self.slime_enemy.attack_update(player_mock, 1)
+        self.slime_enemy.attack_update(player_mock)
         self.assertGreaterEqual(player_mock.set_health.call_count, 1)
 
 

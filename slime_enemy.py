@@ -54,7 +54,7 @@ class SlimeEnemy(Entity):
             self._on_ground = False
             self._velocity[1] = -ENEMY_JUMP_HEIGHT
 
-    def attack_update(self, player, dt):
+    def attack_update(self, player):
         speed = ENEMY_HORIZONTAL_SPEED
         dx = player.get_rect().centerx - self._rect.centerx
         dy = player.get_rect().centery - self._rect.centery
@@ -76,7 +76,7 @@ class SlimeEnemy(Entity):
                 self._directions["idle"] = True
                 self._directions["left"] = False
                 self._directions["right"] = False
-            self._velocity[1] += GRAVITY * dt
+            self._velocity[1] += GRAVITY
             self.__jump()
             if self._rect.colliderect(player.get_rect()):
                 if self.__attack_cooldown <= 0:
@@ -85,4 +85,4 @@ class SlimeEnemy(Entity):
                     player_damage.set_volume(0.1)
                     player_damage.play()
                     self.__attack_cooldown = SLIME_ATTACK_INTERVAL
-        self.__attack_cooldown -= dt * 0.1
+        self.__attack_cooldown -= 0.1

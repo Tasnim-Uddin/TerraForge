@@ -1,4 +1,3 @@
-# import ez_profile
 import shutil
 import string
 
@@ -50,7 +49,6 @@ class Game:
         return self.__world_name
 
     def run(self):
-        dt = 0
         invincibility_duration = 1000  # Duration of invincibility
         invincibility_end_time = pygame.time.get_ticks() + invincibility_duration
         while self.running:
@@ -60,20 +58,13 @@ class Game:
                 self.start_time = pygame.time.get_ticks()  # Start the timer when the player selects world and inventory
 
             current_time = pygame.time.get_ticks()
-            elapsed_time = current_time - self.start_time
-
-            buffer_time = 100  # To ensure player starts off above ground
-
-            # if elapsed_time >= buffer_time:
-            #     dt = self.__clock.tick(FRAMES_PER_SECOND) / 1000
 
             player = self.__scene.get_player()
 
             if current_time <= invincibility_end_time:
                 player.set_health(health=MAX_HEALTH)
 
-            dt = 1
-            self.__scene.update_draw(dt=dt)
+            self.__scene.update_draw()
             self.screen.fblits([(
                                 self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True,
                                                       color="white"), (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))])
@@ -103,7 +94,6 @@ class Game:
             self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
         shutil.rmtree(WORLD_SAVE_FOLDER)
         shutil.rmtree(PLAYER_SAVE_FOLDER)
-        self.__client.close_connection()
         pygame.quit()
         sys.exit()
 
@@ -231,23 +221,6 @@ class Game:
 
     @staticmethod
     def validate_password_text_input(password):
-        # create_password_lower = False
-        # create_password_upper = False
-        # create_password_number = False
-        # create_password_special = False
-        # if 5 <= len(password) <= 64:
-        #     for character in password:
-        #         if character in string.ascii_lowercase:
-        #             create_password_lower = True
-        #         if character in string.ascii_uppercase:
-        #             create_password_upper = True
-        #         if character in string.digits:
-        #             create_password_number = True
-        #         if character in string.punctuation:
-        #             create_password_special = True
-        # if create_password_lower and create_password_upper and create_password_number and create_password_special:
-        #     return True
-        # return False
         password_criteria = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[' + re.escape(string.punctuation) + r']).{5,64}$'
         if re.match(password_criteria, password):
             return True

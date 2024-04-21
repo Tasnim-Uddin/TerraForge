@@ -17,11 +17,6 @@ class Server:
         self.app.config["PLAYER_SAVE_FOLDER"] = "player_save_files"
         self.app.config["WORLD_SAVE_FOLDER"] = "world_save_files"
 
-        if not os.path.exists(path=self.app.config["PLAYER_SAVE_FOLDER"]):
-            os.makedirs(name=self.app.config["PLAYER_SAVE_FOLDER"])
-        if not os.path.exists(path=self.app.config["WORLD_SAVE_FOLDER"]):
-            os.makedirs(name=self.app.config["WORLD_SAVE_FOLDER"])
-
         # Get local IPv4 address dynamically
         self.SERVER_IP = socket.gethostbyname(socket.gethostname())
 
@@ -229,8 +224,18 @@ class Server:
         if player_file and world_file:
             player_filename = secure_filename(player_file.filename)
             world_filename = secure_filename(world_file.filename)
-            player_file_path = os.path.join(self.app.config["PLAYER_SAVE_FOLDER"], player_filename)
-            world_file_path = os.path.join(self.app.config["WORLD_SAVE_FOLDER"], world_filename)
+
+            if not os.path.exists(path="users"):
+                os.makedirs(name="users")
+            if not os.path.exists(path=os.path.join("users", username)):
+                os.makedirs(name=os.path.join("users", username))
+            if not os.path.exists(path=os.path.join("users", username, self.app.config["PLAYER_SAVE_FOLDER"])):
+                os.makedirs(name=os.path.join("users", username, self.app.config["PLAYER_SAVE_FOLDER"]))
+            if not os.path.exists(path=os.path.join("users", username, self.app.config["WORLD_SAVE_FOLDER"])):
+                os.makedirs(name=os.path.join("users", username, self.app.config["WORLD_SAVE_FOLDER"]))
+
+            player_file_path = os.path.join("users", username, self.app.config["PLAYER_SAVE_FOLDER"], player_filename)
+            world_file_path = os.path.join("users", username, self.app.config["WORLD_SAVE_FOLDER"], world_filename)
 
             player_file.save(player_file_path)
             world_file.save(world_file_path)
@@ -271,9 +276,9 @@ class Server:
                         filetype = record[1]
                         print(filename, filetype)
                         if filetype == "player":
-                            file_path = os.path.join(self.app.config["PLAYER_SAVE_FOLDER"], filename)
+                            file_path = os.path.join("users", username, self.app.config["PLAYER_SAVE_FOLDER"], filename)
                         elif filetype == "world":
-                            file_path = os.path.join(self.app.config["WORLD_SAVE_FOLDER"], filename)
+                            file_path = os.path.join("users", username, self.app.config["WORLD_SAVE_FOLDER"], filename)
                         with open(file_path, "rb") as file:
                             file_content = file.read()
                         files_to_send.append(((filetype, filename), file_content))

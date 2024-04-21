@@ -51,8 +51,8 @@ class Player(Entity):
             self._on_ground = False
             self._velocity[1] = -PLAYER_JUMP_HEIGHT
 
-    def _movement(self, surrounding_chunks, dt):
-        super()._movement(surrounding_chunks=surrounding_chunks, dt=dt)
+    def _movement(self, surrounding_chunks):
+        super()._movement(surrounding_chunks=surrounding_chunks)
         self.__get_input()
         self.__set_velocity()
 
@@ -78,7 +78,7 @@ class Player(Entity):
 
             pygame.draw.rect(surface=screen, color="red", rect=lost_health_rect)
 
-    def attack(self, enemy, camera_offset, dt):
+    def attack(self, enemy, camera_offset):
         for event in EventManager.events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -96,7 +96,7 @@ class Player(Entity):
                             self.__attack_cooldown = PLAYER_ATTACK_INTERVAL
                         else:
                             # Reduce the cooldown timer
-                            self.__attack_cooldown -= dt * 0.05
+                            self.__attack_cooldown -= 0.05
 
     @staticmethod
     def death_screen(screen):

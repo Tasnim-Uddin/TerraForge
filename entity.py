@@ -69,23 +69,23 @@ class Entity:
                 self._velocity[1] = 0
                 return
 
-    def _movement(self, surrounding_chunks, dt):
-        self._velocity[1] += GRAVITY * dt
+    def _movement(self, surrounding_chunks):
+        self._velocity[1] += GRAVITY
 
-        self._y += self._velocity[1] * dt
+        self._y += self._velocity[1]
         self._rect.y = self._y
         self._get_surrounding_blocks(surrounding_chunks=surrounding_chunks)
         self._vertical_collision(surrounding_block_rects=self._surrounding_block_rects)
         self._rect.y = self._y
 
-        self._x += self._velocity[0] * dt
+        self._x += self._velocity[0]
         self._rect.x = self._x
         self._get_surrounding_blocks(surrounding_chunks=surrounding_chunks)
         self._horizontal_collision(surrounding_block_rects=self._surrounding_block_rects)
         self._rect.x = self._x
 
-    def update(self, chunks, dt):
-        self._movement(surrounding_chunks=chunks, dt=dt)
+    def update(self, chunks):
+        self._movement(surrounding_chunks=chunks)
 
     def draw(self, screen, camera_offset):
         # Shows surrounding blocks
