@@ -19,7 +19,9 @@ class Client:
     def verify_server(self):
         try:
             # Attempt to connect to the server
-            with socket.create_connection(address=(self.server_ip, 5000), timeout=5) as sock:
+            with socket.create_connection(
+                address=(self.server_ip, 5000), timeout=5
+            ) as _:
                 # If connection successful, return True
                 return True
         except socket.error:
@@ -93,15 +95,21 @@ class Client:
             print("New password set successfully:", username)
             return True, user_data["recovery code"]
         else:
-            print("Setting new password failed:", user_data.get("error", "Unknown error"))
+            print(
+                "Setting new password failed:", user_data.get("error", "Unknown error")
+            )
             return False, None
 
     def upload_files(self, username, player_file_path, world_file_path):
         print("Uploading files for username:", username)
         url = self.server_url + "/upload"
 
-        player_file = open(os.path.join(PLAYER_SAVE_FOLDER, f"{player_file_path}.json"), "rb")
-        world_file = open(os.path.join(WORLD_SAVE_FOLDER, f"{world_file_path}.json"), "rb")
+        player_file = open(
+            os.path.join(PLAYER_SAVE_FOLDER, f"{player_file_path}.json"), "rb"
+        )
+        world_file = open(
+            os.path.join(WORLD_SAVE_FOLDER, f"{world_file_path}.json"), "rb"
+        )
         files = {"player": player_file, "world": world_file}
         username = {"username": username}
         response = requests.post(url, files=files, data=username)

@@ -31,11 +31,11 @@ class Game:
         self.start_time = 0
         self.running = True
 
-        # self.screen = pygame.display.set_mode(size=(WINDOW_WIDTH, WINDOW_HEIGHT), vsync=1)
-        # TODO: uncomment code
-        self.screen = pygame.display.set_mode(size=(0, 0), flags=pygame.FULLSCREEN, vsync=1)
+        self.screen = pygame.display.set_mode(
+            size=(0, 0), flags=pygame.FULLSCREEN, vsync=1
+        )
 
-        self.__menu_state_stack = ["server ip"]  # TODO: change to "server ip"
+        self.__menu_state_stack = ["server ip"]
 
         self.__world_name = None
         self.__player_name = None
@@ -55,7 +55,9 @@ class Game:
             self.__menu_events()
 
             if self.start_time == 0:
-                self.start_time = pygame.time.get_ticks()  # Start the timer when the player selects world and inventory
+                self.start_time = (
+                    pygame.time.get_ticks()
+                )  # Start the timer when the player selects world and inventory
 
             current_time = pygame.time.get_ticks()
 
@@ -65,9 +67,18 @@ class Game:
                 player.set_health(health=MAX_HEALTH)
 
             self.__scene.update_draw()
-            self.screen.fblits([(
-                                self.game_font.render(text=f"FPS: {math.floor(self.__clock.get_fps())}", antialias=True,
-                                                      color="white"), (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50))])
+            self.screen.fblits(
+                [
+                    (
+                        self.game_font.render(
+                            text=f"FPS: {math.floor(self.__clock.get_fps())}",
+                            antialias=True,
+                            color="white",
+                        ),
+                        (WINDOW_WIDTH - 200, WINDOW_HEIGHT - 50),
+                    )
+                ]
+            )
             pygame.display.update()
             self.__clock.tick(FRAMES_PER_SECOND)
 
@@ -81,7 +92,6 @@ class Game:
                 self.return_to_main_menu()
 
     def __quit_game(self):
-        # TODO: uncomment code
         self.running = False
         if not os.path.exists(path=PLAYER_SAVE_FOLDER):
             os.makedirs(name=PLAYER_SAVE_FOLDER)
@@ -91,14 +101,17 @@ class Game:
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
             self.__scene.save_world_to_json()
-            self.__client.upload_files(username=self.__username, player_file_path=self.__player_name, world_file_path=self.__world_name)
+            self.__client.upload_files(
+                username=self.__username,
+                player_file_path=self.__player_name,
+                world_file_path=self.__world_name,
+            )
         shutil.rmtree(WORLD_SAVE_FOLDER)
         shutil.rmtree(PLAYER_SAVE_FOLDER)
         pygame.quit()
         sys.exit()
 
     def return_to_main_menu(self):
-        # TODO: uncomment code
         self.playing_game_music = False
         self.game_music.stop()
 
@@ -108,8 +121,11 @@ class Game:
         inventory = self.__scene.get_inventory()
         inventory.save_inventory_to_json()
         self.__scene.save_world_to_json()
-        self.__client.upload_files(username=self.__username, player_file_path=self.__player_name,
-                                   world_file_path=self.__world_name)
+        self.__client.upload_files(
+            username=self.__username,
+            player_file_path=self.__player_name,
+            world_file_path=self.__world_name,
+        )
         self.__scene = None
         self.start_time = 0
         self.menu_active = True
@@ -172,7 +188,9 @@ class Game:
         self.screen.fill(color="black")
 
         if menu_type:
-            text = self.menu_font.render(text=f"{menu_type}", antialias=True, color="#39a5d4")
+            text = self.menu_font.render(
+                text=f"{menu_type}", antialias=True, color="#39a5d4"
+            )
             text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, 50))
             self.screen.fblits([(text, text_rect)])
 
@@ -183,9 +201,13 @@ class Game:
             colour = "white" if number == selected_option else "#808080"
             text = self.menu_font.render(text=option, antialias=True, color=colour)
             if option == "Back":
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
+                text_rect = text.get_rect(
+                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50)
+                )
             else:
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, start_y + number * 50))
+                text_rect = text.get_rect(
+                    center=(WINDOW_WIDTH // 2, start_y + number * 50)
+                )
             self.screen.fblits([(text, text_rect)])
         pygame.display.flip()
 
@@ -197,11 +219,16 @@ class Game:
         self.screen.fblits([(text, text_rect)])
 
         if detail_type is not None:
-            text = self.menu_font.render(text=f"Enter {menu_type} {detail_type}:", antialias=True,
-                                         color="white")
+            text = self.menu_font.render(
+                text=f"Enter {menu_type} {detail_type}:", antialias=True, color="white"
+            )
         else:
-            text = self.menu_font.render(text=f"Enter New {menu_type}:", antialias=True, color="white")
-        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5))
+            text = self.menu_font.render(
+                text=f"Enter New {menu_type}:", antialias=True, color="white"
+            )
+        text_rect = text.get_rect(
+            center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - WINDOW_HEIGHT // 5)
+        )
         self.screen.fblits([(text, text_rect)])
 
         for number, option in enumerate(menu_options):
@@ -210,7 +237,9 @@ class Game:
             elif option == "Back" or option == "Quit":
                 colour = "white" if number == selected_option else "#808080"
                 text = self.menu_font.render(text=option, antialias=True, color=colour)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
+                text_rect = text.get_rect(
+                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50)
+                )
                 self.screen.fblits([(text, text_rect)])
         pygame.display.flip()
 
@@ -221,19 +250,23 @@ class Game:
 
     @staticmethod
     def validate_password_text_input(password):
-        password_criteria = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[' + re.escape(string.punctuation) + r']).{5,64}$'
+        password_criteria = (
+            r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*["
+            + re.escape(string.punctuation)
+            + r"]).{5,64}$"
+        )
         if re.match(password_criteria, password):
             return True
         return False
 
     def validate_player_text_input(self):
-        criteria = r'^.{5,20}$'
+        criteria = r"^.{5,20}$"
         if re.match(criteria, self.__player_name):
             return True
         return False
 
     def validate_world_text_input(self):
-        criteria = r'^.{5,20}$'
+        criteria = r"^.{5,20}$"
         if re.match(criteria, self.__world_name):
             return True
         return False
@@ -246,8 +279,12 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
-                               menu_type="Server", detail_type="IP")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Server",
+                detail_type="IP",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -263,9 +300,11 @@ class Game:
                                 success_text = self.menu_font.render(
                                     text="Valid server IP address",
                                     antialias=True,
-                                    color="green")
+                                    color="green",
+                                )
                                 success_rect = success_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+                                )
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(success_text, success_rect)])
                                 pygame.display.flip()
@@ -275,9 +314,11 @@ class Game:
                                 fail_text = self.menu_font.render(
                                     text="Invalid server IP address",
                                     antialias=True,
-                                    color="red")
+                                    color="red",
+                                )
                                 success_rect = fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+                                )
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(fail_text, success_rect)])
                                 pygame.display.flip()
@@ -322,8 +363,12 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
-                               menu_type="Login", detail_type="Username")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Login",
+                detail_type="Username",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -350,8 +395,12 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
-                               menu_type="Login", detail_type="Password")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Login",
+                detail_type="Password",
+            )
 
             EventManager.queue_events()
             for event in EventManager.events:
@@ -366,16 +415,19 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text
-                            if self.__client.authenticate_user(username=self.__username, password=password):
-                                # TODO: uncomment code
+                            if self.__client.authenticate_user(
+                                username=self.__username, password=password
+                            ):
                                 self.__client.download_files(username=self.__username)
 
                                 success_text = self.menu_font.render(
                                     text="Login successful",
                                     antialias=True,
-                                    color="green")
+                                    color="green",
+                                )
                                 success_rect = success_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+                                )
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(success_text, success_rect)])
                                 pygame.display.flip()
@@ -388,9 +440,11 @@ class Game:
                                 success_text = self.menu_font.render(
                                     text="Invalid username and/or password",
                                     antialias=True,
-                                    color="red")
+                                    color="red",
+                                )
                                 success_rect = success_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+                                )
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(success_text, success_rect)])
                                 pygame.display.flip()
@@ -410,8 +464,12 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
-                               menu_type="Register", detail_type="Username")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Register",
+                detail_type="Username",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -432,18 +490,25 @@ class Game:
                                 criteria_fail_text = self.menu_font.render(
                                     text="Username does not meet the following criteria:",
                                     antialias=True,
-                                    color="red")
+                                    color="red",
+                                )
                                 criteria_fail_rect = criteria_fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100)
+                                )
 
                                 criteria_text = self.menu_font.render(
                                     text="Between 5 and 20 characters",
-                                    antialias=True, color="red")
+                                    antialias=True,
+                                    color="red",
+                                )
                                 criteria_rect = criteria_fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20)
+                                )
 
                                 self.screen.fill(color="black")
-                                self.screen.fblits([(criteria_fail_text, criteria_fail_rect)])
+                                self.screen.fblits(
+                                    [(criteria_fail_text, criteria_fail_rect)]
+                                )
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
                                 pygame.time.delay(2000)
@@ -461,8 +526,12 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
-                               menu_type="Register", detail_type="Password")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Register",
+                detail_type="Password",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -477,26 +546,44 @@ class Game:
                         elif selected_option == 0:  # Text Box
                             password = self.text_input.input_text
                             if self.validate_password_text_input(password=password):
-                                registration_successful, recovery_code = self.__client.register_user(
-                                    username=self.__username, password=password)
-                                if registration_successful and recovery_code is not None:
+                                registration_successful, recovery_code = (
+                                    self.__client.register_user(
+                                        username=self.__username, password=password
+                                    )
+                                )
+                                if (
+                                    registration_successful
+                                    and recovery_code is not None
+                                ):
                                     success_text = self.menu_font.render(
                                         text="Registration successful",
                                         antialias=True,
-                                        color="green")
+                                        color="green",
+                                    )
                                     success_rect = success_text.get_rect(
-                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 40))
+                                        center=(
+                                            WINDOW_WIDTH // 2,
+                                            WINDOW_HEIGHT // 2 - 40,
+                                        )
+                                    )
 
                                     recovery_code_text = self.menu_font.render(
                                         text=f"Your recovery code is: {recovery_code}",
                                         antialias=True,
-                                        color="green")
+                                        color="green",
+                                    )
                                     recovery_code_rect = recovery_code_text.get_rect(
-                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 40))
+                                        center=(
+                                            WINDOW_WIDTH // 2,
+                                            WINDOW_HEIGHT // 2 + 40,
+                                        )
+                                    )
 
                                     self.screen.fill(color="black")
                                     self.screen.fblits([(success_text, success_rect)])
-                                    self.screen.fblits([(recovery_code_text, recovery_code_rect)])
+                                    self.screen.fblits(
+                                        [(recovery_code_text, recovery_code_rect)]
+                                    )
                                     pygame.display.flip()
 
                                     pygame.time.delay(8000)
@@ -507,9 +594,11 @@ class Game:
                                     success_text = self.menu_font.render(
                                         text="Username already exists",
                                         antialias=True,
-                                        color="red")
+                                        color="red",
+                                    )
                                     success_rect = success_text.get_rect(
-                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+                                    )
                                     self.screen.fill(color="black")
                                     self.screen.fblits([(success_text, success_rect)])
                                     pygame.display.flip()
@@ -521,17 +610,23 @@ class Game:
                                 criteria_fail_text = self.menu_font.render(
                                     text="Password does not meet the following criteria:",
                                     antialias=True,
-                                    color="red")
+                                    color="red",
+                                )
                                 criteria_fail_rect = criteria_fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100)
+                                )
                                 criteria_text = self.menu_font.render(
                                     text="Between 5 and 64 characters\nLowercase letter\nUppercase letter\nNumber\nSpecial character",
-                                    antialias=True, color="red")
+                                    antialias=True,
+                                    color="red",
+                                )
                                 criteria_rect = criteria_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20)
+                                )
                                 self.screen.fill(color="black")
-                                self.screen.fblits([(criteria_fail_text,
-                                                     criteria_fail_rect)])
+                                self.screen.fblits(
+                                    [(criteria_fail_text, criteria_fail_rect)]
+                                )
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
                                 pygame.time.delay(5000)
@@ -550,8 +645,12 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
-                               menu_type="Reset Password", detail_type="Username")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Reset Password",
+                detail_type="Username",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -565,7 +664,9 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             self.__username = self.text_input.input_text
-                            self.__menu_state_stack.append("reset password recovery code")
+                            self.__menu_state_stack.append(
+                                "reset password recovery code"
+                            )
                             return
 
             self.text_input.update(validation_type="short")
@@ -578,8 +679,12 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
-                               menu_type="Reset Password", detail_type="Recovery Code")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Reset Password",
+                detail_type="Recovery Code",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -593,28 +698,35 @@ class Game:
                             return
                         elif selected_option == 0:  # Text Box
                             recovery_code = self.text_input.input_text
-                            if self.__client.authenticate_recovery_code(username=self.__username,
-                                                                        recovery_code=recovery_code):
+                            if self.__client.authenticate_recovery_code(
+                                username=self.__username, recovery_code=recovery_code
+                            ):
 
                                 success_text = self.menu_font.render(
                                     text="Recovery code valid",
                                     antialias=True,
-                                    color="green")
+                                    color="green",
+                                )
                                 success_rect = success_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+                                )
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(success_text, success_rect)])
                                 pygame.display.flip()
                                 pygame.time.delay(2000)
 
-                                self.__menu_state_stack.append("reset password new password")
+                                self.__menu_state_stack.append(
+                                    "reset password new password"
+                                )
                             else:
                                 success_text = self.menu_font.render(
                                     text="Invalid username and/or recovery code",
                                     antialias=True,
-                                    color="red")
+                                    color="red",
+                                )
                                 success_rect = success_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+                                )
                                 self.screen.fill(color="black")
                                 self.screen.fblits([(success_text, success_rect)])
                                 pygame.display.flip()
@@ -634,8 +746,12 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option,
-                               menu_type="Reset Password", detail_type="New Password")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Reset Password",
+                detail_type="New Password",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -650,26 +766,45 @@ class Game:
                         elif selected_option == 0:  # Text Box
                             new_password = self.text_input.input_text
                             if self.validate_password_text_input(password=new_password):
-                                new_password_successful, recovery_code = self.__client.reset_password(
-                                    username=self.__username, new_password=new_password)
-                                if new_password_successful and recovery_code is not None:
+                                new_password_successful, recovery_code = (
+                                    self.__client.reset_password(
+                                        username=self.__username,
+                                        new_password=new_password,
+                                    )
+                                )
+                                if (
+                                    new_password_successful
+                                    and recovery_code is not None
+                                ):
                                     success_text = self.menu_font.render(
                                         text="Password reset",
                                         antialias=True,
-                                        color="green")
+                                        color="green",
+                                    )
                                     success_rect = success_text.get_rect(
-                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 40))
+                                        center=(
+                                            WINDOW_WIDTH // 2,
+                                            WINDOW_HEIGHT // 2 - 40,
+                                        )
+                                    )
 
                                     recovery_code_text = self.menu_font.render(
                                         text=f"Your new recovery code is: {recovery_code}",
                                         antialias=True,
-                                        color="green")
+                                        color="green",
+                                    )
                                     recovery_code_rect = recovery_code_text.get_rect(
-                                        center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 40))
+                                        center=(
+                                            WINDOW_WIDTH // 2,
+                                            WINDOW_HEIGHT // 2 + 40,
+                                        )
+                                    )
 
                                     self.screen.fill(color="black")
                                     self.screen.fblits([(success_text, success_rect)])
-                                    self.screen.fblits([(recovery_code_text, recovery_code_rect)])
+                                    self.screen.fblits(
+                                        [(recovery_code_text, recovery_code_rect)]
+                                    )
                                     pygame.display.flip()
                                     pygame.time.delay(8000)
 
@@ -681,18 +816,24 @@ class Game:
                                 criteria_fail_text = self.menu_font.render(
                                     text="Password does not meet the following criteria:",
                                     antialias=True,
-                                    color="red")
+                                    color="red",
+                                )
                                 criteria_fail_rect = criteria_fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100)
+                                )
                                 criteria_text = self.menu_font.render(
                                     text="Between 5 and 64 characters\nLowercase letter\nUppercase letter\nNumber\nSpecial character",
-                                    antialias=True, color="red")
+                                    antialias=True,
+                                    color="red",
+                                )
                                 criteria_rect = criteria_text.get_rect(
                                     # Use criteria_text here instead of criteria_fail_text
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20)
+                                )
                                 self.screen.fill(color="black")
-                                self.screen.fblits([(criteria_fail_text,
-                                                     criteria_fail_rect)])
+                                self.screen.fblits(
+                                    [(criteria_fail_text, criteria_fail_rect)]
+                                )
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
                                 pygame.time.delay(5000)
@@ -728,7 +869,9 @@ class Game:
         selected_option = 0
 
         while True:
-            self.controls_menu_draw(menu_options=menu_options, selected_option=selected_option)
+            self.controls_menu_draw(
+                menu_options=menu_options, selected_option=selected_option
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -758,11 +901,13 @@ class Game:
             "Attack": "Left Mouse Button",
             "Eat": "Right Mouse Button",
             "Swap Items": "Right Mouse Button",
-            "Quit Game": "ESCAPE"
+            "Quit Game": "ESCAPE",
         }
 
         # Calculate the maximum width of the action texts
-        max_action_width = max(self.menu_font.size(action)[0] for action in all_controls.keys())
+        max_action_width = max(
+            self.menu_font.size(action)[0] for action in all_controls.keys()
+        )
 
         x_left = WINDOW_WIDTH // 4  # Action column (left side)
         x_right = 3 * (WINDOW_WIDTH // 4)  # Button column (right side)
@@ -774,14 +919,18 @@ class Game:
         for number, (action, button) in enumerate(all_controls.items()):
             y = y_start + number * line_height
 
-            action_text = self.menu_font.render(text=action, antialias=True, color="white")
+            action_text = self.menu_font.render(
+                text=action, antialias=True, color="white"
+            )
             action_rect = action_text.get_rect(midleft=(x_left, y))
             self.screen.fblits([(action_text, action_rect)])
 
             # Determine the x position for the button texts
             x_button = x_right - max_action_width  # Align buttons to the right side
 
-            button_text = self.menu_font.render(text=button, antialias=True, color="white")
+            button_text = self.menu_font.render(
+                text=button, antialias=True, color="white"
+            )
             button_rect = button_text.get_rect(midleft=(x_button, y))
             self.screen.fblits([(button_text, button_rect)])
 
@@ -789,7 +938,9 @@ class Game:
             if option == "Back":
                 colour = "white" if number == selected_option else "#808080"
                 text = self.menu_font.render(text=option, antialias=True, color=colour)
-                text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50))
+                text_rect = text.get_rect(
+                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT - 50)
+                )
                 self.screen.fblits([(text, text_rect)])
 
         pygame.display.flip()
@@ -799,11 +950,17 @@ class Game:
         inventory_files.append("Create New Player")
         inventory_files.append("Back")
 
-        menu_options = [re.split(pattern=r"\.json", string=file)[0] for file in inventory_files]
+        menu_options = [
+            re.split(pattern=r"\.json", string=file)[0] for file in inventory_files
+        ]
         selected_option = 0
 
         while True:
-            self.menu_draw(menu_options=menu_options, selected_option=selected_option, menu_type="Player")
+            self.menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Player",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -815,11 +972,16 @@ class Game:
                         if selected_option == len(inventory_files) - 1:  # Back
                             self.__menu_state_stack.pop()  # Remove the last menu state from the stack
                             return
-                        elif selected_option == len(inventory_files) - 2:  # Create New Player
+                        elif (
+                            selected_option == len(inventory_files) - 2
+                        ):  # Create New Player
                             self.__menu_state_stack.append("create new player")
                             return
                         else:
-                            self.__player_name = re.split(pattern=r"\.json", string=inventory_files[selected_option])[0]
+                            self.__player_name = re.split(
+                                pattern=r"\.json",
+                                string=inventory_files[selected_option],
+                            )[0]
                             self.__menu_state_stack.append("world selection")
                             return
 
@@ -831,7 +993,11 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option, menu_type="Player")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="Player",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -851,18 +1017,25 @@ class Game:
                                 criteria_fail_text = self.menu_font.render(
                                     text="Player name does not meet the following criteria:",
                                     antialias=True,
-                                    color="red")
+                                    color="red",
+                                )
                                 criteria_fail_rect = criteria_fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100)
+                                )
 
                                 criteria_text = self.menu_font.render(
                                     text="Between 5 and 20 characters",
-                                    antialias=True, color="red")
+                                    antialias=True,
+                                    color="red",
+                                )
                                 criteria_rect = criteria_fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20)
+                                )
 
                                 self.screen.fill(color="black")
-                                self.screen.fblits([(criteria_fail_text, criteria_fail_rect)])
+                                self.screen.fblits(
+                                    [(criteria_fail_text, criteria_fail_rect)]
+                                )
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
                                 pygame.time.delay(2000)
@@ -877,11 +1050,17 @@ class Game:
         world_files.append("Create New World")
         world_files.append("Back")
 
-        menu_options = [re.split(pattern=r"\.json", string=file)[0] for file in world_files]
+        menu_options = [
+            re.split(pattern=r"\.json", string=file)[0] for file in world_files
+        ]
         selected_option = 0
 
         while True:
-            self.menu_draw(menu_options=menu_options, selected_option=selected_option, menu_type="World")
+            self.menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="World",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -893,11 +1072,15 @@ class Game:
                         if selected_option == len(world_files) - 1:  # Back
                             self.__menu_state_stack.pop()  # Remove the last menu state from the stack
                             return
-                        elif selected_option == len(world_files) - 2:  # Create New World
+                        elif (
+                            selected_option == len(world_files) - 2
+                        ):  # Create New World
                             self.__menu_state_stack.append("create new world")
                             return
                         else:
-                            self.__world_name = re.split(pattern=r"\.json", string=world_files[selected_option])[0]
+                            self.__world_name = re.split(
+                                pattern=r"\.json", string=world_files[selected_option]
+                            )[0]
                             self.__menu_state_stack.append("game")
                             return
 
@@ -909,7 +1092,11 @@ class Game:
         self.text_input.active = True
 
         while True:
-            self.sub_menu_draw(menu_options=menu_options, selected_option=selected_option, menu_type="World")
+            self.sub_menu_draw(
+                menu_options=menu_options,
+                selected_option=selected_option,
+                menu_type="World",
+            )
             EventManager.queue_events()
             for event in EventManager.events:
                 if event.type == pygame.KEYDOWN:
@@ -929,18 +1116,25 @@ class Game:
                                 criteria_fail_text = self.menu_font.render(
                                     text="World name does not meet the following criteria:",
                                     antialias=True,
-                                    color="red")
+                                    color="red",
+                                )
                                 criteria_fail_rect = criteria_fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 100)
+                                )
 
                                 criteria_text = self.menu_font.render(
                                     text="Between 5 and 20 characters",
-                                    antialias=True, color="red")
+                                    antialias=True,
+                                    color="red",
+                                )
                                 criteria_rect = criteria_fail_text.get_rect(
-                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20))
+                                    center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20)
+                                )
 
                                 self.screen.fill(color="black")
-                                self.screen.fblits([(criteria_fail_text, criteria_fail_rect)])
+                                self.screen.fblits(
+                                    [(criteria_fail_text, criteria_fail_rect)]
+                                )
                                 self.screen.fblits([(criteria_text, criteria_rect)])
                                 pygame.display.flip()
                                 pygame.time.delay(2000)

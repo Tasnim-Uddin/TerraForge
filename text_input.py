@@ -7,9 +7,16 @@ from event_manager import EventManager
 
 class TextInput:
     def __init__(self):
-        self.all_valid_characters = string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation
+        self.all_valid_characters = (
+            string.ascii_lowercase
+            + string.ascii_uppercase
+            + string.digits
+            + string.punctuation
+        )
 
-        self.input_rect = pygame.Rect(WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2, 200, 50)
+        self.input_rect = pygame.Rect(
+            WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2, 200, 50
+        )
         self.input_text = ""
         self.active = False
 
@@ -32,7 +39,9 @@ class TextInput:
 
     def draw(self, screen):
         pygame.draw.rect(surface=screen, color="#1874cd", rect=self.input_rect, width=2)
-        text_surface = self.font.render(text=self.input_text, antialias=True, color="white")
+        text_surface = self.font.render(
+            text=self.input_text, antialias=True, color="white"
+        )
         screen.fblits([(text_surface, (self.input_rect.x + 5, self.input_rect.y + 5))])
 
         self.input_rect.centerx = WINDOW_WIDTH / 2

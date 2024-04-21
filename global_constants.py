@@ -1,11 +1,11 @@
 import pygame
 
-PLAYER_SAVE_FOLDER = "local_player_save_files"
+PLAYER_SAVE_FOLDER = "player_save_files"
 WORLD_SAVE_FOLDER = "local_world_save_files"
 
 pygame.init()
-WINDOW_WIDTH = pygame.display.Info().current_w #* 0 + 1280
-WINDOW_HEIGHT = pygame.display.Info().current_h #* 0 + 720
+WINDOW_WIDTH = pygame.display.Info().current_w
+WINDOW_HEIGHT = pygame.display.Info().current_h
 
 FRAMES_PER_SECOND = 60
 
@@ -63,4 +63,3 @@ IRON_SPAWN_RATE = 0.03
 GOLD_SPAWN_RATE = 0.02
 EMERALD_SPAWN_RATE = 0.0001
 DIAMOND_SPAWN_RATE = 0.01
-

@@ -7,13 +7,27 @@ from entity import Entity
 
 class Player(Entity):
     def __init__(self):
-        idle_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/player.png").convert_alpha(),
-                                            size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
-        right_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/right_player.png").convert_alpha(),
-                                             size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
-        left_image = pygame.transform.scale(surface=pygame.image.load(file="assets/textures/left_player.png").convert_alpha(),
-                                            size=(BLOCK_SIZE, 2 * BLOCK_SIZE))
-        super().__init__(idle_image=idle_image, left_image=left_image, right_image=right_image)
+        idle_image = pygame.transform.scale(
+            surface=pygame.image.load(
+                file="assets/textures/player.png"
+            ).convert_alpha(),
+            size=(BLOCK_SIZE, 2 * BLOCK_SIZE),
+        )
+        right_image = pygame.transform.scale(
+            surface=pygame.image.load(
+                file="assets/textures/right_player.png"
+            ).convert_alpha(),
+            size=(BLOCK_SIZE, 2 * BLOCK_SIZE),
+        )
+        left_image = pygame.transform.scale(
+            surface=pygame.image.load(
+                file="assets/textures/left_player.png"
+            ).convert_alpha(),
+            size=(BLOCK_SIZE, 2 * BLOCK_SIZE),
+        )
+        super().__init__(
+            idle_image=idle_image, left_image=left_image, right_image=right_image
+        )
 
         self.__attack_cooldown = 0
 
@@ -62,19 +76,26 @@ class Player(Entity):
         health_bar_height = 50
 
         # Draw the background health bar (green) at the very top right of the screen
-        health_bar_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width, 0, health_bar_width, health_bar_height)
+        health_bar_rect = pygame.Rect(
+            WINDOW_WIDTH - health_bar_width, 0, health_bar_width, health_bar_height
+        )
 
         # Calculate the width of the lost health bar (red) based on the current health of the player
         lost_health_width = ((100 - self._health) / 100) * health_bar_width
-        lost_health_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width + (health_bar_width - lost_health_width),
-                                       0, lost_health_width, health_bar_height)
+        lost_health_rect = pygame.Rect(
+            WINDOW_WIDTH - health_bar_width + (health_bar_width - lost_health_width),
+            0,
+            lost_health_width,
+            health_bar_height,
+        )
 
         if 0 <= self._health <= MAX_HEALTH:
             pygame.draw.rect(surface=screen, color="green", rect=health_bar_rect)
             pygame.draw.rect(surface=screen, color="red", rect=lost_health_rect)
         else:
-            lost_health_rect = pygame.Rect(WINDOW_WIDTH - health_bar_width,
-                                           0, health_bar_width, health_bar_height)
+            lost_health_rect = pygame.Rect(
+                WINDOW_WIDTH - health_bar_width, 0, health_bar_width, health_bar_height
+            )
 
             pygame.draw.rect(surface=screen, color="red", rect=lost_health_rect)
 
@@ -83,12 +104,27 @@ class Player(Entity):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     # Iterate over enemies to check for attack range
-                    distance_to_enemy = ((enemy.get_rect().centery - self._rect.centery) ** 2 + (
-                                enemy.get_rect().centerx - self._rect.centerx) ** 2) ** 0.5
+                    distance_to_enemy = (
+                        (enemy.get_rect().centery - self._rect.centery) ** 2
+                        + (enemy.get_rect().centerx - self._rect.centerx) ** 2
+                    ) ** 0.5
                     mouse_position = pygame.mouse.get_pos()
-                    mouse_distance_to_enemy = ((enemy.get_rect().centery - (mouse_position[1] + camera_offset[1])) ** 2 + (
-                                enemy.get_rect().centerx - (mouse_position[0] + camera_offset[0])) ** 2) ** 0.5
-                    if 0 <= distance_to_enemy <= 5 * BLOCK_SIZE and 0 <= mouse_distance_to_enemy <= 5 * BLOCK_SIZE:
+                    mouse_distance_to_enemy = (
+                        (
+                            enemy.get_rect().centery
+                            - (mouse_position[1] + camera_offset[1])
+                        )
+                        ** 2
+                        + (
+                            enemy.get_rect().centerx
+                            - (mouse_position[0] + camera_offset[0])
+                        )
+                        ** 2
+                    ) ** 0.5
+                    if (
+                        0 <= distance_to_enemy <= 5 * BLOCK_SIZE
+                        and 0 <= mouse_distance_to_enemy <= 5 * BLOCK_SIZE
+                    ):
                         # Check if attack cooldown has expired
                         if self.__attack_cooldown <= 0:
                             enemy.set_health(health=enemy.get_health() - 30)
@@ -102,7 +138,9 @@ class Player(Entity):
     def death_screen(screen):
         font = pygame.font.Font(filename=None, size=100)
         text_surface = font.render(text="wasted", antialias=True, color="red")
-        text_rect = text_surface.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+        text_rect = text_surface.get_rect(
+            center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+        )
         death_surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
         alpha = 0
 
