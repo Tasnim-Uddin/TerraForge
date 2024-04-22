@@ -639,7 +639,7 @@ class Inventory:
                 if self.clicked_once:
                     if (
                         slot_position == self.clicked_slot_position
-                    ):  # or slot_number == self.active_slot:
+                    ):
                         pygame.draw.rect(
                             surface=self.screen,
                             color="#6ffc03",

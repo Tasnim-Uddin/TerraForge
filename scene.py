@@ -260,6 +260,7 @@ class Scene:
 
                                     x_shift_start += 1
                                     x_shift_end -= 1
+                    # rest of code
                     elif (
                         DIRT_LEVEL < (real_y + height_noise) <= CAVE_LEVEL * BLOCK_SIZE
                     ):
