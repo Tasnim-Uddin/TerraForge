@@ -93,10 +93,6 @@ class Game:
 
     def __quit_game(self):
         self.running = False
-        if not os.path.exists(path=PLAYER_SAVE_FOLDER):
-            os.makedirs(name=PLAYER_SAVE_FOLDER)
-        if not os.path.exists(path=WORLD_SAVE_FOLDER):
-            os.makedirs(name=WORLD_SAVE_FOLDER)
         if self.__menu_state_stack[-1] == "game":
             inventory = self.__scene.get_inventory()
             inventory.save_inventory_to_json()
